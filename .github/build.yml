@@ -11,7 +11,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # ఇది ఆటోమేటిక్‌గా బిల్డోజర్‌కు కావలసినవన్నీ డాకర్ కంటైనర్ లో సెట్ చేస్తుంది.
+      # ఇది లైసెన్స్ సమస్యలు రాకుండా ఆటోమేటిక్‌గా బిల్డ్ పూర్తి చేస్తుంది
       - name: Build with Buildozer Action
         uses: ArtemSBulgakov/buildozer-action@v1
         id: buildozer
