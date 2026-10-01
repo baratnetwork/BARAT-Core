@@ -15,42 +15,33 @@ from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.progressbar import ProgressBar
 from kivy.uix.popup import Popup
+from kivy.uix.widget import Widget
+from kivy.graphics import Color, Ellipse, Line, Rectangle, RoundedRectangle
 
-# Cybernetic Deep-Space Web3 Palette
-Window.clearcolor = (0.02, 0.04, 0.07, 1)
+# Ultra Deep-Space Cyber Background
+Window.clearcolor = (0.015, 0.03, 0.06, 1)
 
 DATA_VAULT = "barat_secure_vault.json"
-CURRENT_CLIENT_VERSION = "2.5.0"
+CURRENT_VERSION = "3.0.0"
 MIN_KYC_BLOCKS = 50
-SESSION_DURATION_SEC = 24 * 3600  # 24 Hours Active Node Session
-PROJECT_FOUNDER_SOL_WALLET = "BARATFoundationSolanaReserveMasterKey999"
+SESSION_HOURS = 24
 
-BIP39_WORDLIST = [
+BIP39_WORDS = [
     "quantum", "neural", "tensor", "matrix", "carbon", "genome", "protein",
     "stellar", "cipher", "plasma", "galaxy", "atomic", "photon", "vector",
-    "synapse", "nebula", "binary", "crypto", "beacon", "energy", "fusion",
-    "orbital", "vortex", "zenith"
+    "synapse", "nebula", "binary", "crypto", "beacon", "energy", "fusion"
 ]
 
-def hash_security(val):
+def hash_sec(val):
     return hashlib.sha256(val.encode()).hexdigest()
 
-def get_vault_data():
+def get_vault():
     defaults = {
-        "client_version": CURRENT_CLIENT_VERSION,
+        "version": CURRENT_VERSION,
         "users": {},
         "current_session": None,
         "used_ids": [],
-        "remote_update": {
-            "latest_version": "2.5.0",
-            "update_available": False,
-            "changelog": "Standard Release"
-        },
-        "global_stats": {
-            "total_nodes": 14210,
-            "network_hashrate": "512.4 TH/s",
-            "total_blocks": 218490
-        }
+        "stats": {"nodes": 18450, "hashrate": "620.8 TH/s", "blocks": 341020}
     }
     if os.path.exists(DATA_VAULT):
         try:
@@ -60,7 +51,7 @@ def get_vault_data():
             return defaults
     return defaults
 
-def save_vault_data(data):
+def save_vault(data):
     try:
         with open(DATA_VAULT, "w") as f:
             json.dump(data, f, indent=4)
@@ -68,13 +59,105 @@ def save_vault_data(data):
         pass
 
 
-# -------------------- 1. AUTH SCREEN (HUMAN VERIFICATION GATE) --------------------
+# -------------------- 1. 3D INDIA MAP + BARAT EMBLEM GRAPHIC WIDGET --------------------
+class BaratEmblem3D(Widget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.bind(pos=self.redraw, size=self.redraw)
+
+    def redraw(self, *args):
+        self.canvas.clear()
+        cx = self.center_x
+        cy = self.center_y
+        r = min(self.width, self.height) * 0.42
+
+        with self.canvas:
+            # --- LAYER 1: 3D Holographic India Geo-Network Grid (Backdrop) ---
+            # Cyber Grid Aura
+            Color(0.0, 0.9, 0.5, 0.08)
+            Ellipse(pos=(cx - r*1.3, cy - r*1.3), size=(r*2.6, r*2.6))
+            Color(1.0, 0.6, 0.1, 0.05)
+            Ellipse(pos=(cx - r*1.15, cy - r*1.15), size=(r*2.3, r*2.3))
+
+            # India Constellation Coordinates (PoI Nodes Topology)
+            Color(0.0, 0.9, 1.0, 0.35)
+            nodes = [
+                (0, 0.8), (0.2, 0.65), (-0.2, 0.5), (0.1, 0.3), (0.4, 0.25),
+                (-0.4, 0.2), (0.3, 0.0), (-0.35, -0.1), (0.15, -0.3), (-0.1, -0.5),
+                (0.0, -0.75)
+            ]
+            abs_pts = [(cx + nx*r*0.9, cy + ny*r*0.9) for nx, ny in nodes]
+            for i in range(len(abs_pts) - 1):
+                Line(points=[abs_pts[i][0], abs_pts[i][1], abs_pts[i+1][0], abs_pts[i+1][1]], width=1.1)
+
+            Color(1.0, 0.7, 0.1, 0.7)
+            for px, py in abs_pts:
+                Ellipse(pos=(px - 2.5, py - 2.5), size=(5, 5))
+
+            # --- LAYER 2: Front Metallic Gold Circular Emblem Ring ---
+            # Outer Ring Shadow & Glow
+            Color(0.85, 0.65, 0.15, 0.25)
+            Line(circle=(cx, cy, r + 4), width=3.0)
+
+            # Solid Gold Outer Circuit Border
+            Color(0.95, 0.75, 0.2, 1.0)
+            Line(circle=(cx, cy, r), width=2.8)
+
+            # Deep Emerald Tech Core
+            Color(0.04, 0.15, 0.12, 0.96)
+            Ellipse(pos=(cx - r*0.92, cy - r*0.92), size=(r*1.84, r*1.84))
+
+            # Inner Gold Accent Ring
+            Color(0.85, 0.65, 0.15, 0.8)
+            Line(circle=(cx, cy, r*0.92), width=1.2)
+
+            # Quantum Atom Orbits (Front Hologram)
+            Color(0.0, 0.9, 1.0, 0.5)
+            Line(ellipse=(cx - r*0.4, cy + r*0.1, r*0.8, r*0.3), width=1.2)
+            Line(ellipse=(cx - r*0.2, cy + r*0.1, r*0.4, r*0.6), width=1.2)
+
+            # Central Processor Core
+            Color(0.0, 1.0, 0.5, 0.8)
+            Ellipse(pos=(cx - 6, cy - 6), size=(12, 12))
+
+
+# -------------------- 2. ROUND PULSING START BUTTON --------------------
+class CircularButton(Button):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.background_color = (0, 0, 0, 0)
+        self.bind(pos=self.draw_circle, size=self.draw_circle)
+
+    def draw_circle(self, *args):
+        self.canvas.before.clear()
+        cx = self.center_x
+        cy = self.center_y
+        rad = min(self.width, self.height) / 2.0 - 6
+
+        with self.canvas.before:
+            # Outer Glow
+            Color(0.0, 0.9, 0.6, 0.2)
+            Ellipse(pos=(cx - rad - 8, cy - rad - 8), size=((rad + 8)*2, (rad + 8)*2))
+            
+            # Button Center Disc
+            if self.state == 'down':
+                Color(0.08, 0.25, 0.18, 1)
+            else:
+                Color(0.05, 0.18, 0.13, 1)
+            Ellipse(pos=(cx - rad, cy - rad), size=(rad*2, rad*2))
+            
+            # Emerald Rim
+            Color(0.0, 0.85, 0.55, 0.9)
+            Line(circle=(cx, cy, rad), width=2.4)
+
+
+# -------------------- 3. AUTH SCREEN (ANTI-BOT VERIFIED) --------------------
 class AuthScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.num1 = random.randint(3, 9)
-        self.num2 = random.randint(2, 8)
-        self.captcha_ans = self.num1 * self.num2
+        self.n1 = random.randint(3, 9)
+        self.n2 = random.randint(2, 8)
+        self.ans = self.n1 * self.n2
 
         scroll = ScrollView(size_hint=(1, 1))
         box = BoxLayout(orientation='vertical', padding=[24, 28, 24, 28], spacing=14, size_hint_y=None)
@@ -83,68 +166,54 @@ class AuthScreen(Screen):
         title = Label(
             text="[b][color=00e5ff]BARAT NETWORK[/color][/b]",
             markup=True,
-            font_size='28sp',
+            font_size='26sp',
             size_hint=(1, None),
-            height=42
+            height=36
         )
-        subtitle = Label(
-            text="[color=8892b0]Decentralized Proof-of-Intelligence Grid[/color]",
-            markup=True,
-            font_size='12sp',
-            size_hint=(1, None),
-            height=20
-        )
-        box.add_widget(title)
-        box.add_widget(subtitle)
-
-        # Update Alert Banner
-        self.update_banner = Label(
-            text="",
+        sub = Label(
+            text="[color=8892b0]Proof of Intelligence (PoI) Global Infrastructure[/color]",
             markup=True,
             font_size='11sp',
             size_hint=(1, None),
             height=20
         )
-        box.add_widget(self.update_banner)
+        box.add_widget(title)
+        box.add_widget(sub)
 
         self.user_in = TextInput(
-            hint_text="Node ID / Username",
+            hint_text="Node Username / ID",
             multiline=False,
             size_hint=(1, None),
             height=46,
             background_color=(0.06, 0.10, 0.16, 1),
             foreground_color=(1, 1, 1, 1),
-            cursor_color=(0, 0.9, 1, 1),
             font_size='13sp',
             padding=[10, 12, 10, 10]
         )
         self.pass_in = TextInput(
-            hint_text="Password / Security Key",
+            hint_text="Node Access Key (Password)",
             password=True,
             multiline=False,
             size_hint=(1, None),
             height=46,
             background_color=(0.06, 0.10, 0.16, 1),
             foreground_color=(1, 1, 1, 1),
-            cursor_color=(0, 0.9, 1, 1),
             font_size='13sp',
             padding=[10, 12, 10, 10]
         )
         box.add_widget(self.user_in)
         box.add_widget(self.pass_in)
 
-        # Human Verification Layer (Anti-Bot)
-        self.captcha_lbl = Label(
-            text=f"[color=64ffda]Human Verification: {self.num1} x {self.num2} = ?[/color]",
+        # Anti-Bot Security Gate
+        self.gate_lbl = Label(
+            text=f"[color=64ffda]Human Verification: {self.n1} x {self.n2} = ?[/color]",
             markup=True,
             font_size='12sp',
             size_hint=(1, None),
-            height=20
+            height=22
         )
-        box.add_widget(self.captcha_lbl)
-
-        self.captcha_in = TextInput(
-            hint_text="Enter result to confirm you are not a bot",
+        self.gate_in = TextInput(
+            hint_text="Enter result to confirm you are human",
             multiline=False,
             size_hint=(1, None),
             height=44,
@@ -153,9 +222,10 @@ class AuthScreen(Screen):
             font_size='12sp',
             padding=[10, 12, 10, 10]
         )
-        box.add_widget(self.captcha_in)
+        box.add_widget(self.gate_lbl)
+        box.add_widget(self.gate_in)
 
-        login_btn = Button(
+        in_btn = Button(
             text="SIGN IN TO NODE",
             size_hint=(1, None),
             height=46,
@@ -163,19 +233,19 @@ class AuthScreen(Screen):
             bold=True,
             font_size='13sp'
         )
-        login_btn.bind(on_press=self.handle_login)
+        in_btn.bind(on_press=self.do_login)
 
         reg_btn = Button(
-            text="REGISTER NEW IDENTITY",
+            text="CREATE NEW NODE ACCOUNT",
             size_hint=(1, None),
             height=46,
-            background_color=(0.12, 0.18, 0.28, 1),
+            background_color=(0.12, 0.20, 0.30, 1),
             bold=True,
             font_size='13sp'
         )
-        reg_btn.bind(on_press=self.handle_register)
+        reg_btn.bind(on_press=self.do_register)
 
-        box.add_widget(login_btn)
+        box.add_widget(in_btn)
         box.add_widget(reg_btn)
 
         self.msg = Label(text="", markup=True, font_size='11sp', size_hint=(1, None), height=24)
@@ -184,168 +254,167 @@ class AuthScreen(Screen):
         scroll.add_widget(box)
         self.add_widget(scroll)
 
-    def refresh_captcha(self):
-        self.num1 = random.randint(3, 9)
-        self.num2 = random.randint(2, 8)
-        self.captcha_ans = self.num1 * self.num2
-        self.captcha_lbl.text = f"[color=64ffda]Human Verification: {self.num1} x {self.num2} = ?[/color]"
-        self.captcha_in.text = ""
+    def refresh_gate(self):
+        self.n1 = random.randint(3, 9)
+        self.n2 = random.randint(2, 8)
+        self.ans = self.n1 * self.n2
+        self.gate_lbl.text = f"[color=64ffda]Human Verification: {self.n1} x {self.n2} = ?[/color]"
+        self.gate_in.text = ""
 
-    def verify_human(self):
-        val = self.captcha_in.text.strip()
-        if not val or not val.isdigit() or int(val) != self.captcha_ans:
-            self.msg.text = "[color=ff4444]హ్యూమన్ వెరిఫికేషన్ విఫలమైంది! సరైన సమాధానం ఇవ్వండి.[/color]"
-            self.refresh_captcha()
+    def verify_gate(self):
+        v = self.gate_in.text.strip()
+        if not v or not v.isdigit() or int(v) != self.ans:
+            self.msg.text = "[color=ff4444]Human Verification Failed. Re-enter math answer.[/color]"
+            self.refresh_gate()
             return False
         return True
 
-    def handle_login(self, instance):
-        if not self.verify_human():
+    def do_login(self, instance):
+        if not self.verify_gate():
             return
         u = self.user_in.text.strip()
         p = self.pass_in.text.strip()
-        vault = get_vault_data()
+        vault = get_vault()
 
-        if not u or not p:
-            self.msg.text = "[color=ff4444]వివరాలు నమోదు చేయండి![/color]"
-            return
-
-        if u in vault["users"] and vault["users"][u]["password_hash"] == hash_security(p):
+        if u in vault["users"] and vault["users"][u]["pwd"] == hash_sec(p):
             vault["current_session"] = u
-            save_vault_data(vault)
+            save_vault(vault)
             self.manager.transition = SlideTransition(direction='left')
             self.manager.current = "mining_screen"
-            self.manager.get_screen("mining_screen").sync_screen()
+            self.manager.get_screen("mining_screen").sync_ui()
         else:
-            self.msg.text = "[color=ff3333]తప్పుడు వివరాలు! లాగిన్ విఫలమైంది.[/color]"
-            self.refresh_captcha()
+            self.msg.text = "[color=ff3333]Invalid Credentials! Please check again.[/color]"
+            self.refresh_gate()
 
-    def handle_register(self, instance):
-        if not self.verify_human():
+    def do_register(self, instance):
+        if not self.verify_gate():
             return
         u = self.user_in.text.strip()
         p = self.pass_in.text.strip()
-        vault = get_vault_data()
+        vault = get_vault()
 
         if len(u) < 3 or len(p) < 6:
-            self.msg.text = "[color=ffaa00]యూజర్ కనీసం 3, పాస్‌వర్డ్ కనీసం 6 అక్షరాలు ఉండాలి![/color]"
+            self.msg.text = "[color=ffaa00]User: 3+ chars, Password: 6+ chars required![/color]"
             return
 
         if u in vault["users"]:
-            self.msg.text = "[color=ff4444]ఈ యూజర్ నేమ్ ఇప్పటికే రిజిస్టర్ అయింది![/color]"
+            self.msg.text = "[color=ff4444]Node Identifier already taken![/color]"
             return
 
-        # Generate Mnemonic Passphrase (12 words)
-        phrase = " ".join(random.sample(BIP39_WORDLIST, 12))
-        generated_sol_wallet = "BARAT_" + hashlib.sha256(phrase.encode()).hexdigest()[:38]
-
+        phrase = " ".join(random.sample(BIP39_WORDS, 12))
         vault["users"][u] = {
-            "password_hash": hash_security(p),
-            "unclaimed_mining": 0.000000,
+            "pwd": hash_sec(p),
+            "mining_balance": 0.000000,
             "wallet_balance": 0.000000,
             "passphrase": phrase,
-            "internal_wallet": generated_sol_wallet,
-            "destination_solana": "",
+            "blocks": 0,
             "kyc_status": "Unverified",
-            "kyc_id_hash": "",
-            "verified_blocks": 0,
-            "session_start_time": 0,
-            "is_session_active": False,
-            "node_multiplier": 1.0
+            "session_start": 0,
+            "is_active": False
         }
         vault["current_session"] = u
-        vault["global_stats"]["total_nodes"] += 1
-        save_vault_data(vault)
+        vault["stats"]["nodes"] += 1
+        save_vault(vault)
 
         self.manager.transition = SlideTransition(direction='left')
         self.manager.current = "mining_screen"
-        self.manager.get_screen("mining_screen").sync_screen()
+        self.manager.get_screen("mining_screen").sync_ui()
 
 
-# -------------------- 2. 24-HOUR MINING DASHBOARD --------------------
+# -------------------- 4. MINING DASHBOARD (CANVA STYLE EMBLEM & START BUTTON) --------------------
 class MiningScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.ticker = None
 
-        layout = BoxLayout(orientation='vertical', padding=[14, 12, 14, 8], spacing=8)
+        layout = BoxLayout(orientation='vertical', padding=[16, 12, 16, 10], spacing=8)
 
         # Header Info Card
-        top_bar = BoxLayout(orientation='horizontal', size_hint=(1, None), height=30)
-        self.user_lbl = Label(text="[color=ccd6f6]Node: Active[/color]", markup=True, font_size='12sp', halign='left')
+        top_bar = BoxLayout(orientation='horizontal', size_hint=(1, None), height=26)
+        self.user_lbl = Label(text="[color=8892b0]Node: Miner[/color]", markup=True, font_size='11sp', halign='left')
         self.user_lbl.bind(size=self.user_lbl.setter('text_size'))
-        self.kyc_lbl = Label(text="[color=ff4444]● Unverified[/color]", markup=True, font_size='12sp', halign='right')
+        self.kyc_lbl = Label(text="[color=ff4444]● Unverified[/color]", markup=True, font_size='11sp', halign='right')
         self.kyc_lbl.bind(size=self.kyc_lbl.setter('text_size'))
         top_bar.add_widget(self.user_lbl)
         top_bar.add_widget(self.kyc_lbl)
         layout.add_widget(top_bar)
 
-        # Mining & Wallet Balances Card
-        bal_card = BoxLayout(orientation='vertical', size_hint=(1, None), height=115, padding=8, spacing=3)
-        bal_sub = Label(text="[color=8892b0]UNCLAIMED MINING ASSETS (POI WORKLOADS)[/color]", markup=True, font_size='10sp', size_hint=(1, None), height=14)
-        self.unclaimed_lbl = Label(text="[b][color=ffffff]0.000000[/color] [color=00e5ff]$BARAT[/color][/b]", markup=True, font_size='24sp', size_hint=(1, None), height=36)
-        
-        stat_bar = BoxLayout(orientation='horizontal', size_hint=(1, None), height=18)
-        self.timer_lbl = Label(text="[color=ffaa00]Session: Inactive[/color]", markup=True, font_size='11sp')
-        self.blocks_lbl = Label(text="[color=64ffda]Blocks: 0[/color]", markup=True, font_size='11sp')
-        stat_bar.add_widget(self.timer_lbl)
-        stat_bar.add_widget(self.blocks_lbl)
+        # 3D INDIA MAP + BARAT EMBLEM (Generated completely in-code)
+        self.emblem = BaratEmblem3D(size_hint=(1, None), height=210)
+        layout.add_widget(self.emblem)
 
-        bal_card.add_widget(bal_sub)
-        bal_card.add_widget(self.unclaimed_lbl)
-        bal_card.add_widget(stat_bar)
-        layout.add_widget(bal_card)
-
-        # Action Buttons (Start 24H Session & Claim to Wallet)
-        btn_grid = BoxLayout(orientation='horizontal', size_hint=(1, None), height=46, spacing=8)
-        self.power_btn = Button(
-            text="START 24H NODE",
-            background_color=(0.0, 0.75, 0.45, 1),
-            bold=True,
-            font_size='12sp'
-        )
-        self.power_btn.bind(on_press=self.toggle_node_session)
-
-        self.claim_btn = Button(
-            text="CLAIM TO WALLET",
-            background_color=(0.0, 0.65, 0.85, 1),
-            bold=True,
-            font_size='12sp'
-        )
-        self.claim_btn.bind(on_press=self.claim_mining_to_wallet)
-
-        btn_grid.add_widget(self.power_btn)
-        btn_grid.add_widget(self.claim_btn)
-        layout.add_widget(btn_grid)
-
-        # Live Terminal Stream
-        log_head = Label(text="[color=8892b0]GLOBAL POI COMPUTATIONAL STREAM[/color]", markup=True, font_size='10sp', size_hint=(1, None), height=14, halign='left')
-        log_head.bind(size=log_head.setter('text_size'))
-        layout.add_widget(log_head)
-
-        self.scroll = ScrollView(size_hint=(1, 1))
-        self.terminal = Label(
-            text="[color=495d75]>> BARAT Node Online. Ready for Medical and AI Tensor computation...[/color]\n",
+        # Subtitle Under Logo
+        brand_sub = Label(
+            text="[b][color=f5a623]PROOF OF INTELLIGENCE[/color][/b]\n[color=8892b0]SUSTAINABLE MOBILE MINING • INDIA NODE[/color]",
             markup=True,
-            font_size='10sp',
-            size_hint_y=None,
-            halign='left',
-            valign='top'
+            halign='center',
+            size_hint=(1, None),
+            height=34,
+            font_size='10sp'
         )
-        self.terminal.bind(texture_size=lambda inst, v: setattr(self.terminal, 'height', v[1]))
-        self.terminal.bind(size=lambda inst, v: setattr(self.terminal, 'text_size', (v[0], None)))
-        self.scroll.add_widget(self.terminal)
-        layout.add_widget(self.scroll)
+        layout.add_widget(brand_sub)
 
-        # Universal Navigation
-        nav = BoxLayout(orientation='horizontal', size_hint=(1, None), height=44, spacing=6)
+        # Tokens Mined Card (Exact Canva style)
+        self.mined_header = Label(
+            text="[color=ffffff]Tokens Mined[/color]",
+            markup=True,
+            font_size='13sp',
+            size_hint=(1, None),
+            height=18
+        )
+        self.bal_display = Label(
+            text="[b][color=ffffff]0.000000[/color] [color=00e5ff]$BARAT[/color][/b]",
+            markup=True,
+            font_size='22sp',
+            size_hint=(1, None),
+            height=34
+        )
+        layout.add_widget(self.mined_header)
+        layout.add_widget(self.bal_display)
+
+        # Session Status & Blocks
+        meta_bar = BoxLayout(orientation='horizontal', size_hint=(1, None), height=20)
+        self.timer_lbl = Label(text="[color=ffaa00]24h Cycle: Inactive[/color]", markup=True, font_size='10sp')
+        self.blocks_lbl = Label(text="[color=64ffda]Verified Blocks: 0[/color]", markup=True, font_size='10sp')
+        meta_bar.add_widget(self.timer_lbl)
+        meta_bar.add_widget(self.blocks_lbl)
+        layout.add_widget(meta_bar)
+
+        # Center Round START Button
+        btn_container = BoxLayout(size_hint=(1, None), height=140, padding=[20, 5, 20, 5])
+        self.start_btn = CircularButton(
+            text="START",
+            bold=True,
+            font_size='18sp',
+            size_hint=(None, None),
+            size=(130, 130),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5}
+        )
+        self.start_btn.bind(on_press=self.toggle_session)
+        btn_container.add_widget(self.start_btn)
+        layout.add_widget(btn_container)
+
+        # Claim Button
+        claim_btn = Button(
+            text="CLAIM TO INTERNAL WALLET",
+            size_hint=(1, None),
+            height=38,
+            background_color=(0.0, 0.60, 0.80, 1),
+            bold=True,
+            font_size='11sp'
+        )
+        claim_btn.bind(on_press=self.claim_tokens)
+        layout.add_widget(claim_btn)
+
+        # Bottom Universal Nav
+        nav = BoxLayout(orientation='horizontal', size_hint=(1, None), height=42, spacing=6)
         n_mine = Button(text="Mining", background_color=(0.0, 0.5, 0.7, 1), font_size='11sp')
-        n_wall = Button(text="Barat Wallet", background_color=(0.12, 0.16, 0.24, 1), font_size='11sp')
-        n_wall.bind(on_press=lambda x: self.navigate_to("wallet_screen"))
-        n_stat = Button(text="Stats", background_color=(0.12, 0.16, 0.24, 1), font_size='11sp')
-        n_stat.bind(on_press=lambda x: self.navigate_to("stats_screen"))
-        n_out = Button(text="Sign Out", background_color=(0.35, 0.12, 0.12, 1), font_size='11sp')
-        n_out.bind(on_press=self.do_logout)
+        n_wall = Button(text="Wallet & KYC", background_color=(0.10, 0.15, 0.22, 1), font_size='11sp')
+        n_wall.bind(on_press=lambda x: self.go_to("wallet_screen"))
+        n_stat = Button(text="Stats", background_color=(0.10, 0.15, 0.22, 1), font_size='11sp')
+        n_stat.bind(on_press=lambda x: self.go_to("stats_screen"))
+        n_out = Button(text="Exit", background_color=(0.35, 0.10, 0.10, 1), font_size='11sp')
+        n_out.bind(on_press=self.logout)
 
         nav.add_widget(n_mine)
         nav.add_widget(n_wall)
@@ -355,137 +424,114 @@ class MiningScreen(Screen):
 
         self.add_widget(layout)
 
-    def sync_screen(self):
-        vault = get_vault_data()
+    def sync_ui(self):
+        vault = get_vault()
         user = vault.get("current_session")
         if user and user in vault["users"]:
             udata = vault["users"][user]
-            self.user_lbl.text = f"[color=ccd6f6]Node: [b]{user}[/b][/color]"
+            self.user_lbl.text = f"[color=8892b0]Node: [b]{user}[/b][/color]"
             st = udata.get("kyc_status", "Unverified")
             col = "00ff66" if st == "Verified" else ("ffaa00" if st == "Pending" else "ff4444")
             self.kyc_lbl.text = f"[color={col}][b]● {st}[/b][/color]"
-            self.unclaimed_lbl.text = f"[b][color=ffffff]{udata.get('unclaimed_mining', 0.0):.6f}[/color] [color=00e5ff]$BARAT[/color][/b]"
-            self.blocks_lbl.text = f"[color=64ffda]Blocks: {udata.get('verified_blocks', 0)}[/color]"
+            self.bal_display.text = f"[b][color=ffffff]{udata.get('mining_balance', 0.0):.6f}[/color] [color=00e5ff]$BARAT[/color][/b]"
+            self.blocks_lbl.text = f"[color=64ffda]Verified Blocks: {udata.get('blocks', 0)}[/color]"
 
-            # Check 24-Hour Timer Status
             now = time.time()
-            elapsed = now - udata.get("session_start_time", 0)
-            if udata.get("is_session_active", False) and elapsed < SESSION_DURATION_SEC:
-                rem_sec = int(SESSION_DURATION_SEC - elapsed)
-                hrs = rem_sec // 3600
-                mins = (rem_sec % 3600) // 60
-                self.timer_lbl.text = f"[color=00ff66]Active: {hrs}h {mins}m left[/color]"
-                self.power_btn.text = "NODE RUNNING"
-                self.power_btn.background_color = (0.2, 0.5, 0.3, 1)
+            elapsed = now - udata.get("session_start", 0)
+            if udata.get("is_active", False) and elapsed < (SESSION_HOURS * 3600):
+                rem = int((SESSION_HOURS * 3600) - elapsed)
+                self.timer_lbl.text = f"[color=00ff66]Active: {rem//3600}h {(rem%3600)//60}m left[/color]"
+                self.start_btn.text = "MINING"
                 if not self.ticker:
-                    self.ticker = Clock.schedule_interval(self.step_compute, 1.0)
+                    self.ticker = Clock.schedule_interval(self.step_mine, 1.0)
             else:
-                udata["is_session_active"] = False
-                self.timer_lbl.text = "[color=ffaa00]Session Ended. Restart[/color]"
-                self.power_btn.text = "START 24H NODE"
-                self.power_btn.background_color = (0.0, 0.75, 0.45, 1)
+                udata["is_active"] = False
+                self.timer_lbl.text = "[color=ffaa00]24h Cycle Complete[/color]"
+                self.start_btn.text = "START"
                 if self.ticker:
                     self.ticker.cancel()
                     self.ticker = None
 
-    def toggle_node_session(self, instance):
-        vault = get_vault_data()
+    def toggle_session(self, instance):
+        vault = get_vault()
         user = vault.get("current_session")
         if not user or user not in vault["users"]:
             return
 
         udata = vault["users"][user]
         now = time.time()
-        elapsed = now - udata.get("session_start_time", 0)
+        elapsed = now - udata.get("session_start", 0)
 
-        if not udata.get("is_session_active", False) or elapsed >= SESSION_DURATION_SEC:
-            udata["is_session_active"] = True
-            udata["session_start_time"] = now
-            save_vault_data(vault)
-            self.sync_screen()
-            self.terminal.text += "\n[color=00ff66]>> 24-Hour PoI Computation Session Activated![/color]"
+        if not udata.get("is_active", False) or elapsed >= (SESSION_HOURS * 3600):
+            udata["is_active"] = True
+            udata["session_start"] = now
+            save_vault(vault)
+            self.sync_ui()
 
-    def step_compute(self, dt):
-        vault = get_vault_data()
+    def step_mine(self, dt):
+        vault = get_vault()
         user = vault.get("current_session")
         if not user or user not in vault["users"]:
             return
 
         udata = vault["users"][user]
-        now = time.time()
-        if now - udata.get("session_start_time", 0) >= SESSION_DURATION_SEC:
-            self.sync_screen()
-            return
+        udata["mining_balance"] += 0.0000694
+        self.bal_display.text = f"[b][color=ffffff]{udata['mining_balance']:.6f}[/color] [color=00e5ff]$BARAT[/color][/b]"
 
-        # Mining increment
-        udata["unclaimed_mining"] += 0.0000694
-        self.unclaimed_lbl.text = f"[b][color=ffffff]{udata['unclaimed_mining']:.6f}[/color] [color=00e5ff]$BARAT[/color][/b]"
+        if int(time.time()) % 10 == 0:
+            udata["blocks"] += 1
+            vault["stats"]["blocks"] += 1
+            self.blocks_lbl.text = f"[color=64ffda]Verified Blocks: {udata['blocks']}[/color]"
 
-        if int(now) % 8 == 0:
-            udata["verified_blocks"] += 1
-            vault["global_stats"]["total_blocks"] += 1
-            self.blocks_lbl.text = f"[color=64ffda]Blocks: {udata['verified_blocks']}[/color]"
-            tasks = [
-                "Cancer_Protein_Fold_Chunk_Validated",
-                "Atmospheric_CO2_Tensor_Computed",
-                "Genomic_Sequence_Hash_Encrypted",
-                "Neural_Synaptic_Weights_Mapped"
-            ]
-            self.terminal.text += f"\n[color=00e5ff]>> Verified {random.choice(tasks)} [Block #{udata['verified_blocks']}][/color]"
+        save_vault(vault)
 
-        save_vault_data(vault)
-
-    def claim_mining_to_wallet(self, instance):
-        vault = get_vault_data()
+    def claim_tokens(self, instance):
+        vault = get_vault()
         user = vault.get("current_session")
         if not user or user not in vault["users"]:
             return
 
         udata = vault["users"][user]
-        amount = udata.get("unclaimed_mining", 0.0)
-        if amount <= 0.0001:
-            self.terminal.text += "\n[color=ff4444]>> Claim Alert: కనీస బ్యాలెన్స్ (0.0001 BARAT) మైన్ చేయాలి![/color]"
-            return
+        amt = udata.get("mining_balance", 0.0)
+        if amt > 0.0001:
+            udata["wallet_balance"] = udata.get("wallet_balance", 0.0) + amt
+            udata["mining_balance"] = 0.0
+            save_vault(vault)
+            self.sync_ui()
 
-        udata["wallet_balance"] = udata.get("wallet_balance", 0.0) + amount
-        udata["unclaimed_mining"] = 0.0
-        save_vault_data(vault)
-        self.sync_screen()
-        self.terminal.text += f"\n[color=00ff66]>> Claim Success: {amount:.6f} BARAT అంతర్గత వాలెట్‌కు బదిలీ చేయబడ్డాయి![/color]"
-
-    def navigate_to(self, target_screen):
+    def go_to(self, target):
         self.manager.transition = SlideTransition(direction='left')
-        self.manager.current = target_screen
-        if target_screen == "wallet_screen":
-            self.manager.get_screen("wallet_screen").sync_screen()
-        elif target_screen == "stats_screen":
-            self.manager.get_screen("stats_screen").sync_screen()
+        self.manager.current = target
+        if target == "wallet_screen":
+            self.manager.get_screen("wallet_screen").sync_ui()
+        elif target == "stats_screen":
+            self.manager.get_screen("stats_screen").sync_ui()
 
-    def do_logout(self, instance):
+    def logout(self, instance):
         if self.ticker:
             self.ticker.cancel()
-        vault = get_vault_data()
+        vault = get_vault()
         vault["current_session"] = None
-        save_vault_data(vault)
+        save_vault(vault)
         self.manager.transition = SlideTransition(direction='right')
         self.manager.current = "auth_screen"
 
 
-# -------------------- 3. INBUILT WALLET & SECURE KYC PORTAL --------------------
+# -------------------- 5. WALLET & KYC SCREEN --------------------
 class WalletScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.scan_ticker = None
         self.scan_val = 0
 
-        layout = BoxLayout(orientation='vertical', padding=[16, 14, 16, 8], spacing=10)
+        layout = BoxLayout(orientation='vertical', padding=[16, 14, 16, 10], spacing=8)
 
         title = Label(
             text="[b][color=00e5ff]BARAT NON-CUSTODIAL WALLET[/color][/b]",
             markup=True,
-            font_size='18sp',
+            font_size='17sp',
             size_hint=(1, None),
-            height=28
+            height=26
         )
         layout.add_widget(title)
 
@@ -494,105 +540,90 @@ class WalletScreen(Screen):
         box.bind(minimum_height=box.setter('height'))
 
         # Balance Card
-        self.vault_bal_lbl = Label(
-            text="[color=ffffff]Wallet Balance: [b]0.000000 $BARAT[/b][/color]",
+        self.w_bal = Label(
+            text="Internal Vault: [b]0.000000 $BARAT[/b]",
             markup=True,
-            font_size='15sp',
+            font_size='14sp',
             size_hint=(1, None),
             height=26
         )
-        box.add_widget(self.vault_bal_lbl)
+        box.add_widget(self.w_bal)
 
-        # 12-Word Passphrase Button
-        show_phrase_btn = Button(
+        # 12-Word Passphrase Key Button
+        phrase_btn = Button(
             text="VIEW 12-WORD SEED PHRASE KEY",
             size_hint=(1, None),
             height=40,
-            background_color=(0.15, 0.22, 0.32, 1),
+            background_color=(0.14, 0.20, 0.30, 1),
             font_size='11sp'
         )
-        show_phrase_btn.bind(on_press=self.display_phrase_popup)
-        box.add_widget(show_phrase_btn)
+        phrase_btn.bind(on_press=self.show_phrase)
+        box.add_widget(phrase_btn)
 
-        # Transfer to Solana Mainnet
-        box.add_widget(Label(text="[b][color=64ffda]TRANSFER TO EXTERNAL SOLANA WALLET[/color][/b]", markup=True, font_size='12sp', size_hint=(1, None), height=20))
+        # Solana Transfer Section
+        box.add_widget(Label(text="[b][color=64ffda]TRANSFER TO EXTERNAL SOLANA MAINNET[/color][/b]", markup=True, font_size='12sp', size_hint=(1, None), height=20))
         
-        self.dest_sol_in = TextInput(
+        self.dest_sol = TextInput(
             hint_text="Destination Solana Public Key (Base58)",
             multiline=False,
             size_hint=(1, None),
             height=42,
-            background_color=(0.08, 0.12, 0.18, 1),
+            background_color=(0.06, 0.10, 0.16, 1),
             foreground_color=(1, 1, 1, 1),
             font_size='11sp',
             padding=[8, 10, 8, 8]
         )
-        self.send_amt_in = TextInput(
+        self.amt_sol = TextInput(
             hint_text="Amount of BARAT to transfer",
             multiline=False,
             size_hint=(1, None),
             height=42,
-            background_color=(0.08, 0.12, 0.18, 1),
+            background_color=(0.06, 0.10, 0.16, 1),
             foreground_color=(1, 1, 1, 1),
             font_size='11sp',
             padding=[8, 10, 8, 8]
         )
-        box.add_widget(self.dest_sol_in)
-        box.add_widget(self.send_amt_in)
+        box.add_widget(self.dest_sol)
+        box.add_widget(self.amt_sol)
 
-        fee_notice = Label(
-            text="[color=8892b0]Note: 2% Protocol Reserve Fee will be deducted and routed to BARAT Foundation Reserve.[/color]",
-            markup=True,
-            font_size='9sp',
-            size_hint=(1, None),
-            height=22
-        )
-        box.add_widget(fee_notice)
-
-        send_sol_btn = Button(
-            text="EXECUTE SOLANA TRANSFER",
+        send_btn = Button(
+            text="EXECUTE SOLANA TRANSFER (2% Protocol Fee)",
             size_hint=(1, None),
             height=42,
             background_color=(0.0, 0.65, 0.85, 1),
             bold=True,
-            font_size='12sp'
+            font_size='11sp'
         )
-        send_sol_btn.bind(on_press=self.execute_solana_transfer)
-        box.add_widget(send_sol_btn)
+        send_btn.bind(on_press=self.do_solana_transfer)
+        box.add_widget(send_btn)
 
-        self.transfer_msg = Label(text="", markup=True, font_size='11sp', size_hint=(1, None), height=20)
-        box.add_widget(self.transfer_msg)
+        self.tx_msg = Label(text="", markup=True, font_size='10sp', size_hint=(1, None), height=20)
+        box.add_widget(self.tx_msg)
 
-        # KYC Section (Eligibility + ID + Face)
+        # KYC Section
         box.add_widget(Label(text="[b][color=00e5ff]DECENTRALIZED KYC PROTOCOL[/color][/b]", markup=True, font_size='13sp', size_hint=(1, None), height=22))
         
-        self.kyc_gate_lbl = Label(
-            text="అర్హత: తనిఖీ చేస్తోంది...",
-            markup=True,
-            font_size='11sp',
-            size_hint=(1, None),
-            height=20
-        )
-        box.add_widget(self.kyc_gate_lbl)
+        self.kyc_gate = Label(text="Eligibility: Checking...", markup=True, font_size='11sp', size_hint=(1, None), height=20)
+        box.add_widget(self.kyc_gate)
 
-        self.id_box = TextInput(
+        self.id_in = TextInput(
             hint_text="National ID / Passport Number",
             multiline=False,
             size_hint=(1, None),
             height=42,
-            background_color=(0.08, 0.12, 0.18, 1),
+            background_color=(0.06, 0.10, 0.16, 1),
             foreground_color=(1, 1, 1, 1),
             font_size='11sp',
             padding=[8, 10, 8, 8]
         )
-        box.add_widget(self.id_box)
+        box.add_widget(self.id_in)
 
         self.id_btn = Button(
-            text="SUBMIT ID RECORD",
+            text="SUBMIT ID DOCUMENT",
             size_hint=(1, None),
             height=40,
-            background_color=(0.15, 0.45, 0.35, 1),
-            font_size='12sp'
+            background_color=(0.14, 0.45, 0.30, 1),
+            font_size='11sp'
         )
         self.id_btn.bind(on_press=self.submit_id)
         box.add_widget(self.id_btn)
@@ -601,29 +632,29 @@ class WalletScreen(Screen):
         box.add_widget(self.scan_bar)
 
         self.face_btn = Button(
-            text="START BIOMETRIC FACE LIVENESS CHECK",
+            text="START AI BIOMETRIC LIVENESS SCAN",
             size_hint=(1, None),
             height=42,
             background_color=(0.5, 0.35, 0.0, 1),
             bold=True,
-            font_size='12sp'
+            font_size='11sp'
         )
-        self.face_btn.bind(on_press=self.start_face_scan)
+        self.face_btn.bind(on_press=self.start_face_check)
         box.add_widget(self.face_btn)
 
-        self.kyc_state_lbl = Label(text="", markup=True, font_size='11sp', size_hint=(1, None), height=24)
-        box.add_widget(self.kyc_state_lbl)
+        self.kyc_status_lbl = Label(text="", markup=True, font_size='11sp', size_hint=(1, None), height=24)
+        box.add_widget(self.kyc_status_lbl)
 
         scroll.add_widget(box)
         layout.add_widget(scroll)
 
-        # Bottom Bar
-        nav = BoxLayout(orientation='horizontal', size_hint=(1, None), height=44, spacing=6)
-        n_mine = Button(text="Mining", background_color=(0.12, 0.16, 0.24, 1), font_size='11sp')
-        n_mine.bind(on_press=lambda x: self.navigate_to("mining_screen"))
-        n_wall = Button(text="Barat Wallet", background_color=(0.0, 0.5, 0.7, 1), font_size='11sp')
-        n_stat = Button(text="Stats", background_color=(0.12, 0.16, 0.24, 1), font_size='11sp')
-        n_stat.bind(on_press=lambda x: self.navigate_to("stats_screen"))
+        # Bottom Nav
+        nav = BoxLayout(orientation='horizontal', size_hint=(1, None), height=42, spacing=6)
+        n_mine = Button(text="Mining", background_color=(0.10, 0.15, 0.22, 1), font_size='11sp')
+        n_mine.bind(on_press=lambda x: self.go_to("mining_screen"))
+        n_wall = Button(text="Wallet & KYC", background_color=(0.0, 0.5, 0.7, 1), font_size='11sp')
+        n_stat = Button(text="Stats", background_color=(0.10, 0.15, 0.22, 1), font_size='11sp')
+        n_stat.bind(on_press=lambda x: self.go_to("stats_screen"))
         nav.add_widget(n_mine)
         nav.add_widget(n_wall)
         nav.add_widget(n_stat)
@@ -631,204 +662,176 @@ class WalletScreen(Screen):
 
         self.add_widget(layout)
 
-    def sync_screen(self):
-        vault = get_vault_data()
+    def sync_ui(self):
+        vault = get_vault()
         user = vault.get("current_session")
         if user and user in vault["users"]:
             udata = vault["users"][user]
-            self.vault_bal_lbl.text = f"[color=ffffff]Internal Balance: [b]{udata.get('wallet_balance', 0.0):.6f} $BARAT[/b][/color]"
+            self.w_bal.text = f"Internal Vault: [b]{udata.get('wallet_balance', 0.0):.6f} $BARAT[/b]"
             st = udata.get("kyc_status", "Unverified")
-            blks = udata.get("verified_blocks", 0)
+            blks = udata.get("blocks", 0)
 
             if st == "Verified":
-                self.kyc_gate_lbl.text = "[color=00ff66]✓ కేవైసీ విజయవంతంగా పూర్తయింది. సోలానా బదిలీలు ప్రారంభించవచ్చు![/color]"
+                self.kyc_gate.text = "[color=00ff66]✓ KYC Verified. Solana transfers enabled![/color]"
                 self.id_btn.disabled = True
                 self.face_btn.disabled = True
-                self.kyc_state_lbl.text = "[color=00ff66]Status: KYC Verified Node[/color]"
+                self.kyc_status_lbl.text = "[color=00ff66]Tier-1 Node Verified[/color]"
             elif blks < MIN_KYC_BLOCKS:
                 rem = MIN_KYC_BLOCKS - blks
-                self.kyc_gate_lbl.text = f"[color=ff4444]లాక్ చేయబడింది: ఇంకా {rem} బ్లాకులు కావాలి (కనీసం {MIN_KYC_BLOCKS})[/color]"
+                self.kyc_gate.text = f"[color=ff4444]Locked: Mine {rem} more blocks to unlock (Min: {MIN_KYC_BLOCKS})[/color]"
                 self.id_btn.disabled = True
                 self.face_btn.disabled = True
             else:
-                self.kyc_gate_lbl.text = f"[color=00ff66]✓ అర్హత సాధించారు ({blks} Blocks). ఐడీ మరియు ఫేస్ ధృవీకరించండి.[/color]"
+                self.kyc_gate.text = f"[color=00ff66]✓ Eligible ({blks} Blocks). Proceed to ID & Face Scan.[/color]"
                 self.id_btn.disabled = False
                 self.face_btn.disabled = False
                 col = "ffaa00" if st == "Pending" else "ff4444"
-                self.kyc_state_lbl.text = f"[color={col}]Status: {st}[/color]"
+                self.kyc_status_lbl.text = f"[color={col}]Status: {st}[/color]"
 
-    def display_phrase_popup(self, instance):
-        vault = get_vault_data()
+    def show_phrase(self, instance):
+        vault = get_vault()
         user = vault.get("current_session")
-        phrase = vault["users"][user].get("passphrase", "No Passphrase")
+        phrase = vault["users"][user].get("passphrase", "")
 
-        content = BoxLayout(orientation='vertical', padding=14, spacing=10)
-        content.add_widget(Label(text="[b][color=ffaa00]SECURITY ALERT: DO NOT SHARE THIS PHRASE[/color][/b]", markup=True, font_size='12sp'))
+        box = BoxLayout(orientation='vertical', padding=12, spacing=8)
+        box.add_widget(Label(text="[b][color=ffaa00]SECRET 12-WORD PASSPHRASE[/color][/b]", markup=True, font_size='12sp'))
         
-        phrase_txt = TextInput(
-            text=phrase,
-            readonly=True,
-            size_hint=(1, None),
-            height=70,
-            background_color=(0.06, 0.1, 0.16, 1),
-            foreground_color=(0, 0.9, 1, 1),
-            font_size='11sp'
-        )
-        content.add_widget(phrase_txt)
+        t = TextInput(text=phrase, readonly=True, size_hint=(1, None), height=60, background_color=(0.04, 0.08, 0.12, 1), foreground_color=(0, 0.9, 1, 1), font_size='11sp')
+        box.add_widget(t)
+        
+        b = Button(text="CLOSE", size_hint=(1, None), height=36, background_color=(0, 0.5, 0.7, 1))
+        box.add_widget(b)
 
-        close_btn = Button(text="I HAVE STORED SAFELY", size_hint=(1, None), height=38, background_color=(0, 0.6, 0.8, 1))
-        content.add_widget(close_btn)
+        p = Popup(title="Seed Key Backup", content=box, size_hint=(0.85, 0.4), auto_dismiss=False)
+        b.bind(on_press=p.dismiss)
+        p.open()
 
-        pop = Popup(title="12-Word Passphrase Seed Key", content=content, size_hint=(0.9, 0.45), auto_dismiss=False)
-        close_btn.bind(on_press=pop.dismiss)
-        pop.open()
-
-    def execute_solana_transfer(self, instance):
-        vault = get_vault_data()
+    def do_solana_transfer(self, instance):
+        vault = get_vault()
         user = vault.get("current_session")
         udata = vault["users"][user]
 
         if udata.get("kyc_status") != "Verified":
-            self.transfer_msg.text = "[color=ff3333]విఫలమైంది: కేవైసీ పూర్తయిన తర్వాతే సోలానా బదిలీలు సాధ్యం![/color]"
+            self.tx_msg.text = "[color=ff3333]Error: KYC Verification required for Solana transfers![/color]"
             return
 
-        dest = self.dest_sol_in.text.strip()
-        amt_str = self.send_amt_in.text.strip()
+        dest = self.dest_sol.text.strip()
+        amt_s = self.amt_sol.text.strip()
 
-        sol_re = r"^[1-9A-HJ-NP-za-km-z]{32,44}$"
-        if not re.match(sol_re, dest):
-            self.transfer_msg.text = "[color=ff3333]తప్పు: సరైన Solana Base58 పబ్లిక్ కీ ఇవ్వండి![/color]"
+        if not re.match(r"^[1-9A-HJ-NP-za-km-z]{32,44}$", dest):
+            self.tx_msg.text = "[color=ff3333]Invalid Solana Base58 Address![/color]"
             return
 
         try:
-            amt = float(amt_str)
+            amt = float(amt_s)
         except ValueError:
-            self.transfer_msg.text = "[color=ff4444]సరైన సంఖ్యను నమోదు చేయండి![/color]"
-            return
-
-        if amt <= 10.0:
-            self.transfer_msg.text = "[color=ffaa00]కనీస బదిలీ పరిమితి 10.0 BARAT![/color]"
+            self.tx_msg.text = "[color=ff4444]Enter valid transfer number![/color]"
             return
 
         if udata.get("wallet_balance", 0.0) < amt:
-            self.transfer_msg.text = "[color=ff4444]సరిపడా బ్యాలెన్స్ లేదు![/color]"
+            self.tx_msg.text = "[color=ff4444]Insufficient wallet balance![/color]"
             return
 
-        # 2% Founder Protocol Fee
         fee = amt * 0.02
-        final_transfer = amt - fee
-
+        net = amt - fee
         udata["wallet_balance"] -= amt
-        save_vault_data(vault)
-        self.sync_screen()
-
-        self.transfer_msg.text = (
-            f"[color=00ff66]విజయవంతం: {final_transfer:.4f} BARAT సోలానాకు పంపబడ్డాయి!\n"
-            f"(2% ఫీజు {fee:.4f} BARAT ఫౌండర్ రిజర్వ్‌కు జమైంది)[/color]"
-        )
+        save_vault(vault)
+        self.sync_ui()
+        self.tx_msg.text = f"[color=00ff66]Transferred {net:.4f} BARAT to Solana! (2% Fee to Reserve)[/color]"
 
     def submit_id(self, instance):
-        doc = self.id_box.text.strip()
+        doc = self.id_in.text.strip()
         if len(doc) < 6:
-            self.kyc_state_lbl.text = "[color=ff4444]ఐడీ కనీసం 6 అక్షరాలు/సంఖ్యలు ఉండాలి![/color]"
+            self.kyc_status_lbl.text = "[color=ff4444]ID must be at least 6 characters![/color]"
             return
 
-        doc_hash = hash_security(doc)
-        vault = get_vault_data()
-
-        if doc_hash in vault.get("used_ids", []):
-            self.kyc_state_lbl.text = "[color=ff2222]హెచ్చరిక: ఈ ఐడీ ఇప్పటికే ఇంకో ఖాతాలో ఉపయోగించబడింది![/color]"
+        d_hash = hash_sec(doc)
+        vault = get_vault()
+        if d_hash in vault.get("used_ids", []):
+            self.kyc_status_lbl.text = "[color=ff2222]ID already used by another account![/color]"
             return
 
         user = vault.get("current_session")
-        vault["users"][user]["kyc_id_hash"] = doc_hash
+        vault["users"][user]["id_hash"] = d_hash
         vault["users"][user]["kyc_status"] = "Pending"
-        vault["used_ids"].append(doc_hash)
-        save_vault_data(vault)
+        vault["used_ids"].append(d_hash)
+        save_vault(vault)
+        self.kyc_status_lbl.text = "[color=ffaa00]ID Verified. Now start Face Liveness Scan.[/color]"
 
-        self.kyc_state_lbl.text = "[color=ffaa00]Step 1 పూర్తయింది. ఇప్పుడు Face Liveness Check చేయండి.[/color]"
-
-    def start_face_scan(self, instance):
-        vault = get_vault_data()
+    def start_face_check(self, instance):
+        vault = get_vault()
         user = vault.get("current_session")
-        if not vault["users"][user].get("kyc_id_hash"):
-            self.kyc_state_lbl.text = "[color=ff3333]ముందుగా ID సబ్మిట్ చేయండి![/color]"
+        if not vault["users"][user].get("id_hash"):
+            self.kyc_status_lbl.text = "[color=ff3333]Submit ID record first![/color]"
             return
 
         self.scan_val = 0
         self.scan_bar.value = 0
         self.face_btn.text = "BIOMETRIC SCANNING..."
         self.face_btn.disabled = True
-        self.scan_ticker = Clock.schedule_interval(self.step_scan_progress, 0.15)
+        self.scan_ticker = Clock.schedule_interval(self.step_scan, 0.15)
 
-    def step_scan_progress(self, dt):
+    def step_scan(self, dt):
         self.scan_val += 10
         self.scan_bar.value = self.scan_val
-        if self.scan_val == 30:
-            self.kyc_state_lbl.text = "[color=00e5ff]>> 3D Mesh: ముఖాన్ని గుర్తిస్తోంది...[/color]"
-        elif self.scan_val == 70:
-            self.kyc_state_lbl.text = "[color=00e5ff]>> Anti-Spoof: లైవ్‌నెస్ ధృవీకరిస్తోంది...[/color]"
-        elif self.scan_val >= 100:
+        if self.scan_val >= 100:
             if self.scan_ticker:
                 self.scan_ticker.cancel()
-            vault = get_vault_data()
+            vault = get_vault()
             user = vault.get("current_session")
             vault["users"][user]["kyc_status"] = "Verified"
-            save_vault_data(vault)
-
+            save_vault(vault)
             self.face_btn.text = "FACE VERIFIED ✓"
-            self.kyc_state_lbl.text = "[color=00ff66]అభినందనలు! పూర్తి కేవైసీ పూర్తయింది.[/color]"
-            self.sync_screen()
+            self.kyc_status_lbl.text = "[color=00ff66]KYC Approved! Full Tier-1 Access Granted.[/color]"
+            self.sync_ui()
 
-    def navigate_to(self, target_screen):
-        self.manager.transition = SlideTransition(direction='right' if target_screen == "mining_screen" else 'left')
-        self.manager.current = target_screen
-        if target_screen == "mining_screen":
-            self.manager.get_screen("mining_screen").sync_screen()
-        elif target_screen == "stats_screen":
-            self.manager.get_screen("stats_screen").sync_screen()
+    def go_to(self, target):
+        self.manager.transition = SlideTransition(direction='right' if target == "mining_screen" else 'left')
+        self.manager.current = target
+        if target == "mining_screen":
+            self.manager.get_screen("mining_screen").sync_ui()
+        elif target == "stats_screen":
+            self.manager.get_screen("stats_screen").sync_ui()
 
 
-# -------------------- 4. GLOBAL STATS SCREEN --------------------
+# -------------------- 6. STATS SCREEN --------------------
 class StatsScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        layout = BoxLayout(orientation='vertical', padding=[16, 14, 16, 8], spacing=10)
+        layout = BoxLayout(orientation='vertical', padding=[16, 14, 16, 10], spacing=10)
 
         title = Label(
             text="[b][color=00e5ff]GLOBAL NETWORK METRICS[/color][/b]",
             markup=True,
-            font_size='18sp',
+            font_size='17sp',
             size_hint=(1, None),
-            height=28
+            height=26
         )
         layout.add_widget(title)
 
         scroll = ScrollView(size_hint=(1, 1))
-        box = BoxLayout(orientation='vertical', spacing=12, size_hint_y=None, padding=[8, 8, 8, 8])
+        box = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None, padding=[8, 8, 8, 8])
         box.bind(minimum_height=box.setter('height'))
 
-        self.nodes_lbl = Label(text="Active Nodes: 14,210", markup=True, font_size='13sp', size_hint=(1, None), height=26)
-        self.hash_lbl = Label(text="Network Compute: 512.4 TH/s", markup=True, font_size='13sp', size_hint=(1, None), height=26)
-        self.blks_lbl = Label(text="Verified Research Blocks: 218,490", markup=True, font_size='13sp', size_hint=(1, None), height=26)
-        fee_info = Label(text="[color=8892b0]Founder Solana Reserve Active: Multi-Sig Locked[/color]", markup=True, font_size='11sp', size_hint=(1, None), height=24)
-        ver_info = Label(text=f"[color=64ffda]Core Engine Build: v{CURRENT_CLIENT_VERSION}[/color]", markup=True, font_size='11sp', size_hint=(1, None), height=24)
+        self.n_lbl = Label(text="Active PoI Nodes: 18,450", markup=True, font_size='13sp', size_hint=(1, None), height=26)
+        self.h_lbl = Label(text="Global Hashrate: 620.8 TH/s", markup=True, font_size='13sp', size_hint=(1, None), height=26)
+        self.b_lbl = Label(text="Research Blocks Solved: 341,020", markup=True, font_size='13sp', size_hint=(1, None), height=26)
+        p_lbl = Label(text="[color=8892b0]Core Architecture: Hybrid PoI & Solana Bridge[/color]", markup=True, font_size='11sp', size_hint=(1, None), height=24)
 
-        box.add_widget(self.nodes_lbl)
-        box.add_widget(self.hash_lbl)
-        box.add_widget(self.blks_lbl)
-        box.add_widget(fee_info)
-        box.add_widget(ver_info)
+        box.add_widget(self.n_lbl)
+        box.add_widget(self.h_lbl)
+        box.add_widget(self.b_lbl)
+        box.add_widget(p_lbl)
 
         scroll.add_widget(box)
         layout.add_widget(scroll)
 
-        # Bottom Bar
-        nav = BoxLayout(orientation='horizontal', size_hint=(1, None), height=44, spacing=6)
-        n_mine = Button(text="Mining", background_color=(0.12, 0.16, 0.24, 1), font_size='11sp')
-        n_mine.bind(on_press=lambda x: self.navigate_to("mining_screen"))
-        n_wall = Button(text="Barat Wallet", background_color=(0.12, 0.16, 0.24, 1), font_size='11sp')
-        n_wall.bind(on_press=lambda x: self.navigate_to("wallet_screen"))
+        # Bottom Nav
+        nav = BoxLayout(orientation='horizontal', size_hint=(1, None), height=42, spacing=6)
+        n_mine = Button(text="Mining", background_color=(0.10, 0.15, 0.22, 1), font_size='11sp')
+        n_mine.bind(on_press=lambda x: self.go_to("mining_screen"))
+        n_wall = Button(text="Wallet & KYC", background_color=(0.10, 0.15, 0.22, 1), font_size='11sp')
+        n_wall.bind(on_press=lambda x: self.go_to("wallet_screen"))
         n_stat = Button(text="Stats", background_color=(0.0, 0.5, 0.7, 1), font_size='11sp')
         nav.add_widget(n_mine)
         nav.add_widget(n_wall)
@@ -837,23 +840,23 @@ class StatsScreen(Screen):
 
         self.add_widget(layout)
 
-    def sync_screen(self):
-        vault = get_vault_data()
-        stats = vault.get("global_stats", {})
-        self.nodes_lbl.text = f"[color=ccd6f6]Active Nodes: [b]{stats.get('total_nodes', 14210):,}[/b][/color]"
-        self.hash_lbl.text = f"[color=64ffda]Network Compute: [b]{stats.get('network_hashrate', '512.4 TH/s')}[/b][/color]"
-        self.blks_lbl.text = f"[color=ccd6f6]Verified Research Blocks: [b]{stats.get('total_blocks', 218490):,}[/b][/color]"
+    def sync_ui(self):
+        vault = get_vault()
+        stats = vault.get("stats", {})
+        self.n_lbl.text = f"Active PoI Nodes: [b]{stats.get('nodes', 18450):,}[/b]"
+        self.h_lbl.text = f"Global Hashrate: [b]{stats.get('hashrate', '620.8 TH/s')}[/b]"
+        self.b_lbl.text = f"Research Blocks Solved: [b]{stats.get('blocks', 341020):,}[/b]"
 
-    def navigate_to(self, target_screen):
+    def go_to(self, target):
         self.manager.transition = SlideTransition(direction='right')
-        self.manager.current = target_screen
-        if target_screen == "mining_screen":
-            self.manager.get_screen("mining_screen").sync_screen()
-        elif target_screen == "wallet_screen":
-            self.manager.get_screen("wallet_screen").sync_screen()
+        self.manager.current = target
+        if target == "mining_screen":
+            self.manager.get_screen("mining_screen").sync_ui()
+        elif target == "wallet_screen":
+            self.manager.get_screen("wallet_screen").sync_ui()
 
 
-# -------------------- MAIN CONTROLLER & AUTO UPDATE CHECK --------------------
+# -------------------- APPLICATION ENTRY POINT --------------------
 class BaratCoreApp(App):
     def build(self):
         sm = ScreenManager()
@@ -862,17 +865,10 @@ class BaratCoreApp(App):
         sm.add_widget(WalletScreen(name="wallet_screen"))
         sm.add_widget(StatsScreen(name="stats_screen"))
 
-        vault = get_vault_data()
-
-        # Check for Remote Update
-        remote = vault.get("remote_update", {})
-        if remote.get("update_available", False) and remote.get("latest_version") != CURRENT_CLIENT_VERSION:
-            auth = sm.get_screen("auth_screen")
-            auth.update_banner.text = f"[color=ffaa00]★ Update Alert: New Core v{remote.get('latest_version')} Ready![/color]"
-
+        vault = get_vault()
         if vault.get("current_session") and vault["current_session"] in vault["users"]:
             sm.current = "mining_screen"
-            sm.get_screen("mining_screen").sync_screen()
+            sm.get_screen("mining_screen").sync_ui()
         else:
             sm.current = "auth_screen"
 
