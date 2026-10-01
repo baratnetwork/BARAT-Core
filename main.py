@@ -22,6 +22,7 @@ from kivy.graphics import Color, Ellipse, Line
 
 Window.clearcolor = (0.015, 0.025, 0.045, 1)
 
+DATA_VAULT = "barat_secure_vault.json"
 CURRENT_VERSION = "4.1.0"
 MIN_KYC_BLOCKS = 50
 SESSION_HOURS = 24
@@ -35,12 +36,6 @@ BIP39_WORDS = [
 def hash_sec(val):
     return hashlib.sha256(val.encode()).hexdigest()
 
-def get_vault_path():
-    app = App.get_running_app()
-    if app:
-        return os.path.join(app.user_data_dir, "barat_secure_vault.json")
-    return "barat_secure_vault.json"
-
 def get_vault():
     defaults = {
         "version": CURRENT_VERSION,
@@ -49,10 +44,9 @@ def get_vault():
         "used_ids": [],
         "stats": {"nodes": 18451, "hashrate": "620.8 TH/s", "blocks": 341025}
     }
-    vpath = get_vault_path()
-    if os.path.exists(vpath):
+    if os.path.exists(DATA_VAULT):
         try:
-            with open(vpath, "r") as f:
+            with open(DATA_VAULT, "r") as f:
                 return json.load(f)
         except Exception:
             return defaults
@@ -60,8 +54,7 @@ def get_vault():
 
 def save_vault(data):
     try:
-        vpath = get_vault_path()
-        with open(vpath, "w") as f:
+        with open(DATA_VAULT, "w") as f:
             json.dump(data, f, indent=4)
     except Exception:
         pass
