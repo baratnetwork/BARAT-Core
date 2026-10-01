@@ -122,7 +122,6 @@ class BaratCoreNode(App):
 
     def get_current_base_rate_per_sec(self):
         """Halving Logic based on total mined tokens"""
-        # Base: 10 BARAT per 24 hours -> 10 / 86400 per second
         if self.total_balance < 500.0:
             daily_rate = 10.00
         elif self.total_balance < 2500.0:
@@ -174,7 +173,6 @@ class BaratCoreNode(App):
     def handle_session_toggle(self, instance):
         now = time.time()
         if now >= self.session_end_time:
-            # 24-Hour Mining Cycle (86400 seconds)
             self.session_end_time = now + 86400
             self.last_sync_time = now
             self.persist_state()
@@ -186,7 +184,6 @@ class BaratCoreNode(App):
         now = time.time()
 
         if now < self.session_end_time:
-            # Session is active
             remaining = int(self.session_end_time - now)
             hours = remaining // 3600
             mins = (remaining % 3600) // 60
@@ -194,12 +191,10 @@ class BaratCoreNode(App):
             self.btn_mine.text = f"COMPUTING ACTIVE ({hours:02d}:{mins:02d}:{secs:02d})"
             self.btn_mine.background_color = (0.2, 0.4, 0.8, 1)
 
-            # Credit incremental reward
             rate_per_sec, _ = self.get_current_base_rate_per_sec()
             self.total_balance += rate_per_sec
             self.lbl_balance.text = f"[b]{self.total_balance:.4f}[/b] $BARAT"
 
-            # Execute a matrix task proof every 10 seconds for visual proof
             if int(now) % 10 == 0:
                 self.verified_blocks += 1
                 task = random.choice(self.scientific_tasks) + str(random.randint(1000, 9999))
@@ -212,6 +207,8 @@ class BaratCoreNode(App):
                 self.lbl_stats.text = self.get_stats_string()
                 self.persist_state()
         else:
-            # Session expired
             if self.btn_mine.disabled:
                 self.check_active_session_status()
+
+if __name__ == '__main__':
+    BaratCoreNode().run()
