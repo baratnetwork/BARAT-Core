@@ -20,11 +20,10 @@ from kivy.uix.widget import Widget
 from kivy.uix.image import Image
 from kivy.graphics import Color, Ellipse, Line
 
-# Deep Cyber Blue/Black Background
-Window.clearcolor = (0.012, 0.022, 0.04, 1)
+Window.clearcolor = (0.015, 0.025, 0.045, 1)
 
 DATA_VAULT = "barat_secure_vault.json"
-CURRENT_VERSION = "3.8.0"
+CURRENT_VERSION = "4.1.0"
 MIN_KYC_BLOCKS = 50
 SESSION_HOURS = 24
 
@@ -60,55 +59,47 @@ def save_vault(data):
     except Exception:
         pass
 
-
-def find_logo_path():
-    for name in ["icon.png", "barat_logo.png", "icon.png.png", "logo.png"]:
-        if os.path.exists(name):
-            return name
+def get_available_logo():
+    for f in ["icon.png", "barat_logo.png", "icon.png.png", "logo.png"]:
+        if os.path.exists(f):
+            return f
     return None
 
-
-# -------------------- LOGO DISPLAY WITH 3D NETWORK GLOW --------------------
 class CenteredLogoHub(AnchorLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.anchor_x = 'center'
         self.anchor_y = 'center'
         self.size_hint = (1, None)
-        self.height = 200
-        self.bind(pos=self.redraw_glow, size=self.redraw_glow)
+        self.height = 190
+        self.bind(pos=self.redraw_bg, size=self.redraw_bg)
 
-        logo_path = find_logo_path()
-        if logo_path:
-            self.logo_img = Image(
-                source=logo_path,
+        logo_file = get_available_logo()
+        if logo_file:
+            self.img = Image(
+                source=logo_file,
                 size_hint=(None, None),
-                size=(180, 180),
+                size=(170, 170),
                 allow_stretch=True,
                 keep_ratio=True
             )
-            self.add_widget(self.logo_img)
+            self.add_widget(self.img)
         else:
-            # Fallback Native Ring If image is not physically in directory
-            self.fallback = Widget(size_hint=(None, None), size=(180, 180))
-            self.add_widget(self.fallback)
+            self.fallback_widget = Widget(size_hint=(None, None), size=(170, 170))
+            self.add_widget(self.fallback_widget)
 
-    def redraw_glow(self, *args):
+    def redraw_bg(self, *args):
         self.canvas.before.clear()
         cx = self.center_x
         cy = self.center_y
-        r = 90
+        r = 85
 
         with self.canvas.before:
-            # India Cyber Green Aura
             Color(0.0, 0.9, 0.55, 0.12)
-            Ellipse(pos=(cx - r*1.3, cy - r*1.3), size=(r*2.6, r*2.6))
-            
-            # Gold Outer Ambient Ring
-            Color(0.95, 0.75, 0.2, 0.15)
-            Ellipse(pos=(cx - r*1.15, cy - r*1.15), size=(r*2.3, r*2.3))
-            
-            # India Constellation Node Vectors
+            Ellipse(pos=(cx - r*1.28, cy - r*1.28), size=(r*2.56, r*2.56))
+            Color(0.95, 0.75, 0.2, 0.14)
+            Ellipse(pos=(cx - r*1.12, cy - r*1.12), size=(r*2.24, r*2.24))
+
             Color(0.0, 0.85, 1.0, 0.35)
             nodes = [
                 (0, 0.75), (0.22, 0.52), (-0.22, 0.42), (0.1, 0.22), (0.35, 0.18),
@@ -117,13 +108,11 @@ class CenteredLogoHub(AnchorLayout):
             pts = [(cx + nx*r*0.9, cy + ny*r*0.9) for nx, ny in nodes]
             for i in range(len(pts) - 1):
                 Line(points=[pts[i][0], pts[i][1], pts[i+1][0], pts[i+1][1]], width=1.1)
-            
+
             Color(1.0, 0.65, 0.1, 0.7)
             for px, py in pts:
                 Ellipse(pos=(px - 2.5, py - 2.5), size=(5, 5))
 
-
-# -------------------- CIRCULAR START MINING BUTTON --------------------
 class ModernStartButton(Button):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -149,8 +138,6 @@ class ModernStartButton(Button):
             Color(0.0, 0.9, 0.6, 0.95)
             Line(circle=(cx, cy, rad), width=2.5)
 
-
-# -------------------- AUTHENTICATION SCREEN --------------------
 class AuthScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -203,7 +190,6 @@ class AuthScreen(Screen):
         box.add_widget(self.user_in)
         box.add_widget(self.pass_in)
 
-        # Anti-Bot Math Security Gate
         self.gate_lbl = Label(
             text=f"[color=64ffda]Human Verification: {self.n1} x {self.n2} = ?[/color]",
             markup=True,
@@ -212,7 +198,7 @@ class AuthScreen(Screen):
             height=24
         )
         self.gate_in = TextInput(
-            hint_text="Enter result to confirm you are human",
+            hint_text="Enter calculation result",
             multiline=False,
             size_hint=(1, None),
             height=46,
@@ -263,7 +249,7 @@ class AuthScreen(Screen):
     def verify_gate(self):
         v = self.gate_in.text.strip()
         if not v or not v.isdigit() or int(v) != self.ans:
-            self.msg.text = "[color=ff4444]Human Verification Failed. Re-enter math answer.[/color]"
+            self.msg.text = "[color=ff4444]Verification failed! Solve the math question.[/color]"
             self.refresh_gate()
             return False
         return True
@@ -319,8 +305,6 @@ class AuthScreen(Screen):
         self.manager.current = "mining_screen"
         self.manager.get_screen("mining_screen").sync_ui()
 
-
-# -------------------- BALANCED MINING DASHBOARD --------------------
 class MiningScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -328,7 +312,6 @@ class MiningScreen(Screen):
 
         main_box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
 
-        # 1. Header Information Bar
         top_bar = BoxLayout(orientation='horizontal', size_hint=(1, None), height=28)
         self.user_lbl = Label(text="[color=8892b0]Node: Miner[/color]", markup=True, font_size='12sp', halign='left')
         self.user_lbl.bind(size=self.user_lbl.setter('text_size'))
@@ -338,11 +321,9 @@ class MiningScreen(Screen):
         top_bar.add_widget(self.kyc_lbl)
         main_box.add_widget(top_bar)
 
-        # 2. Perfect Center Logo Hub
         self.logo_hub = CenteredLogoHub()
         main_box.add_widget(self.logo_hub)
 
-        # 3. Official Proof of Intelligence Branding
         sub_box = BoxLayout(orientation='vertical', size_hint=(1, None), height=36, spacing=2)
         sub_box.add_widget(Label(
             text="[b][color=f5a623]PROOF OF INTELLIGENCE[/color][/b]",
@@ -354,7 +335,6 @@ class MiningScreen(Screen):
         ))
         main_box.add_widget(sub_box)
 
-        # 4. Tokens Mined Glowing Counter
         card_box = BoxLayout(orientation='vertical', size_hint=(1, None), height=64, spacing=2)
         card_box.add_widget(Label(
             text="[color=8892b0]Tokens Mined[/color]",
@@ -367,7 +347,6 @@ class MiningScreen(Screen):
         card_box.add_widget(self.bal_display)
         main_box.add_widget(card_box)
 
-        # 5. Cycle Status & Block Counter
         meta_bar = BoxLayout(orientation='horizontal', size_hint=(1, None), height=22)
         self.timer_lbl = Label(text="[color=ffaa00]24h Cycle: Inactive[/color]", markup=True, font_size='11sp', halign='center')
         self.blocks_lbl = Label(text="[color=64ffda]Verified Blocks: 0[/color]", markup=True, font_size='11sp', halign='center')
@@ -375,7 +354,6 @@ class MiningScreen(Screen):
         meta_bar.add_widget(self.blocks_lbl)
         main_box.add_widget(meta_bar)
 
-        # 6. Perfectly Centered Circular START Button
         btn_wrap = AnchorLayout(anchor_x='center', anchor_y='center', size_hint=(1, 1))
         self.start_btn = ModernStartButton(
             text="START\nMINING",
@@ -389,7 +367,6 @@ class MiningScreen(Screen):
         btn_wrap.add_widget(self.start_btn)
         main_box.add_widget(btn_wrap)
 
-        # 7. Claim Tokens Button
         claim_btn = Button(
             text="CLAIM TO INTERNAL WALLET",
             size_hint=(1, None),
@@ -401,7 +378,6 @@ class MiningScreen(Screen):
         claim_btn.bind(on_press=self.claim_tokens)
         main_box.add_widget(claim_btn)
 
-        # 8. Navigation Bar
         nav = BoxLayout(orientation='horizontal', size_hint=(1, None), height=46, spacing=6)
         n_mine = Button(text="Mining", background_color=(0.0, 0.5, 0.7, 1), font_size='12sp', bold=True)
         n_wall = Button(text="Wallet & KYC", background_color=(0.10, 0.15, 0.22, 1), font_size='12sp')
@@ -511,8 +487,6 @@ class MiningScreen(Screen):
         self.manager.transition = SlideTransition(direction='right')
         self.manager.current = "auth_screen"
 
-
-# -------------------- WALLET & KYC SCREEN --------------------
 class WalletScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -783,8 +757,6 @@ class WalletScreen(Screen):
         elif target == "stats_screen":
             self.manager.get_screen("stats_screen").sync_ui()
 
-
-# -------------------- GLOBAL NETWORK STATS SCREEN --------------------
 class StatsScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -844,8 +816,6 @@ class StatsScreen(Screen):
         elif target == "wallet_screen":
             self.manager.get_screen("wallet_screen").sync_ui()
 
-
-# -------------------- APPLICATION ENTRY POINT --------------------
 class BaratCoreApp(App):
     def build(self):
         sm = ScreenManager()
@@ -862,7 +832,6 @@ class BaratCoreApp(App):
             sm.current = "auth_screen"
 
         return sm
-
 
 if __name__ == "__main__":
     BaratCoreApp().run()
