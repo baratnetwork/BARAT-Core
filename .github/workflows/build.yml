@@ -41,19 +41,21 @@ jobs:
         python -m pip install --upgrade pip setuptools
         pip install "Cython==0.29.36" buildozer
 
-    - name: Accept Licenses and Clean Build
+    - name: Pre-Accept Android SDK Licenses
       run: |
         mkdir -p $HOME/.android
         touch $HOME/.android/repositories.cfg
-        yes | sdkmanager --licenses || true
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+    - name: Clean Cache
+      run: |
         rm -rf .buildozer
 
     - name: Build APK with Buildozer
       run: |
-        buildozer -v android debug
+        buildozer android debug
       env:
         CI: true
-        EXTRA_CLANG_ARGS: "-Wno-error"
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
