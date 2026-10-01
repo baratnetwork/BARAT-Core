@@ -23,7 +23,7 @@ from kivy.graphics import Color, Ellipse, Line
 Window.clearcolor = (0.015, 0.025, 0.045, 1)
 
 DATA_VAULT = "barat_secure_vault.json"
-CURRENT_VERSION = "4.1.0"
+CURRENT_VERSION = "4.2.0"
 MIN_KYC_BLOCKS = 50
 SESSION_HOURS = 24
 
