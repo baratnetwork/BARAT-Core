@@ -27,16 +27,26 @@ jobs:
     - name: Install System Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev build-essential
+
+    - name: Pre-Accept Android SDK Licenses
+      run: |
+        mkdir -p $HOME/.android
+        touch $HOME/.android/repositories.cfg
+        yes | sudo $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
     - name: Install Cython and Buildozer
       run: |
         python -m pip install --upgrade pip setuptools
-        pip install Cython==0.29.36 buildozer
+        pip install "Cython<3.0" buildozer
+
+    - name: Clean Previous Broken Build
+      run: |
+        rm -rf .buildozer
 
     - name: Build APK with Buildozer
       run: |
-        printf 'y\ny\ny\ny\ny\ny\ny\ny\ny\n' | buildozer -v android debug
+        yes | buildozer -v android debug
       env:
         CI: true
 
