@@ -48,3 +48,4 @@ jobs:
         with:
           name: BARAT-Core-APK
           path: bin/*.apk 
+# trigger build 19
