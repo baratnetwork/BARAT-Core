@@ -9,6 +9,7 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.button import Button
 from kivy.uix.label import Label
@@ -16,13 +17,14 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.progressbar import ProgressBar
 from kivy.uix.popup import Popup
 from kivy.uix.widget import Widget
-from kivy.graphics import Color, Ellipse, Line, Rectangle, RoundedRectangle
+from kivy.uix.image import Image
+from kivy.graphics import Color, Ellipse, Line
 
-# Ultra Deep-Space Cyber Background
-Window.clearcolor = (0.015, 0.03, 0.06, 1)
+# Deep Cyber Blue/Black Background
+Window.clearcolor = (0.012, 0.022, 0.04, 1)
 
 DATA_VAULT = "barat_secure_vault.json"
-CURRENT_VERSION = "3.0.0"
+CURRENT_VERSION = "3.8.0"
 MIN_KYC_BLOCKS = 50
 SESSION_HOURS = 24
 
@@ -41,7 +43,7 @@ def get_vault():
         "users": {},
         "current_session": None,
         "used_ids": [],
-        "stats": {"nodes": 18450, "hashrate": "620.8 TH/s", "blocks": 341020}
+        "stats": {"nodes": 18451, "hashrate": "620.8 TH/s", "blocks": 341025}
     }
     if os.path.exists(DATA_VAULT):
         try:
@@ -59,99 +61,96 @@ def save_vault(data):
         pass
 
 
-# -------------------- 1. 3D INDIA MAP + BARAT EMBLEM GRAPHIC WIDGET --------------------
-class BaratEmblem3D(Widget):
+def find_logo_path():
+    for name in ["icon.png", "barat_logo.png", "icon.png.png", "logo.png"]:
+        if os.path.exists(name):
+            return name
+    return None
+
+
+# -------------------- LOGO DISPLAY WITH 3D NETWORK GLOW --------------------
+class CenteredLogoHub(AnchorLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.bind(pos=self.redraw, size=self.redraw)
+        self.anchor_x = 'center'
+        self.anchor_y = 'center'
+        self.size_hint = (1, None)
+        self.height = 200
+        self.bind(pos=self.redraw_glow, size=self.redraw_glow)
 
-    def redraw(self, *args):
-        self.canvas.clear()
-        cx = self.center_x
-        cy = self.center_y
-        r = min(self.width, self.height) * 0.42
+        logo_path = find_logo_path()
+        if logo_path:
+            self.logo_img = Image(
+                source=logo_path,
+                size_hint=(None, None),
+                size=(180, 180),
+                allow_stretch=True,
+                keep_ratio=True
+            )
+            self.add_widget(self.logo_img)
+        else:
+            # Fallback Native Ring If image is not physically in directory
+            self.fallback = Widget(size_hint=(None, None), size=(180, 180))
+            self.add_widget(self.fallback)
 
-        with self.canvas:
-            # --- LAYER 1: 3D Holographic India Geo-Network Grid (Backdrop) ---
-            # Cyber Grid Aura
-            Color(0.0, 0.9, 0.5, 0.08)
-            Ellipse(pos=(cx - r*1.3, cy - r*1.3), size=(r*2.6, r*2.6))
-            Color(1.0, 0.6, 0.1, 0.05)
-            Ellipse(pos=(cx - r*1.15, cy - r*1.15), size=(r*2.3, r*2.3))
-
-            # India Constellation Coordinates (PoI Nodes Topology)
-            Color(0.0, 0.9, 1.0, 0.35)
-            nodes = [
-                (0, 0.8), (0.2, 0.65), (-0.2, 0.5), (0.1, 0.3), (0.4, 0.25),
-                (-0.4, 0.2), (0.3, 0.0), (-0.35, -0.1), (0.15, -0.3), (-0.1, -0.5),
-                (0.0, -0.75)
-            ]
-            abs_pts = [(cx + nx*r*0.9, cy + ny*r*0.9) for nx, ny in nodes]
-            for i in range(len(abs_pts) - 1):
-                Line(points=[abs_pts[i][0], abs_pts[i][1], abs_pts[i+1][0], abs_pts[i+1][1]], width=1.1)
-
-            Color(1.0, 0.7, 0.1, 0.7)
-            for px, py in abs_pts:
-                Ellipse(pos=(px - 2.5, py - 2.5), size=(5, 5))
-
-            # --- LAYER 2: Front Metallic Gold Circular Emblem Ring ---
-            # Outer Ring Shadow & Glow
-            Color(0.85, 0.65, 0.15, 0.25)
-            Line(circle=(cx, cy, r + 4), width=3.0)
-
-            # Solid Gold Outer Circuit Border
-            Color(0.95, 0.75, 0.2, 1.0)
-            Line(circle=(cx, cy, r), width=2.8)
-
-            # Deep Emerald Tech Core
-            Color(0.04, 0.15, 0.12, 0.96)
-            Ellipse(pos=(cx - r*0.92, cy - r*0.92), size=(r*1.84, r*1.84))
-
-            # Inner Gold Accent Ring
-            Color(0.85, 0.65, 0.15, 0.8)
-            Line(circle=(cx, cy, r*0.92), width=1.2)
-
-            # Quantum Atom Orbits (Front Hologram)
-            Color(0.0, 0.9, 1.0, 0.5)
-            Line(ellipse=(cx - r*0.4, cy + r*0.1, r*0.8, r*0.3), width=1.2)
-            Line(ellipse=(cx - r*0.2, cy + r*0.1, r*0.4, r*0.6), width=1.2)
-
-            # Central Processor Core
-            Color(0.0, 1.0, 0.5, 0.8)
-            Ellipse(pos=(cx - 6, cy - 6), size=(12, 12))
-
-
-# -------------------- 2. ROUND PULSING START BUTTON --------------------
-class CircularButton(Button):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.background_color = (0, 0, 0, 0)
-        self.bind(pos=self.draw_circle, size=self.draw_circle)
-
-    def draw_circle(self, *args):
+    def redraw_glow(self, *args):
         self.canvas.before.clear()
         cx = self.center_x
         cy = self.center_y
-        rad = min(self.width, self.height) / 2.0 - 6
+        r = 90
 
         with self.canvas.before:
-            # Outer Glow
-            Color(0.0, 0.9, 0.6, 0.2)
+            # India Cyber Green Aura
+            Color(0.0, 0.9, 0.55, 0.12)
+            Ellipse(pos=(cx - r*1.3, cy - r*1.3), size=(r*2.6, r*2.6))
+            
+            # Gold Outer Ambient Ring
+            Color(0.95, 0.75, 0.2, 0.15)
+            Ellipse(pos=(cx - r*1.15, cy - r*1.15), size=(r*2.3, r*2.3))
+            
+            # India Constellation Node Vectors
+            Color(0.0, 0.85, 1.0, 0.35)
+            nodes = [
+                (0, 0.75), (0.22, 0.52), (-0.22, 0.42), (0.1, 0.22), (0.35, 0.18),
+                (-0.35, 0.12), (0.24, -0.08), (-0.28, -0.16), (0.1, -0.38), (0.0, -0.72)
+            ]
+            pts = [(cx + nx*r*0.9, cy + ny*r*0.9) for nx, ny in nodes]
+            for i in range(len(pts) - 1):
+                Line(points=[pts[i][0], pts[i][1], pts[i+1][0], pts[i+1][1]], width=1.1)
+            
+            Color(1.0, 0.65, 0.1, 0.7)
+            for px, py in pts:
+                Ellipse(pos=(px - 2.5, py - 2.5), size=(5, 5))
+
+
+# -------------------- CIRCULAR START MINING BUTTON --------------------
+class ModernStartButton(Button):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.background_color = (0, 0, 0, 0)
+        self.bind(pos=self.draw_btn, size=self.draw_btn)
+
+    def draw_btn(self, *args):
+        self.canvas.before.clear()
+        cx = self.center_x
+        cy = self.center_y
+        rad = min(self.width, self.height) / 2.0 - 5
+
+        with self.canvas.before:
+            Color(0.0, 0.9, 0.6, 0.15)
             Ellipse(pos=(cx - rad - 8, cy - rad - 8), size=((rad + 8)*2, (rad + 8)*2))
-            
-            # Button Center Disc
+
             if self.state == 'down':
-                Color(0.08, 0.25, 0.18, 1)
+                Color(0.04, 0.18, 0.14, 1)
             else:
-                Color(0.05, 0.18, 0.13, 1)
+                Color(0.02, 0.10, 0.08, 1)
             Ellipse(pos=(cx - rad, cy - rad), size=(rad*2, rad*2))
-            
-            # Emerald Rim
-            Color(0.0, 0.85, 0.55, 0.9)
-            Line(circle=(cx, cy, rad), width=2.4)
+
+            Color(0.0, 0.9, 0.6, 0.95)
+            Line(circle=(cx, cy, rad), width=2.5)
 
 
-# -------------------- 3. AUTH SCREEN (ANTI-BOT VERIFIED) --------------------
+# -------------------- AUTHENTICATION SCREEN --------------------
 class AuthScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -160,15 +159,15 @@ class AuthScreen(Screen):
         self.ans = self.n1 * self.n2
 
         scroll = ScrollView(size_hint=(1, 1))
-        box = BoxLayout(orientation='vertical', padding=[24, 28, 24, 28], spacing=14, size_hint_y=None)
+        box = BoxLayout(orientation='vertical', padding=[24, 30, 24, 30], spacing=16, size_hint_y=None)
         box.bind(minimum_height=box.setter('height'))
 
         title = Label(
             text="[b][color=00e5ff]BARAT NETWORK[/color][/b]",
             markup=True,
-            font_size='26sp',
+            font_size='28sp',
             size_hint=(1, None),
-            height=36
+            height=38
         )
         sub = Label(
             text="[color=8892b0]Proof of Intelligence (PoI) Global Infrastructure[/color]",
@@ -184,43 +183,43 @@ class AuthScreen(Screen):
             hint_text="Node Username / ID",
             multiline=False,
             size_hint=(1, None),
-            height=46,
-            background_color=(0.06, 0.10, 0.16, 1),
+            height=48,
+            background_color=(0.05, 0.09, 0.15, 1),
             foreground_color=(1, 1, 1, 1),
-            font_size='13sp',
-            padding=[10, 12, 10, 10]
+            font_size='14sp',
+            padding=[12, 12, 12, 12]
         )
         self.pass_in = TextInput(
-            hint_text="Node Access Key (Password)",
+            hint_text="Access Key (Password)",
             password=True,
             multiline=False,
             size_hint=(1, None),
-            height=46,
-            background_color=(0.06, 0.10, 0.16, 1),
+            height=48,
+            background_color=(0.05, 0.09, 0.15, 1),
             foreground_color=(1, 1, 1, 1),
-            font_size='13sp',
-            padding=[10, 12, 10, 10]
+            font_size='14sp',
+            padding=[12, 12, 12, 12]
         )
         box.add_widget(self.user_in)
         box.add_widget(self.pass_in)
 
-        # Anti-Bot Security Gate
+        # Anti-Bot Math Security Gate
         self.gate_lbl = Label(
             text=f"[color=64ffda]Human Verification: {self.n1} x {self.n2} = ?[/color]",
             markup=True,
-            font_size='12sp',
+            font_size='13sp',
             size_hint=(1, None),
-            height=22
+            height=24
         )
         self.gate_in = TextInput(
             hint_text="Enter result to confirm you are human",
             multiline=False,
             size_hint=(1, None),
-            height=44,
-            background_color=(0.06, 0.10, 0.16, 1),
+            height=46,
+            background_color=(0.05, 0.09, 0.15, 1),
             foreground_color=(1, 1, 1, 1),
-            font_size='12sp',
-            padding=[10, 12, 10, 10]
+            font_size='13sp',
+            padding=[12, 12, 12, 12]
         )
         box.add_widget(self.gate_lbl)
         box.add_widget(self.gate_in)
@@ -228,27 +227,27 @@ class AuthScreen(Screen):
         in_btn = Button(
             text="SIGN IN TO NODE",
             size_hint=(1, None),
-            height=46,
-            background_color=(0.0, 0.70, 0.90, 1),
+            height=48,
+            background_color=(0.0, 0.65, 0.85, 1),
             bold=True,
-            font_size='13sp'
+            font_size='14sp'
         )
         in_btn.bind(on_press=self.do_login)
 
         reg_btn = Button(
             text="CREATE NEW NODE ACCOUNT",
             size_hint=(1, None),
-            height=46,
-            background_color=(0.12, 0.20, 0.30, 1),
+            height=48,
+            background_color=(0.10, 0.18, 0.28, 1),
             bold=True,
-            font_size='13sp'
+            font_size='14sp'
         )
         reg_btn.bind(on_press=self.do_register)
 
         box.add_widget(in_btn)
         box.add_widget(reg_btn)
 
-        self.msg = Label(text="", markup=True, font_size='11sp', size_hint=(1, None), height=24)
+        self.msg = Label(text="", markup=True, font_size='12sp', size_hint=(1, None), height=26)
         box.add_widget(self.msg)
 
         scroll.add_widget(box)
@@ -283,7 +282,7 @@ class AuthScreen(Screen):
             self.manager.current = "mining_screen"
             self.manager.get_screen("mining_screen").sync_ui()
         else:
-            self.msg.text = "[color=ff3333]Invalid Credentials! Please check again.[/color]"
+            self.msg.text = "[color=ff3333]Invalid Credentials! Please try again.[/color]"
             self.refresh_gate()
 
     def do_register(self, instance):
@@ -298,7 +297,7 @@ class AuthScreen(Screen):
             return
 
         if u in vault["users"]:
-            self.msg.text = "[color=ff4444]Node Identifier already taken![/color]"
+            self.msg.text = "[color=ff4444]Username already taken![/color]"
             return
 
         phrase = " ".join(random.sample(BIP39_WORDS, 12))
@@ -321,108 +320,104 @@ class AuthScreen(Screen):
         self.manager.get_screen("mining_screen").sync_ui()
 
 
-# -------------------- 4. MINING DASHBOARD (CANVA STYLE EMBLEM & START BUTTON) --------------------
+# -------------------- BALANCED MINING DASHBOARD --------------------
 class MiningScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.ticker = None
 
-        layout = BoxLayout(orientation='vertical', padding=[16, 12, 16, 10], spacing=8)
+        main_box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
 
-        # Header Info Card
-        top_bar = BoxLayout(orientation='horizontal', size_hint=(1, None), height=26)
-        self.user_lbl = Label(text="[color=8892b0]Node: Miner[/color]", markup=True, font_size='11sp', halign='left')
+        # 1. Header Information Bar
+        top_bar = BoxLayout(orientation='horizontal', size_hint=(1, None), height=28)
+        self.user_lbl = Label(text="[color=8892b0]Node: Miner[/color]", markup=True, font_size='12sp', halign='left')
         self.user_lbl.bind(size=self.user_lbl.setter('text_size'))
-        self.kyc_lbl = Label(text="[color=ff4444]● Unverified[/color]", markup=True, font_size='11sp', halign='right')
+        self.kyc_lbl = Label(text="[color=ff4444]● Unverified[/color]", markup=True, font_size='12sp', halign='right')
         self.kyc_lbl.bind(size=self.kyc_lbl.setter('text_size'))
         top_bar.add_widget(self.user_lbl)
         top_bar.add_widget(self.kyc_lbl)
-        layout.add_widget(top_bar)
+        main_box.add_widget(top_bar)
 
-        # 3D INDIA MAP + BARAT EMBLEM (Generated completely in-code)
-        self.emblem = BaratEmblem3D(size_hint=(1, None), height=210)
-        layout.add_widget(self.emblem)
+        # 2. Perfect Center Logo Hub
+        self.logo_hub = CenteredLogoHub()
+        main_box.add_widget(self.logo_hub)
 
-        # Subtitle Under Logo
-        brand_sub = Label(
-            text="[b][color=f5a623]PROOF OF INTELLIGENCE[/color][/b]\n[color=8892b0]SUSTAINABLE MOBILE MINING • INDIA NODE[/color]",
-            markup=True,
-            halign='center',
-            size_hint=(1, None),
-            height=34,
-            font_size='10sp'
-        )
-        layout.add_widget(brand_sub)
+        # 3. Official Proof of Intelligence Branding
+        sub_box = BoxLayout(orientation='vertical', size_hint=(1, None), height=36, spacing=2)
+        sub_box.add_widget(Label(
+            text="[b][color=f5a623]PROOF OF INTELLIGENCE[/color][/b]",
+            markup=True, font_size='12sp', halign='center'
+        ))
+        sub_box.add_widget(Label(
+            text="[color=8892b0]SUSTAINABLE MOBILE COMPUTING • INDIA MAINNET[/color]",
+            markup=True, font_size='9sp', halign='center'
+        ))
+        main_box.add_widget(sub_box)
 
-        # Tokens Mined Card (Exact Canva style)
-        self.mined_header = Label(
-            text="[color=ffffff]Tokens Mined[/color]",
-            markup=True,
-            font_size='13sp',
-            size_hint=(1, None),
-            height=18
-        )
+        # 4. Tokens Mined Glowing Counter
+        card_box = BoxLayout(orientation='vertical', size_hint=(1, None), height=64, spacing=2)
+        card_box.add_widget(Label(
+            text="[color=8892b0]Tokens Mined[/color]",
+            markup=True, font_size='12sp', halign='center'
+        ))
         self.bal_display = Label(
             text="[b][color=ffffff]0.000000[/color] [color=00e5ff]$BARAT[/color][/b]",
-            markup=True,
-            font_size='22sp',
-            size_hint=(1, None),
-            height=34
-        )
-        layout.add_widget(self.mined_header)
-        layout.add_widget(self.bal_display)
+            markup=True, font_size='26sp', halign='center'
+        ))
+        card_box.add_widget(self.bal_display)
+        main_box.add_widget(card_box)
 
-        # Session Status & Blocks
-        meta_bar = BoxLayout(orientation='horizontal', size_hint=(1, None), height=20)
-        self.timer_lbl = Label(text="[color=ffaa00]24h Cycle: Inactive[/color]", markup=True, font_size='10sp')
-        self.blocks_lbl = Label(text="[color=64ffda]Verified Blocks: 0[/color]", markup=True, font_size='10sp')
+        # 5. Cycle Status & Block Counter
+        meta_bar = BoxLayout(orientation='horizontal', size_hint=(1, None), height=22)
+        self.timer_lbl = Label(text="[color=ffaa00]24h Cycle: Inactive[/color]", markup=True, font_size='11sp', halign='center')
+        self.blocks_lbl = Label(text="[color=64ffda]Verified Blocks: 0[/color]", markup=True, font_size='11sp', halign='center')
         meta_bar.add_widget(self.timer_lbl)
         meta_bar.add_widget(self.blocks_lbl)
-        layout.add_widget(meta_bar)
+        main_box.add_widget(meta_bar)
 
-        # Center Round START Button
-        btn_container = BoxLayout(size_hint=(1, None), height=140, padding=[20, 5, 20, 5])
-        self.start_btn = CircularButton(
-            text="START",
+        # 6. Perfectly Centered Circular START Button
+        btn_wrap = AnchorLayout(anchor_x='center', anchor_y='center', size_hint=(1, 1))
+        self.start_btn = ModernStartButton(
+            text="START\nMINING",
+            halign='center',
             bold=True,
-            font_size='18sp',
+            font_size='15sp',
             size_hint=(None, None),
-            size=(130, 130),
-            pos_hint={'center_x': 0.5, 'center_y': 0.5}
+            size=(130, 130)
         )
         self.start_btn.bind(on_press=self.toggle_session)
-        btn_container.add_widget(self.start_btn)
-        layout.add_widget(btn_container)
+        btn_wrap.add_widget(self.start_btn)
+        main_box.add_widget(btn_wrap)
 
-        # Claim Button
+        # 7. Claim Tokens Button
         claim_btn = Button(
             text="CLAIM TO INTERNAL WALLET",
             size_hint=(1, None),
-            height=38,
-            background_color=(0.0, 0.60, 0.80, 1),
+            height=42,
+            background_color=(0.0, 0.65, 0.85, 1),
             bold=True,
-            font_size='11sp'
+            font_size='12sp'
         )
         claim_btn.bind(on_press=self.claim_tokens)
-        layout.add_widget(claim_btn)
+        main_box.add_widget(claim_btn)
 
-        # Bottom Universal Nav
-        nav = BoxLayout(orientation='horizontal', size_hint=(1, None), height=42, spacing=6)
-        n_mine = Button(text="Mining", background_color=(0.0, 0.5, 0.7, 1), font_size='11sp')
-        n_wall = Button(text="Wallet & KYC", background_color=(0.10, 0.15, 0.22, 1), font_size='11sp')
+        # 8. Navigation Bar
+        nav = BoxLayout(orientation='horizontal', size_hint=(1, None), height=46, spacing=6)
+        n_mine = Button(text="Mining", background_color=(0.0, 0.5, 0.7, 1), font_size='12sp', bold=True)
+        n_wall = Button(text="Wallet & KYC", background_color=(0.10, 0.15, 0.22, 1), font_size='12sp')
         n_wall.bind(on_press=lambda x: self.go_to("wallet_screen"))
-        n_stat = Button(text="Stats", background_color=(0.10, 0.15, 0.22, 1), font_size='11sp')
+        n_stat = Button(text="Stats", background_color=(0.10, 0.15, 0.22, 1), font_size='12sp')
         n_stat.bind(on_press=lambda x: self.go_to("stats_screen"))
-        n_out = Button(text="Exit", background_color=(0.35, 0.10, 0.10, 1), font_size='11sp')
+        n_out = Button(text="Exit", background_color=(0.35, 0.10, 0.10, 1), font_size='12sp')
         n_out.bind(on_press=self.logout)
 
         nav.add_widget(n_mine)
         nav.add_widget(n_wall)
         nav.add_widget(n_stat)
         nav.add_widget(n_out)
-        layout.add_widget(nav)
+        main_box.add_widget(nav)
 
-        self.add_widget(layout)
+        self.add_widget(main_box)
 
     def sync_ui(self):
         vault = get_vault()
@@ -441,13 +436,13 @@ class MiningScreen(Screen):
             if udata.get("is_active", False) and elapsed < (SESSION_HOURS * 3600):
                 rem = int((SESSION_HOURS * 3600) - elapsed)
                 self.timer_lbl.text = f"[color=00ff66]Active: {rem//3600}h {(rem%3600)//60}m left[/color]"
-                self.start_btn.text = "MINING"
+                self.start_btn.text = "MINING\nACTIVE"
                 if not self.ticker:
                     self.ticker = Clock.schedule_interval(self.step_mine, 1.0)
             else:
                 udata["is_active"] = False
                 self.timer_lbl.text = "[color=ffaa00]24h Cycle Complete[/color]"
-                self.start_btn.text = "START"
+                self.start_btn.text = "START\nMINING"
                 if self.ticker:
                     self.ticker.cancel()
                     self.ticker = None
@@ -517,7 +512,7 @@ class MiningScreen(Screen):
         self.manager.current = "auth_screen"
 
 
-# -------------------- 5. WALLET & KYC SCREEN --------------------
+# -------------------- WALLET & KYC SCREEN --------------------
 class WalletScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -529,9 +524,9 @@ class WalletScreen(Screen):
         title = Label(
             text="[b][color=00e5ff]BARAT NON-CUSTODIAL WALLET[/color][/b]",
             markup=True,
-            font_size='17sp',
+            font_size='18sp',
             size_hint=(1, None),
-            height=26
+            height=28
         )
         layout.add_widget(title)
 
@@ -539,17 +534,15 @@ class WalletScreen(Screen):
         box = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
         box.bind(minimum_height=box.setter('height'))
 
-        # Balance Card
         self.w_bal = Label(
             text="Internal Vault: [b]0.000000 $BARAT[/b]",
             markup=True,
             font_size='14sp',
             size_hint=(1, None),
-            height=26
+            height=28
         )
         box.add_widget(self.w_bal)
 
-        # 12-Word Passphrase Key Button
         phrase_btn = Button(
             text="VIEW 12-WORD SEED PHRASE KEY",
             size_hint=(1, None),
@@ -560,14 +553,13 @@ class WalletScreen(Screen):
         phrase_btn.bind(on_press=self.show_phrase)
         box.add_widget(phrase_btn)
 
-        # Solana Transfer Section
         box.add_widget(Label(text="[b][color=64ffda]TRANSFER TO EXTERNAL SOLANA MAINNET[/color][/b]", markup=True, font_size='12sp', size_hint=(1, None), height=20))
         
         self.dest_sol = TextInput(
             hint_text="Destination Solana Public Key (Base58)",
             multiline=False,
             size_hint=(1, None),
-            height=42,
+            height=44,
             background_color=(0.06, 0.10, 0.16, 1),
             foreground_color=(1, 1, 1, 1),
             font_size='11sp',
@@ -577,7 +569,7 @@ class WalletScreen(Screen):
             hint_text="Amount of BARAT to transfer",
             multiline=False,
             size_hint=(1, None),
-            height=42,
+            height=44,
             background_color=(0.06, 0.10, 0.16, 1),
             foreground_color=(1, 1, 1, 1),
             font_size='11sp',
@@ -587,20 +579,19 @@ class WalletScreen(Screen):
         box.add_widget(self.amt_sol)
 
         send_btn = Button(
-            text="EXECUTE SOLANA TRANSFER (2% Protocol Fee)",
+            text="EXECUTE SOLANA TRANSFER (2% Fee)",
             size_hint=(1, None),
-            height=42,
+            height=44,
             background_color=(0.0, 0.65, 0.85, 1),
             bold=True,
-            font_size='11sp'
+            font_size='12sp'
         )
         send_btn.bind(on_press=self.do_solana_transfer)
         box.add_widget(send_btn)
 
-        self.tx_msg = Label(text="", markup=True, font_size='10sp', size_hint=(1, None), height=20)
+        self.tx_msg = Label(text="", markup=True, font_size='11sp', size_hint=(1, None), height=20)
         box.add_widget(self.tx_msg)
 
-        # KYC Section
         box.add_widget(Label(text="[b][color=00e5ff]DECENTRALIZED KYC PROTOCOL[/color][/b]", markup=True, font_size='13sp', size_hint=(1, None), height=22))
         
         self.kyc_gate = Label(text="Eligibility: Checking...", markup=True, font_size='11sp', size_hint=(1, None), height=20)
@@ -610,7 +601,7 @@ class WalletScreen(Screen):
             hint_text="National ID / Passport Number",
             multiline=False,
             size_hint=(1, None),
-            height=42,
+            height=44,
             background_color=(0.06, 0.10, 0.16, 1),
             foreground_color=(1, 1, 1, 1),
             font_size='11sp',
@@ -621,7 +612,7 @@ class WalletScreen(Screen):
         self.id_btn = Button(
             text="SUBMIT ID DOCUMENT",
             size_hint=(1, None),
-            height=40,
+            height=42,
             background_color=(0.14, 0.45, 0.30, 1),
             font_size='11sp'
         )
@@ -634,10 +625,10 @@ class WalletScreen(Screen):
         self.face_btn = Button(
             text="START AI BIOMETRIC LIVENESS SCAN",
             size_hint=(1, None),
-            height=42,
+            height=44,
             background_color=(0.5, 0.35, 0.0, 1),
             bold=True,
-            font_size='11sp'
+            font_size='12sp'
         )
         self.face_btn.bind(on_press=self.start_face_check)
         box.add_widget(self.face_btn)
@@ -648,12 +639,11 @@ class WalletScreen(Screen):
         scroll.add_widget(box)
         layout.add_widget(scroll)
 
-        # Bottom Nav
-        nav = BoxLayout(orientation='horizontal', size_hint=(1, None), height=42, spacing=6)
-        n_mine = Button(text="Mining", background_color=(0.10, 0.15, 0.22, 1), font_size='11sp')
+        nav = BoxLayout(orientation='horizontal', size_hint=(1, None), height=46, spacing=6)
+        n_mine = Button(text="Mining", background_color=(0.10, 0.15, 0.22, 1), font_size='12sp')
         n_mine.bind(on_press=lambda x: self.go_to("mining_screen"))
-        n_wall = Button(text="Wallet & KYC", background_color=(0.0, 0.5, 0.7, 1), font_size='11sp')
-        n_stat = Button(text="Stats", background_color=(0.10, 0.15, 0.22, 1), font_size='11sp')
+        n_wall = Button(text="Wallet & KYC", background_color=(0.0, 0.5, 0.7, 1), font_size='12sp', bold=True)
+        n_stat = Button(text="Stats", background_color=(0.10, 0.15, 0.22, 1), font_size='12sp')
         n_stat.bind(on_press=lambda x: self.go_to("stats_screen"))
         nav.add_widget(n_mine)
         nav.add_widget(n_wall)
@@ -694,7 +684,7 @@ class WalletScreen(Screen):
         phrase = vault["users"][user].get("passphrase", "")
 
         box = BoxLayout(orientation='vertical', padding=12, spacing=8)
-        box.add_widget(Label(text="[b][color=ffaa00]SECRET 12-WORD PASSPHRASE[/color][/b]", markup=True, font_size='12sp'))
+        box.add_widget(Label(text="[b][color=ffaa00]SECRET 12-WORD PASSPHRASE[/color][/b]", markup=True, font_size='13sp'))
         
         t = TextInput(text=phrase, readonly=True, size_hint=(1, None), height=60, background_color=(0.04, 0.08, 0.12, 1), foreground_color=(0, 0.9, 1, 1), font_size='11sp')
         box.add_widget(t)
@@ -737,7 +727,7 @@ class WalletScreen(Screen):
         udata["wallet_balance"] -= amt
         save_vault(vault)
         self.sync_ui()
-        self.tx_msg.text = f"[color=00ff66]Transferred {net:.4f} BARAT to Solana! (2% Fee to Reserve)[/color]"
+        self.tx_msg.text = f"[color=00ff66]Transferred {net:.4f} BARAT to Solana! (2% Fee)[/color]"
 
     def submit_id(self, instance):
         doc = self.id_in.text.strip()
@@ -794,7 +784,7 @@ class WalletScreen(Screen):
             self.manager.get_screen("stats_screen").sync_ui()
 
 
-# -------------------- 6. STATS SCREEN --------------------
+# -------------------- GLOBAL NETWORK STATS SCREEN --------------------
 class StatsScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -803,20 +793,20 @@ class StatsScreen(Screen):
         title = Label(
             text="[b][color=00e5ff]GLOBAL NETWORK METRICS[/color][/b]",
             markup=True,
-            font_size='17sp',
+            font_size='18sp',
             size_hint=(1, None),
-            height=26
+            height=28
         )
         layout.add_widget(title)
 
         scroll = ScrollView(size_hint=(1, 1))
-        box = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None, padding=[8, 8, 8, 8])
+        box = BoxLayout(orientation='vertical', spacing=12, size_hint_y=None, padding=[8, 8, 8, 8])
         box.bind(minimum_height=box.setter('height'))
 
-        self.n_lbl = Label(text="Active PoI Nodes: 18,450", markup=True, font_size='13sp', size_hint=(1, None), height=26)
-        self.h_lbl = Label(text="Global Hashrate: 620.8 TH/s", markup=True, font_size='13sp', size_hint=(1, None), height=26)
-        self.b_lbl = Label(text="Research Blocks Solved: 341,020", markup=True, font_size='13sp', size_hint=(1, None), height=26)
-        p_lbl = Label(text="[color=8892b0]Core Architecture: Hybrid PoI & Solana Bridge[/color]", markup=True, font_size='11sp', size_hint=(1, None), height=24)
+        self.n_lbl = Label(text="Active PoI Nodes: 18,451", markup=True, font_size='14sp', size_hint=(1, None), height=28)
+        self.h_lbl = Label(text="Global Hashrate: 620.8 TH/s", markup=True, font_size='14sp', size_hint=(1, None), height=28)
+        self.b_lbl = Label(text="Research Blocks Solved: 341,025", markup=True, font_size='14sp', size_hint=(1, None), height=28)
+        p_lbl = Label(text="[color=8892b0]Core Architecture: Hybrid PoI & Solana Bridge[/color]", markup=True, font_size='12sp', size_hint=(1, None), height=24)
 
         box.add_widget(self.n_lbl)
         box.add_widget(self.h_lbl)
@@ -826,13 +816,12 @@ class StatsScreen(Screen):
         scroll.add_widget(box)
         layout.add_widget(scroll)
 
-        # Bottom Nav
-        nav = BoxLayout(orientation='horizontal', size_hint=(1, None), height=42, spacing=6)
-        n_mine = Button(text="Mining", background_color=(0.10, 0.15, 0.22, 1), font_size='11sp')
+        nav = BoxLayout(orientation='horizontal', size_hint=(1, None), height=46, spacing=6)
+        n_mine = Button(text="Mining", background_color=(0.10, 0.15, 0.22, 1), font_size='12sp')
         n_mine.bind(on_press=lambda x: self.go_to("mining_screen"))
-        n_wall = Button(text="Wallet & KYC", background_color=(0.10, 0.15, 0.22, 1), font_size='11sp')
+        n_wall = Button(text="Wallet & KYC", background_color=(0.10, 0.15, 0.22, 1), font_size='12sp')
         n_wall.bind(on_press=lambda x: self.go_to("wallet_screen"))
-        n_stat = Button(text="Stats", background_color=(0.0, 0.5, 0.7, 1), font_size='11sp')
+        n_stat = Button(text="Stats", background_color=(0.0, 0.5, 0.7, 1), font_size='12sp', bold=True)
         nav.add_widget(n_mine)
         nav.add_widget(n_wall)
         nav.add_widget(n_stat)
@@ -843,9 +832,9 @@ class StatsScreen(Screen):
     def sync_ui(self):
         vault = get_vault()
         stats = vault.get("stats", {})
-        self.n_lbl.text = f"Active PoI Nodes: [b]{stats.get('nodes', 18450):,}[/b]"
+        self.n_lbl.text = f"Active PoI Nodes: [b]{stats.get('nodes', 18451):,}[/b]"
         self.h_lbl.text = f"Global Hashrate: [b]{stats.get('hashrate', '620.8 TH/s')}[/b]"
-        self.b_lbl.text = f"Research Blocks Solved: [b]{stats.get('blocks', 341020):,}[/b]"
+        self.b_lbl.text = f"Research Blocks Solved: [b]{stats.get('blocks', 341025):,}[/b]"
 
     def go_to(self, target):
         self.manager.transition = SlideTransition(direction='right')
