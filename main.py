@@ -1,214 +1,406 @@
+import json
 import os
+import re
 import time
-import hashlib
-import random
 from kivy.app import App
 from kivy.clock import Clock
+from kivy.core.window import Window
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
 from kivy.uix.button import Button
-from kivy.uix.textinput import TextInput
+from kivy.uix.label import Label
+from kivy.uix.popup import Popup
 from kivy.uix.scrollview import ScrollView
-from kivy.storage.jsonstore import JsonStore
+from kivy.uix.textinput import TextInput
 
-class BaratCoreNode(App):
+# Dark Theme Setting
+Window.clearcolor = (0.05, 0.07, 0.11, 1)
+
+DATA_FILE = "barat_secure_vault.json"
+
+
+class BaratCoreApp(App):
+
     def build(self):
-        # 1. Permanent Local Storage Initialization
-        data_dir = self.user_data_dir
-        store_path = os.path.join(data_dir, 'barat_node_v2.json')
-        self.store = JsonStore(store_path)
+        self.load_user_data()
+        self.is_mining = False
+        self.mining_event = None
 
-        # 2. Load User Persistent Data
-        if self.store.exists('node_state'):
-            saved = self.store.get('node_state')
-            self.total_balance = float(saved.get('balance', 0.0))
-            self.verified_blocks = int(saved.get('blocks', 0))
-            self.wallet_address = str(saved.get('wallet', ''))
-            self.session_end_time = float(saved.get('session_end', 0.0))
-            self.last_sync_time = float(saved.get('last_sync', time.time()))
-        else:
-            self.total_balance = 0.0
-            self.verified_blocks = 0
-            self.wallet_address = ''
-            self.session_end_time = 0.0
-            self.last_sync_time = time.time()
-
-        # Scientific Computation Matrices as per Whitepaper
-        self.scientific_tasks = [
-            "Cancer_Cell_Chunk_",
-            "Climate_Grid_Model_",
-            "Molecular_Protein_Folding_",
-            "Neural_Network_Weights_"
-        ]
-
-        # Calculate pending mined rewards while app was closed
-        self.catch_up_offline_progress()
-
-        # 3. UI Construction
-        root = BoxLayout(orientation='vertical', padding=15, spacing=10)
+        root = BoxLayout(orientation="vertical", padding=16, spacing=12)
 
         # Header Title
-        title = Label(
-            text="[b]BARAT NETWORK[/b]\n[size=13]Proof of Intelligence (PoI) Node v2.0[/size]",
+        title_box = BoxLayout(
+            orientation="vertical", size_hint=(1, None), height=65
+        )
+        title_label = Label(
+            text="[b][color=00e5ff]BARAT NETWORK[/color][/b]",
             markup=True,
-            size_hint_y=0.14,
-            color=(0.15, 0.75, 0.95, 1)
+            font_size="24sp",
+            size_hint=(1, None),
+            height=35,
         )
-        root.add_widget(title)
-
-        # Live Balance Display
-        self.lbl_balance = Label(
-            text=f"[b]{self.total_balance:.4f}[/b] $BARAT",
+        sub_title = Label(
+            text="[color=8892b0]Proof of Intelligence & Decentralized Node[/color]",
             markup=True,
-            size_hint_y=0.10,
-            font_size='22sp',
-            color=(1, 1, 1, 1)
+            font_size="12sp",
+            size_hint=(1, None),
+            height=20,
         )
-        root.add_widget(self.lbl_balance)
+        title_box.add_widget(title_label)
+        title_box.add_widget(sub_title)
+        root.add_widget(title_box)
 
-        # Halving and Mining Speed Info
-        self.lbl_stats = Label(
-            text=self.get_stats_string(),
-            size_hint_y=0.06,
-            color=(0.6, 0.9, 0.6, 1),
-            font_size='12sp'
+        # Account Status & KYC Bar
+        status_bar = BoxLayout(
+            orientation="horizontal",
+            size_hint=(1, None),
+            height=30,
+            spacing=10,
         )
-        root.add_widget(self.lbl_stats)
+        self.user_tag = Label(
+            text=f"[color=a8b2d1]User: {self.data.get('username', 'Miner_Node')}[/color]",
+            markup=True,
+            font_size="13sp",
+            halign="left",
+        )
+        kyc_state = self.data.get("kyc_status", "Unverified")
+        kyc_color = (
+            "00ff66"
+            if kyc_state == "Verified"
+            else ("ffaa00" if kyc_state == "Pending" else "ff4444")
+        )
+        self.kyc_tag = Label(
+            text=f"[color={kyc_color}]KYC: {kyc_state}[/color]",
+            markup=True,
+            font_size="13sp",
+            halign="right",
+        )
+        status_bar.add_widget(self.user_tag)
+        status_bar.add_widget(self.kyc_tag)
+        root.add_widget(status_bar)
 
-        # Solana / Phantom Wallet Section
-        wallet_box = BoxLayout(orientation='vertical', size_hint_y=0.14, spacing=3)
-        wallet_box.add_widget(Label(text="Solana / Phantom Wallet Target:", size_hint_y=0.4, font_size='11sp'))
-        self.txt_wallet = TextInput(
-            text=self.wallet_address,
-            hint_text="Enter Solana Public Key (Base58)...",
+        # Live Balance Container
+        balance_card = BoxLayout(
+            orientation="vertical", size_hint=(1, None), height=85, padding=8
+        )
+        bal_head = Label(
+            text="[color=a8b2d1]LIVE ACCUMULATED BALANCE[/color]",
+            markup=True,
+            font_size="11sp",
+        )
+        self.balance_label = Label(
+            text=f"[b][color=ffffff]{self.data.get('balance', 0.0):.6f} BARAT[/color][/b]",
+            markup=True,
+            font_size="26sp",
+        )
+        balance_card.add_widget(bal_head)
+        balance_card.add_widget(self.balance_label)
+        root.add_widget(balance_card)
+
+        # Mining Node Stats
+        stats_box = BoxLayout(
+            orientation="horizontal",
+            size_hint=(1, None),
+            height=35,
+            spacing=5,
+        )
+        self.speed_label = Label(
+            text="[color=64ffda]Rate: 0.2500 B/hr[/color]",
+            markup=True,
+            font_size="12sp",
+        )
+        self.blocks_label = Label(
+            text=f"[color=64ffda]Blocks: {self.data.get('verified_blocks', 0)}[/color]",
+            markup=True,
+            font_size="12sp",
+        )
+        stats_box.add_widget(self.speed_label)
+        stats_box.add_widget(self.blocks_label)
+        root.add_widget(stats_box)
+
+        # Input & Verification Section
+        input_container = BoxLayout(
+            orientation="vertical",
+            size_hint=(1, None),
+            height=110,
+            spacing=6,
+        )
+
+        self.wallet_input = TextInput(
+            text=self.data.get("wallet_address", ""),
+            hint_text="Enter Web3 Wallet Address (0x... or Solana)",
             multiline=False,
-            size_hint_y=0.6,
-            font_size='12sp'
+            size_hint=(1, None),
+            height=42,
+            background_color=(0.1, 0.14, 0.2, 1),
+            foreground_color=(1, 1, 1, 1),
+            cursor_color=(0, 0.9, 1, 1),
+            font_size="12sp",
         )
-        self.txt_wallet.bind(text=self.on_wallet_input)
-        wallet_box.add_widget(self.txt_wallet)
-        root.add_widget(wallet_box)
+        input_container.add_widget(self.wallet_input)
 
-        # PoI Real-Time Task Visualizer (Console)
-        self.lbl_console = Label(
-            text="[PoI Core] System Ready. Start session to solve matrices.",
-            size_hint_y=None,
-            color=(0.8, 0.8, 0.8, 1),
-            halign='left',
-            valign='top',
-            font_size='11sp'
+        btn_row = BoxLayout(
+            orientation="horizontal",
+            size_hint=(1, None),
+            height=40,
+            spacing=8,
         )
-        self.lbl_console.bind(texture_size=self.lbl_console.setter('size'))
 
-        scroll = ScrollView(size_hint_y=0.42)
-        scroll.add_widget(self.lbl_console)
-        root.add_widget(scroll)
-
-        # 24-Hour Mining Action Button
-        self.btn_mine = Button(
-            text="START 24H PoI SESSION",
-            size_hint_y=0.14,
+        self.claim_btn = Button(
+            text="Claim / Sync",
+            background_color=(0, 0.7, 0.9, 1),
             bold=True,
-            background_color=(0, 0.6, 0.3, 1)
+            font_size="13sp",
         )
-        self.btn_mine.bind(on_press=self.handle_session_toggle)
-        root.add_widget(self.btn_mine)
+        self.claim_btn.bind(on_press=self.validate_and_claim)
 
-        # Continuous Heartbeat Event (Every 1 second)
-        Clock.schedule_interval(self.system_heartbeat, 1.0)
-        self.check_active_session_status()
+        self.kyc_btn = Button(
+            text="KYC Portal",
+            background_color=(0.2, 0.3, 0.5, 1),
+            bold=True,
+            font_size="13sp",
+        )
+        self.kyc_btn.bind(on_press=self.open_kyc_modal)
+
+        btn_row.add_widget(self.claim_btn)
+        btn_row.add_widget(self.kyc_btn)
+        input_container.add_widget(btn_row)
+
+        self.status_msg = Label(
+            text="",
+            markup=True,
+            font_size="11sp",
+            size_hint=(1, None),
+            height=18,
+        )
+        input_container.add_widget(self.status_msg)
+        root.add_widget(input_container)
+
+        # Mining Button
+        self.mine_btn = Button(
+            text="START PROOF-OF-INTELLIGENCE NODE",
+            size_hint=(1, None),
+            height=50,
+            background_color=(0.0, 0.8, 0.4, 1),
+            bold=True,
+            font_size="14sp",
+        )
+        self.mine_btn.bind(on_press=self.toggle_mining)
+        root.add_widget(self.mine_btn)
+
+        # Logs Stream
+        log_title = Label(
+            text="[color=8892b0]NODE COMPUTATION STREAM (LOGS)[/color]",
+            markup=True,
+            font_size="10sp",
+            size_hint=(1, None),
+            height=18,
+        )
+        root.add_widget(log_title)
+
+        self.log_scroll = ScrollView(size_hint=(1, 1))
+        self.log_content = Label(
+            text="[color=556677]>> Node ready. Awaiting operational trigger...[/color]\n",
+            markup=True,
+            font_size="10sp",
+            size_hint_y=None,
+            halign="left",
+            valign="top",
+        )
+        self.log_content.bind(
+            texture_size=lambda instance, val: setattr(
+                self.log_content, "height", val[1]
+            )
+        )
+        self.log_content.bind(
+            size=lambda instance, val: setattr(
+                self.log_content, "text_size", (val[0], None)
+            )
+        )
+        self.log_scroll.add_widget(self.log_content)
+        root.add_widget(self.log_scroll)
 
         return root
 
-    def get_current_base_rate_per_sec(self):
-        """Halving Logic based on total mined tokens"""
-        if self.total_balance < 500.0:
-            daily_rate = 10.00
-        elif self.total_balance < 2500.0:
-            daily_rate = 5.00
-        elif self.total_balance < 10000.0:
-            daily_rate = 2.50
+    def load_user_data(self):
+        default_data = {
+            "username": "BARAT_Miner_01",
+            "balance": 0.000000,
+            "wallet_address": "",
+            "kyc_status": "Unverified",
+            "kyc_id": "",
+            "verified_blocks": 0,
+            "last_active": time.time(),
+        }
+        if os.path.exists(DATA_FILE):
+            try:
+                with open(DATA_FILE, "r") as f:
+                    self.data = json.load(f)
+            except Exception:
+                self.data = default_data
         else:
-            daily_rate = 1.25
-        return daily_rate / 86400.0, daily_rate
+            self.data = default_data
+            self.save_user_data()
 
-    def get_stats_string(self):
-        _, daily_rate = self.get_current_base_rate_per_sec()
-        return f"Rate: {daily_rate:.2f} $BARAT/24h | Blocks Solved: {self.verified_blocks}"
+    def save_user_data(self):
+        try:
+            with open(DATA_FILE, "w") as f:
+                json.dump(self.data, f, indent=4)
+        except Exception:
+            pass
 
-    def on_wallet_input(self, instance, value):
-        self.wallet_address = value.strip()
-        self.persist_state()
+    def validate_and_claim(self, instance):
+        wallet = self.wallet_input.text.strip()
+        evm_pattern = r"^0x[a-fA-F0-9]{40}$"
+        sol_pattern = r"^[1-9A-HJ-NP-za-km-z]{32,44}$"
 
-    def persist_state(self):
-        self.store.put('node_state',
-                       balance=self.total_balance,
-                       blocks=self.verified_blocks,
-                       wallet=self.wallet_address,
-                       session_end=self.session_end_time,
-                       last_sync=time.time())
+        if not wallet:
+            self.status_msg.text = (
+                "[color=ff4444]Failed: Address box cannot be empty![/color]"
+            )
+            return
 
-    def catch_up_offline_progress(self):
-        """Credit mined tokens if app was closed during an active session"""
-        now = time.time()
-        if self.session_end_time > self.last_sync_time:
-            active_duration = min(now, self.session_end_time) - self.last_sync_time
-            if active_duration > 0:
-                rate_per_sec, _ = self.get_current_base_rate_per_sec()
-                gained = active_duration * rate_per_sec
-                self.total_balance += gained
-                self.verified_blocks += int(active_duration // 30)
-        self.last_sync_time = now
-        self.persist_state()
+        is_evm = re.match(evm_pattern, wallet)
+        is_sol = re.match(sol_pattern, wallet)
 
-    def check_active_session_status(self):
-        now = time.time()
-        if now < self.session_end_time:
-            self.btn_mine.disabled = True
+        if not (is_evm or is_sol):
+            self.status_msg.text = "[color=ff3333]Failed: Invalid Address! Valid EVM or Solana required.[/color]"
+            return
+
+        self.data["wallet_address"] = wallet
+        self.save_user_data()
+        chain = "EVM" if is_evm else "SOLANA"
+        self.status_msg.text = (
+            f"[color=00ff66]Success: Valid {chain} linked & synced![/color]"
+        )
+
+    def open_kyc_modal(self, instance):
+        box = BoxLayout(orientation="vertical", padding=14, spacing=10)
+        box.add_widget(
+            Label(
+                text="[b]BARAT Identity Verification (KYC)[/b]",
+                markup=True,
+                font_size="15sp",
+            )
+        )
+        box.add_widget(
+            Label(
+                text="Enter Govt ID / Passport / National ID Number:",
+                font_size="11sp",
+                color=(0.7, 0.8, 0.9, 1),
+            )
+        )
+
+        id_input = TextInput(
+            text=self.data.get("kyc_id", ""),
+            multiline=False,
+            size_hint=(1, None),
+            height=40,
+            background_color=(0.15, 0.2, 0.28, 1),
+            foreground_color=(1, 1, 1, 1),
+        )
+        box.add_widget(id_input)
+
+        modal_status = Label(
+            text=f"Current Status: {self.data.get('kyc_status', 'Unverified')}",
+            font_size="12sp",
+            color=(0.9, 0.7, 0.2, 1),
+        )
+        box.add_widget(modal_status)
+
+        action_row = BoxLayout(
+            orientation="horizontal",
+            size_hint=(1, None),
+            height=40,
+            spacing=8,
+        )
+        submit_btn = Button(
+            text="Submit KYC", background_color=(0, 0.7, 0.5, 1)
+        )
+        close_btn = Button(
+            text="Close", background_color=(0.5, 0.2, 0.2, 1)
+        )
+        action_row.add_widget(submit_btn)
+        action_row.add_widget(close_btn)
+        box.add_widget(action_row)
+
+        popup = Popup(
+            title="KYC Compliance Portal",
+            content=box,
+            size_hint=(0.9, 0.45),
+            auto_dismiss=False,
+        )
+
+        def submit_kyc(btn):
+            val = id_input.text.strip()
+            if len(val) >= 6:
+                self.data["kyc_id"] = val
+                self.data["kyc_status"] = "Pending"
+                self.save_user_data()
+                self.kyc_tag.text = "[color=ffaa00]KYC: Pending[/color]"
+                popup.dismiss()
+                self.status_msg.text = "[color=ffaa00]KYC Submitted! Under decentralized verification.[/color]"
+            else:
+                modal_status.text = "Error: ID must be at least 6 characters!"
+
+        submit_btn.bind(on_press=submit_kyc)
+        close_btn.bind(on_press=popup.dismiss)
+        popup.open()
+
+    def toggle_mining(self, instance):
+        if not self.is_mining:
+            self.is_mining = True
+            self.mine_btn.text = "HALT COMPUTATION NODE"
+            self.mine_btn.background_color = (0.9, 0.2, 0.2, 1)
+            self.mining_event = Clock.schedule_interval(
+                self.process_mining_step, 1.0
+            )
+            self.append_log(
+                "[color=00ff66]>> Node thread initialized. Solving PoI"
+                " computations...[/color]"
+            )
         else:
-            self.btn_mine.disabled = False
-            self.btn_mine.text = "START 24H PoI SESSION"
-            self.btn_mine.background_color = (0, 0.6, 0.3, 1)
+            self.is_mining = False
+            self.mine_btn.text = "START PROOF-OF-INTELLIGENCE NODE"
+            self.mine_btn.background_color = (0.0, 0.8, 0.4, 1)
+            if self.mining_event:
+                self.mining_event.cancel()
+            self.append_log(
+                "[color=ffaa00]>> Node thread suspended by operator.[/color]"
+            )
 
-    def handle_session_toggle(self, instance):
-        now = time.time()
-        if now >= self.session_end_time:
-            self.session_end_time = now + 86400
-            self.last_sync_time = now
-            self.persist_state()
-            self.btn_mine.disabled = True
-            log_entry = "[PoI] 24-Hour Computing Session Activated.\n"
-            self.lbl_console.text = log_entry + self.lbl_console.text
+    def process_mining_step(self, dt):
+        increment = 0.0000694
+        current_bal = self.data.get("balance", 0.0) + increment
+        self.data["balance"] = current_bal
+        self.balance_label.text = (
+            f"[b][color=ffffff]{current_bal:.6f} BARAT[/color][/b]"
+        )
 
-    def system_heartbeat(self, dt):
-        now = time.time()
+        if int(time.time()) % 15 == 0:
+            self.data["verified_blocks"] = (
+                self.data.get("verified_blocks", 0) + 1
+            )
+            self.blocks_label.text = (
+                f"[color=64ffda]Blocks: {self.data['verified_blocks']}[/color]"
+            )
+            tasks = [
+                "Neural_Weight_Matrix_Normalized",
+                "Genomic_Fold_Chunk_Validated",
+                "Consensus_Hash_Proof_Signed",
+                "Climate_Tensor_Block_Calculated",
+            ]
+            import random
 
-        if now < self.session_end_time:
-            remaining = int(self.session_end_time - now)
-            hours = remaining // 3600
-            mins = (remaining % 3600) // 60
-            secs = remaining % 60
-            self.btn_mine.text = f"COMPUTING ACTIVE ({hours:02d}:{mins:02d}:{secs:02d})"
-            self.btn_mine.background_color = (0.2, 0.4, 0.8, 1)
+            selected_task = random.choice(tasks)
+            self.append_log(
+                f"[color=00e5ff]>> Verified {selected_task} [Block"
+                f" #{self.data['verified_blocks']}][/color]"
+            )
+            self.save_user_data()
 
-            rate_per_sec, _ = self.get_current_base_rate_per_sec()
-            self.total_balance += rate_per_sec
-            self.lbl_balance.text = f"[b]{self.total_balance:.4f}[/b] $BARAT"
+    def append_log(self, msg):
+        self.log_content.text += f"\n{msg}"
 
-            if int(now) % 10 == 0:
-                self.verified_blocks += 1
-                task = random.choice(self.scientific_tasks) + str(random.randint(1000, 9999))
-                h = hashlib.sha256(task.encode()).hexdigest()
-                log = (
-                    f"[✓] Solved: {task}\n"
-                    f"    PoI Proof: {h[:14]}... | 3 Nodes Verified\n"
-                )
-                self.lbl_console.text = log + self.lbl_console.text[:400]
-                self.lbl_stats.text = self.get_stats_string()
-                self.persist_state()
-        else:
-            if self.btn_mine.disabled:
-                self.check_active_session_status()
 
-if __name__ == '__main__':
-    BaratCoreNode().run()
+if __name__ == "__main__":
+    BaratCoreApp().run()
