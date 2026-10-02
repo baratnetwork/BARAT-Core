@@ -1,3 +1,4 @@
+
 name: Build APK
 
 on:
@@ -8,19 +9,20 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/kivy/buildozer:latest
 
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Compile APK Inside Clean Docker
-      run: |
-        buildozer android debug
+    - name: Build with Buildozer Action
+      uses: ArtemSBulgakov/buildozer-action@v1
+      id: buildozer
+      with:
+        workdir: .
+        buildozer_version: master
 
     - name: Upload Finished APK
       uses: actions/upload-artifact@v4
       with:
         name: BARAT-Core-APK
-        path: bin/*.apk
+        path: ${{ steps.buildozer.outputs.filename }}
