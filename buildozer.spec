@@ -5,14 +5,14 @@ package.domain = org.barat
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,json
 version = 0.1
-requirements = python3,kivy
+requirements = python3,kivy==2.3.0
 orientation = portrait
 fullscreen = 0
 
 android.accept_sdk_license = True
-android.api = 31
+android.api = 33
 android.minapi = 21
-android.ndk = 23b
+android.ndk = 25b
 android.ndk_api = 21
 android.archs = arm64-v8a
 
