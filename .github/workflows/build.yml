@@ -16,12 +16,13 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Fix Safe Directory
-      run: |
-        git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+    - name: Clean Old Cache
+      run: rm -rf .buildozer
 
     - name: Compile APK Inside Clean Docker
-      run: |
-        printf 'y\n' | buildozer -v android debug
+      run: buildozer android debug
 
     - name: Upload Finished APK
       uses: actions/upload-artifact@v4
