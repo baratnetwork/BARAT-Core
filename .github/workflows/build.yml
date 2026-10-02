@@ -13,7 +13,7 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Free Up Disk Space
+    - name: Free Disk Space
       run: |
         sudo rm -rf /usr/share/dotnet
         sudo rm -rf /opt/ghc
@@ -31,34 +31,30 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Install System Build Packages
+    - name: Install System Dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev build-essential ccache
 
-    - name: Install Verified Cython and Buildozer
+    - name: Install Cython and Buildozer
       run: |
         python -m pip install --upgrade pip setuptools
-        pip install "Cython==0.29.36" buildozer
+        pip install "Cython<3.0" buildozer
 
-    - name: Pre-Accept SDK Licenses
-      run: |
-        mkdir -p $HOME/.android
-        touch $HOME/.android/repositories.cfg
-        yes | sdkmanager --licenses || true
-
-    - name: Clean Old Buildozer Cache
+    - name: Clean Cache and Unset Conflicting NDK
       run: |
         rm -rf .buildozer
         rm -rf ~/.buildozer
 
-    - name: Compile APK with Non-Interactive Buildozer
+    - name: Compile APK
       run: |
+        unset ANDROID_NDK_HOME
+        unset ANDROID_NDK_ROOT
         buildozer -v android debug
       env:
         CI: true
 
-    - name: Upload Finished APK
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: BARAT-Core-APK
