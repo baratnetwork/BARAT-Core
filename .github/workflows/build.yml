@@ -13,12 +13,13 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Free Disk Space
+    - name: Free Disk Space & Remove Conflicting NDKs
       run: |
         sudo rm -rf /usr/share/dotnet
         sudo rm -rf /opt/ghc
         sudo rm -rf "/usr/local/share/boost"
         sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+        sudo rm -rf /usr/local/lib/android/sdk/ndk/*
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -41,18 +42,19 @@ jobs:
         python -m pip install --upgrade pip setuptools
         pip install "Cython<3.0" buildozer
 
-    - name: Clean Cache and Unset Conflicting NDK
+    - name: Clean Buildozer Cache
       run: |
         rm -rf .buildozer
         rm -rf ~/.buildozer
 
     - name: Compile APK
       run: |
-        unset ANDROID_NDK_HOME
-        unset ANDROID_NDK_ROOT
         buildozer -v android debug
       env:
         CI: true
+        ANDROID_NDK_HOME: ""
+        ANDROID_NDK_ROOT: ""
+        ANDROID_NDK_LATEST_HOME: ""
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
