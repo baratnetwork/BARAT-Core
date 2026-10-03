@@ -2,6 +2,8 @@
 
 # (str) Title of your application
 title = BARAT Core
+icon.filename = %(source.dir)s/icon.png
+
 
 # (str) Package name
 package.name = baratcore
