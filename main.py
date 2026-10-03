@@ -51,27 +51,29 @@ def save_data(data):
 class RegisterScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        root = BoxLayout(orientation='vertical', padding=[24, 40, 24, 30], spacing=14)
+        root = BoxLayout(orientation='vertical', padding=[24, 30, 24, 25], spacing=10)
 
-        if os.path.exists("icon.png"):
-            logo = Image(source="icon.png", size_hint=(1, None), height=90, allow_stretch=True)
+        try:
+            logo = Image(source="icon.png", size_hint_y=0.25, allow_stretch=True, keep_ratio=True)
             root.add_widget(logo)
+        except Exception:
+            pass
 
-        root.add_widget(Label(text="BARAT CORE NETWORK", font_size='22sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=None, height=32))
-        root.add_widget(Label(text="Eco-Green Cancer Research Node Setup", font_size='13sp', color=(0.6, 0.7, 0.6, 1), size_hint_y=None, height=20))
+        root.add_widget(Label(text="BARAT CORE NETWORK", font_size='22sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.1))
+        root.add_widget(Label(text="Eco-Green Cancer Research Node Setup", font_size='13sp', color=(0.6, 0.7, 0.6, 1), size_hint_y=0.06))
 
-        self.user_input = TextInput(hint_text="Enter Node Operator Name", multiline=False, size_hint_y=None, height=48, padding=[12, 12])
+        self.user_input = TextInput(hint_text="Enter Node Operator Name", multiline=False, size_hint_y=0.1, padding=[10, 10])
         root.add_widget(self.user_input)
 
-        root.add_widget(Label(text="Enter 12-Word Decentralized Passphrase:", font_size='13sp', color=(0.9, 0.9, 0.9, 1), size_hint_y=None, height=24))
+        root.add_widget(Label(text="Enter 12-Word Decentralized Passphrase:", font_size='13sp', color=(0.9, 0.9, 0.9, 1), size_hint_y=0.06))
 
-        self.seed_input = TextInput(hint_text="word1 word2 ... word12", multiline=True, size_hint_y=None, height=80, padding=[12, 12])
+        self.seed_input = TextInput(hint_text="word1 word2 ... word12", multiline=True, size_hint_y=0.2, padding=[10, 10])
         root.add_widget(self.seed_input)
 
-        self.msg = Label(text="", font_size='12sp', color=(1, 0.3, 0.3, 1), size_hint_y=None, height=24)
+        self.msg = Label(text="", font_size='12sp', color=(1, 0.3, 0.3, 1), size_hint_y=0.06)
         root.add_widget(self.msg)
 
-        btn = Button(text="Initialize Secure Node", size_hint_y=None, height=50, background_color=(0.1, 0.55, 0.35, 1), font_size='15sp', bold=True)
+        btn = Button(text="Initialize Secure Node", size_hint_y=0.12, background_color=(0.1, 0.55, 0.35, 1), font_size='15sp', bold=True)
         btn.bind(on_press=self.do_register)
         root.add_widget(btn)
 
@@ -100,22 +102,24 @@ class RegisterScreen(Screen):
 class LoginScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        root = BoxLayout(orientation='vertical', padding=[24, 40, 24, 40], spacing=15)
+        root = BoxLayout(orientation='vertical', padding=[24, 40, 24, 30], spacing=12)
 
-        if os.path.exists("icon.png"):
-            logo = Image(source="icon.png", size_hint=(1, None), height=90, allow_stretch=True)
+        try:
+            logo = Image(source="icon.png", size_hint_y=0.3, allow_stretch=True, keep_ratio=True)
             root.add_widget(logo)
+        except Exception:
+            pass
 
-        root.add_widget(Label(text="BARAT CORE", font_size='26sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=None, height=36))
-        root.add_widget(Label(text="Enter 12-Word Passphrase to Unlock Node:", size_hint_y=None, height=28, font_size='14sp'))
+        root.add_widget(Label(text="BARAT CORE", font_size='26sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.12))
+        root.add_widget(Label(text="Enter 12-Word Passphrase to Unlock Node:", size_hint_y=0.08, font_size='14sp'))
 
-        self.seed_input = TextInput(hint_text="Enter 12 secret words", multiline=True, size_hint_y=None, height=90, font_size='14sp', padding=[12, 12])
+        self.seed_input = TextInput(hint_text="Enter 12 secret words", multiline=True, size_hint_y=0.22, font_size='14sp', padding=[10, 10])
         root.add_widget(self.seed_input)
 
-        self.msg = Label(text="", color=(1, 0.3, 0.3, 1), size_hint_y=None, height=26, font_size='13sp')
+        self.msg = Label(text="", color=(1, 0.3, 0.3, 1), size_hint_y=0.08, font_size='13sp')
         root.add_widget(self.msg)
 
-        btn = Button(text="Unlock Research Terminal", size_hint_y=None, height=52, background_color=(0.15, 0.55, 0.35, 1), font_size='14sp', bold=True)
+        btn = Button(text="Unlock Research Terminal", size_hint_y=0.12, background_color=(0.15, 0.55, 0.35, 1), font_size='15sp', bold=True)
         btn.bind(on_press=self.do_login)
         root.add_widget(btn)
 
@@ -132,51 +136,53 @@ class LoginScreen(Screen):
 class MainScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        root = BoxLayout(orientation='vertical', padding=[18, 20, 18, 20], spacing=8)
+        root = BoxLayout(orientation='vertical', padding=[20, 25, 20, 25], spacing=10)
 
         # టైటిల్
-        root.add_widget(Label(text="BARAT CORE: GREEN RESEARCH NODE", font_size='16sp', bold=True, color=(0.2, 0.9, 0.5, 1), size_hint_y=None, height=28))
+        root.add_widget(Label(text="BARAT CORE: GREEN RESEARCH NODE", font_size='16sp', bold=True, color=(0.2, 0.9, 0.5, 1), size_hint_y=0.08))
 
-        # మెరిసే లోగో (మైనింగ్ బ్యాలెన్స్ పైన)
-        if os.path.exists("icon.png"):
-            self.logo_img = Image(source="icon.png", size_hint=(1, None), height=105, allow_stretch=True, opacity=0.9)
+        # లోగో (మైనింగ్ బ్యాలెన్స్ పైన)
+        try:
+            self.logo_img = Image(source="icon.png", size_hint_y=0.24, allow_stretch=True, keep_ratio=True, opacity=0.9)
             root.add_widget(self.logo_img)
-            anim = Animation(opacity=0.55, duration=1.3) + Animation(opacity=1.0, duration=1.3)
+            anim = Animation(opacity=0.55, duration=1.4) + Animation(opacity=1.0, duration=1.4)
             anim.repeat = True
             anim.start(self.logo_img)
+        except Exception:
+            pass
 
         # మైనింగ్ బ్యాలెన్స్
-        self.bal_lbl = Label(text="0.0000 BARAT", font_size='28sp', bold=True, color=(0.95, 0.95, 0.95, 1), size_hint_y=None, height=44)
+        self.bal_lbl = Label(text="0.0000 BARAT", font_size='30sp', bold=True, color=(0.95, 0.95, 0.95, 1), size_hint_y=0.12)
         root.add_widget(self.bal_lbl)
 
-        # మైనింగ్ ఫేజ్ & రివార్డ్
-        self.phase_lbl = Label(text="Phase: Initializing...", font_size='12sp', color=(0.95, 0.8, 0.2, 1), size_hint_y=None, height=22)
+        # మైనింగ్ ఫేజ్
+        self.phase_lbl = Label(text="Phase: Initializing...", font_size='13sp', color=(0.95, 0.8, 0.2, 1), size_hint_y=0.06)
         root.add_widget(self.phase_lbl)
 
-        # క్యాన్సర్ రీసెర్చ్ టార్గెట్
-        self.puzzle_lbl = Label(text="Research Target: Loading...", font_size='12sp', color=(0.4, 0.65, 1, 1), size_hint_y=None, height=24)
+        # రీసెర్చ్ టార్గెట్
+        self.puzzle_lbl = Label(text="Research Target: Loading...", font_size='13sp', color=(0.4, 0.65, 1, 1), size_hint_y=0.06)
         root.add_widget(self.puzzle_lbl)
 
-        # బ్లాక్ ప్రూఫ్ సమాచారం
-        self.block_lbl = Label(text="Block Height: #0000 | Proof: Verifying", font_size='11sp', color=(0.7, 0.7, 0.7, 1), size_hint_y=None, height=20)
+        # బ్లాక్ ప్రూఫ్
+        self.block_lbl = Label(text="Block Height: #0000 | Proof: Verifying", font_size='11sp', color=(0.7, 0.7, 0.7, 1), size_hint_y=0.06)
         root.add_widget(self.block_lbl)
 
-        # 24 గంటల కౌంట్‌డౌన్ టైమర్
-        self.timer_lbl = Label(text="Node Engine: Ready", font_size='13sp', size_hint_y=None, height=24)
+        # టైమర్
+        self.timer_lbl = Label(text="Node Engine: Ready", font_size='13sp', size_hint_y=0.07)
         root.add_widget(self.timer_lbl)
 
         # మైనింగ్ బటన్
-        self.mine_btn = Button(text="Solve Puzzle & Mine Block", size_hint_y=None, height=50, background_color=(0.1, 0.65, 0.35, 1), font_size='15sp', bold=True)
+        self.mine_btn = Button(text="Solve Puzzle & Mine Block", size_hint_y=0.11, background_color=(0.1, 0.65, 0.35, 1), font_size='15sp', bold=True)
         self.mine_btn.bind(on_press=self.start_mining)
         root.add_widget(self.mine_btn)
 
         # సోలానా బ్రిడ్జ్ బటన్
-        self.sol_btn = Button(text="Sync With Solana Bridge", size_hint_y=None, height=44, background_color=(0.5, 0.2, 0.7, 1), font_size='13sp', bold=True)
+        self.sol_btn = Button(text="Sync With Solana Bridge", size_hint_y=0.09, background_color=(0.5, 0.2, 0.7, 1), font_size='13sp', bold=True)
         self.sol_btn.bind(on_press=self.claim_solana)
         root.add_widget(self.sol_btn)
 
-        # స్టేటస్ మెసేజ్
-        self.status_msg = Label(text="Bridge Verified: Oncology Research Proof queued.", font_size='11sp', color=(1, 0.85, 0.3, 1), size_hint_y=None, height=22)
+        # స్టేటస్ సమాచారం
+        self.status_msg = Label(text="Bridge Verified: Oncology Research Proof queued.", font_size='11sp', color=(1, 0.85, 0.3, 1), size_hint_y=0.06)
         root.add_widget(self.status_msg)
 
         self.add_widget(root)
@@ -274,4 +280,3 @@ class BaratCoreApp(App):
 
 if __name__ == '__main__':
     BaratCoreApp().run()
-        
