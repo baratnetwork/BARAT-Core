@@ -13,6 +13,10 @@ from kivy.clock import Clock
 from kivy.animation import Animation
 from kivy.core.window import Window
 
+# లోగో ఫైల్ కరెక్ట్ అడ్రస్ ఆండ్రాయిడ్ కోసం
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+LOGO_FILE = os.path.join(CURRENT_DIR, "icon.png")
+
 DATA_FILE = "barat_data.json"
 HALVING_INTERVAL = 5250000.0
 BLOCK_REWARD_INITIAL = 10.0
@@ -54,7 +58,7 @@ class RegisterScreen(Screen):
         root = BoxLayout(orientation='vertical', padding=[24, 30, 24, 25], spacing=10)
 
         try:
-            logo = Image(source="icon.png", size_hint_y=0.25, allow_stretch=True, keep_ratio=True)
+            logo = Image(source=LOGO_FILE, size_hint_y=0.25, allow_stretch=True, keep_ratio=True)
             root.add_widget(logo)
         except Exception:
             pass
@@ -105,7 +109,7 @@ class LoginScreen(Screen):
         root = BoxLayout(orientation='vertical', padding=[24, 40, 24, 30], spacing=12)
 
         try:
-            logo = Image(source="icon.png", size_hint_y=0.3, allow_stretch=True, keep_ratio=True)
+            logo = Image(source=LOGO_FILE, size_hint_y=0.3, allow_stretch=True, keep_ratio=True)
             root.add_widget(logo)
         except Exception:
             pass
@@ -141,9 +145,9 @@ class MainScreen(Screen):
         # టైటిల్
         root.add_widget(Label(text="BARAT CORE: GREEN RESEARCH NODE", font_size='16sp', bold=True, color=(0.2, 0.9, 0.5, 1), size_hint_y=0.08))
 
-        # లోగో (మైనింగ్ బ్యాలెన్స్ పైన)
+        # లోగో (ఖచ్చితమైన అడ్రస్ ద్వారా)
         try:
-            self.logo_img = Image(source="icon.png", size_hint_y=0.24, allow_stretch=True, keep_ratio=True, opacity=0.9)
+            self.logo_img = Image(source=LOGO_FILE, size_hint_y=0.24, allow_stretch=True, keep_ratio=True, opacity=0.9)
             root.add_widget(self.logo_img)
             anim = Animation(opacity=0.55, duration=1.4) + Animation(opacity=1.0, duration=1.4)
             anim.repeat = True
@@ -159,7 +163,7 @@ class MainScreen(Screen):
         self.phase_lbl = Label(text="Phase: Initializing...", font_size='13sp', color=(0.95, 0.8, 0.2, 1), size_hint_y=0.06)
         root.add_widget(self.phase_lbl)
 
-        # రీసెర్చ్ టార్గెట్
+        # క్యాన్సర్ రీసెర్చ్ టార్గెట్
         self.puzzle_lbl = Label(text="Research Target: Loading...", font_size='13sp', color=(0.4, 0.65, 1, 1), size_hint_y=0.06)
         root.add_widget(self.puzzle_lbl)
 
@@ -167,7 +171,7 @@ class MainScreen(Screen):
         self.block_lbl = Label(text="Block Height: #0000 | Proof: Verifying", font_size='11sp', color=(0.7, 0.7, 0.7, 1), size_hint_y=0.06)
         root.add_widget(self.block_lbl)
 
-        # టైమర్
+        # 24 గంటల టైమర్
         self.timer_lbl = Label(text="Node Engine: Ready", font_size='13sp', size_hint_y=0.07)
         root.add_widget(self.timer_lbl)
 
@@ -176,8 +180,8 @@ class MainScreen(Screen):
         self.mine_btn.bind(on_press=self.start_mining)
         root.add_widget(self.mine_btn)
 
-        # సోలానా బ్రిడ్జ్ బటన్
-        self.sol_btn = Button(text="Sync With Solana Bridge", size_hint_y=0.09, background_color=(0.5, 0.2, 0.7, 1), font_size='13sp', bold=True)
+        # సొలానా బ్రిడ్జ్ బటన్
+        self.sol_btn = Button(text="Sync With Solana Bridge", size_hint_y=0.09, background_color=(0.5, 0.2, 0.7, 1), font_size='14sp', bold=True)
         self.sol_btn.bind(on_press=self.claim_solana)
         root.add_widget(self.sol_btn)
 
