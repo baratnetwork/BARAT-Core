@@ -42,7 +42,7 @@ android.archs = arm64-v8a
 # (list) Permissions
 android.permissions = INTERNET
 
-# (int) Target Android orientation (landscape, sensorLandscape, portrait or all)
+# (int) Target Android orientation
 orientation = portrait
 
 # (bool) Fullscreen mode
@@ -53,5 +53,5 @@ fullscreen = 0
 # (int) Log level (0 = error only, 1 = info, 2 = debug with command output)
 log_level = 2
 
-# (int) Display warning if buildozer is run as root (0 = False, 1 = True)
+# (int) Display warning if buildozer is run as root
 warn_on_root = 1
