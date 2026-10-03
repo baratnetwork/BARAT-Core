@@ -27,12 +27,12 @@ jobs:
     - name: Install System Dependencies
       run: |
         sudo apt-get update -qq
-        sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev cython3
 
-    - name: Install Buildozer and Cython
+    - name: Install Buildozer
       run: |
-        pip install --upgrade pip setuptools
-        pip install "Cython==0.29.36"
+        pip install --upgrade pip setuptools virtualenv
+        pip install "Cython<3.0"
         pip install buildozer
 
     - name: Build with Buildozer
