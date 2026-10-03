@@ -2,9 +2,6 @@
 
 # (str) Title of your application
 title = BARAT Core
-icon.filename = icon.png
-
-
 
 # (str) Package name
 package.name = baratcore
@@ -20,10 +17,11 @@ source.include_exts = py,png,jpg,kv,atlas,json
 
 # (list) Application requirements
 requirements = python3==3.11.9,hostpython3==3.11.9,kivy==2.3.0
+
 # (str) Application versioning
 version = 0.1
 
-# (int) Minimum API your APK will support.
+# (int) Minimum API your APK will support
 android.minapi = 21
 
 # (int) Android SDK version to use
@@ -35,10 +33,10 @@ android.ndk = 25b
 # (bool) If True, then skip trying to update the Android sdk
 android.skip_update = False
 
-# (bool) If True, then automatically accept SDK license
+# (bool) If True, then automatically accept the license
 android.accept_sdk_license = True
 
-# (str) The Android arch to build for
+# (str) The Android archs to build for
 android.archs = arm64-v8a
 
 # (list) Permissions
