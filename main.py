@@ -21,6 +21,10 @@ from kivy.core.window import Window
 from kivy.core.clipboard import Clipboard
 from kivy.resources import resource_find, resource_add_path
 
+# కీబోర్డ్ అడ్డురాకుండా స్క్రీన్ ఆటోమేటిక్‌గా పైకి లేచే సెట్టింగ్
+Window.softinput_mode = "below_target"
+Window.keyboard_anim_args = {'t': 'in_out_quart', 'd': 0.25}
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 resource_add_path(BASE_DIR)
 
@@ -300,8 +304,8 @@ class RegisterScreen(Screen):
         self.num1 = random.randint(5, 20)
         self.num2 = random.randint(2, 9)
 
-        scroll = ScrollView()
-        root = BoxLayout(orientation='vertical', padding=[22, 15, 22, 15], spacing=8, size_hint_y=None)
+        scroll = ScrollView(do_scroll_x=False)
+        root = BoxLayout(orientation='vertical', padding=[22, 15, 22, 25], spacing=9, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
 
         root.add_widget(Label(text="CREATE BARAT NODE ACCOUNT", font_size='16sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=None, height='35dp'))
@@ -329,7 +333,7 @@ class RegisterScreen(Screen):
         self.captcha_input = ModernInput(hint_text="Enter Math Answer", multiline=False, input_filter='int', size_hint_y=None, height='45dp')
         root.add_widget(self.captcha_input)
 
-        self.msg = Label(text="", font_size='11sp', color=(1, 0.35, 0.35, 1), size_hint_y=None, height='30dp')
+        self.msg = Label(text="", font_size='11sp', color=(1, 0.35, 0.35, 1), size_hint_y=None, height='28dp')
         root.add_widget(self.msg)
 
         reg_btn = Button(text="Register & Start Mining", background_color=(0.1, 0.65, 0.35, 1), bold=True, size_hint_y=None, height='48dp')
@@ -339,6 +343,9 @@ class RegisterScreen(Screen):
         back_btn = Button(text="Back to Options", background_color=(0.3, 0.2, 0.2, 1), size_hint_y=None, height='40dp')
         back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'auth_choice'))
         root.add_widget(back_btn)
+
+        # కీబోర్డ్ ఓపెన్ అయినా క్రింది బటన్ కనిపించేలా అదనపు ఖాళీ
+        root.add_widget(Label(text="", size_hint_y=None, height='50dp'))
 
         scroll.add_widget(root)
         self.add_widget(scroll)
@@ -384,7 +391,6 @@ class RegisterScreen(Screen):
             self.refresh_captcha()
             return
 
-        # Auto-Generate Unique Profile User ID
         gen_user_id = f"BARAT-{random.randint(100000, 999999)}"
 
         data = load_data()
@@ -396,7 +402,6 @@ class RegisterScreen(Screen):
         data["password"] = pwd
         save_data(data)
 
-        # First-time registration redirects directly to Mining dashboard
         self.manager.current = "main"
 
 class LoginScreen(Screen):
@@ -407,13 +412,12 @@ class LoginScreen(Screen):
         self.num2 = random.randint(2, 9)
         self.generated_otp = None
 
-        scroll = ScrollView()
-        root = BoxLayout(orientation='vertical', padding=[22, 15, 22, 15], spacing=8, size_hint_y=None)
+        scroll = ScrollView(do_scroll_x=False)
+        root = BoxLayout(orientation='vertical', padding=[22, 15, 22, 25], spacing=9, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
 
         root.add_widget(Label(text="BARAT NODE LOGIN", font_size='16sp', bold=True, color=(0.2, 0.7, 1, 1), size_hint_y=None, height='35dp'))
 
-        # Identifier Box: User ID or Gmail or Mobile
         id_box = BoxLayout(spacing=6, size_hint_y=None, height='45dp')
         self.cc_btn = Button(text=COUNTRY_CODES[self.country_index], size_hint_x=0.28, background_color=(0.25, 0.3, 0.4, 1), bold=True)
         self.cc_btn.bind(on_press=self.toggle_country_code)
@@ -431,7 +435,7 @@ class LoginScreen(Screen):
         self.captcha_input = ModernInput(hint_text="Enter Math Answer", multiline=False, input_filter='int', size_hint_y=None, height='45dp')
         root.add_widget(self.captcha_input)
 
-        self.msg = Label(text="", font_size='11sp', color=(1, 0.35, 0.35, 1), size_hint_y=None, height='30dp')
+        self.msg = Label(text="", font_size='11sp', color=(1, 0.35, 0.35, 1), size_hint_y=None, height='28dp')
         root.add_widget(self.msg)
 
         login_btn = Button(text="Secure Login", background_color=(0.15, 0.55, 0.8, 1), bold=True, size_hint_y=None, height='48dp')
@@ -445,6 +449,9 @@ class LoginScreen(Screen):
         back_btn = Button(text="Back to Options", background_color=(0.3, 0.2, 0.2, 1), size_hint_y=None, height='38dp')
         back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'auth_choice'))
         root.add_widget(back_btn)
+
+        # కీబోర్డ్ ఓపెన్ అయినా క్రింది బటన్ కనిపించేలా అదనపు ఖాళీ
+        root.add_widget(Label(text="", size_hint_y=None, height='50dp'))
 
         scroll.add_widget(root)
         self.add_widget(scroll)
@@ -483,13 +490,10 @@ class LoginScreen(Screen):
         saved_pwd = data.get("password", "")
 
         is_match = False
-        # Match by User ID
         if ident.lower() == saved_uid and pwd == saved_pwd:
             is_match = True
-        # Match by Gmail
         elif ident.lower() == saved_e and pwd == saved_pwd:
             is_match = True
-        # Match by Mobile
         elif (ident == saved_p or f"{self.cc_btn.text}{ident}" == f"{saved_cc}{saved_p}") and pwd == saved_pwd:
             is_match = True
 
@@ -877,7 +881,6 @@ class MainScreen(Screen):
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=7)
         box.add_widget(Label(text="NODE PROFILE & STATUS", font_size='14sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.14))
         
-        # Display Auto-Generated User ID along with Gmail & Mobile
         info_txt = (
             f"User ID: {data.get('user_id', 'Unassigned')}\n"
             f"Gmail: {data.get('email')}\n"
