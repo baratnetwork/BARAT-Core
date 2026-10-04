@@ -19,6 +19,7 @@ from kivy.resources import resource_find, resource_add_path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 resource_add_path(BASE_DIR)
 
+# ఇమేజ్ పాత్ లోపాలు రాకుండా పటిష్టమైన ఫైల్ డిటెక్షన్
 if os.path.exists(os.path.join(BASE_DIR, "icon.png")):
     LOGO_FILE = os.path.join(BASE_DIR, "icon.png")
 elif os.path.exists(os.path.join(BASE_DIR, "icon.png.png")):
@@ -31,6 +32,7 @@ HALVING_INTERVAL = 5250000.0
 BLOCK_REWARD_INITIAL = 10.0
 CYCLE_HOURS = 24
 
+# ఎలిజిబిలిటీ మరియు బ్రిడ్జ్ నిబంధనలు
 MIN_CYCLES_REQUIRED = 5
 MIN_WITHDRAW_AMOUNT = 50.0
 GAS_FEE_PERCENTAGE = 0.02
@@ -87,6 +89,7 @@ def save_data(data):
     except Exception:
         pass
 
+# 1. మొదటి స్క్రీన్: ల్యాండింగ్ పేజీ
 class LandingScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -145,6 +148,7 @@ class LandingScreen(Screen):
         else:
             self.manager.current = "main"
 
+# 2. రెండవ స్క్రీన్: అథెంటికేషన్ & హ్యూమన్ వెరిఫికేషన్
 class AuthScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -247,6 +251,7 @@ class AuthScreen(Screen):
         else:
             self.msg.text = "No account registered yet."
 
+# 3. మూడవ స్క్రీన్: 12-పదాల వాలెట్ రూపకల్పన & ధ్రువీకరణ
 class WalletScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -287,6 +292,7 @@ class WalletScreen(Screen):
         else:
             self.msg.text = "Incorrect phrase! Enter exact words in order."
 
+# 4. నాల్గవ స్క్రీన్: మెయిన్ మైనింగ్ టెర్మినల్ & సొలానా గేట్‌వే
 class MainScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
