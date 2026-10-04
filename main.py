@@ -21,8 +21,8 @@ from kivy.core.window import Window
 from kivy.core.clipboard import Clipboard
 from kivy.graphics import Color, RoundedRectangle, Line
 from kivy.resources import resource_find, resource_add_path
+from kivy.utils import platform
 
-# కీబోర్డ్ ఓపెన్ అయినప్పుడు స్క్రీన్ పైకి జరగడానికి సెట్టింగ్
 Window.softinput_mode = "pan"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -64,6 +64,26 @@ WORD_DICTIONARY = [
     "matrix", "neural", "oxygen", "protein", "quantum", "repair", 
     "solana", "target", "ultra", "vector", "wallet", "xenon"
 ]
+
+def share_to_social_apps(text_to_share):
+    Clipboard.copy(text_to_share)
+    if platform == 'android':
+        try:
+            from jnius import autoclass
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            Intent = autoclass('android.content.Intent')
+            String = autoclass('java.lang.String')
+
+            sendIntent = Intent()
+            sendIntent.setAction(Intent.ACTION_SEND)
+            sendIntent.putExtra(Intent.EXTRA_TEXT, String(text_to_share))
+            sendIntent.setType('text/plain')
+
+            chooser = Intent.createChooser(sendIntent, String('Share Referral Link via'))
+            currentActivity = PythonActivity.mActivity
+            currentActivity.startActivity(chooser)
+        except Exception:
+            pass
 
 def get_data_filepath():
     try:
@@ -145,20 +165,16 @@ def is_valid_solana_address(addr):
     return bool(re.match(base58_pattern, addr))
 
 def load_data():
-    filepath = get_data_filepath()
-    if os.path.exists(filepath):
-        try:
-            with open(filepath, "r") as f:
-                return json.load(f)
-        except Exception:
-            pass
-    alt_path = os.path.join(BASE_DIR, "barat_data.json")
-    if os.path.exists(alt_path):
-        try:
-            with open(alt_path, "r") as f:
-                return json.load(f)
-        except Exception:
-            pass
+    paths = [get_data_filepath(), os.path.join(BASE_DIR, "barat_data.json")]
+    for p in paths:
+        if os.path.exists(p):
+            try:
+                with open(p, "r") as f:
+                    content = json.load(f)
+                    if content and content.get("registered", False):
+                        return content
+            except Exception:
+                pass
     return {
         "registered": False,
         "is_logged_in": False,
@@ -172,31 +188,49 @@ def load_data():
         "wallets": [],
         "active_wallet_index": 0,
         "balance": 0.0,
+        "base_mined": 0.0,
         "total_mined": 0.0,
         "completed_cycles": 0,
         "block_height": 3,
         "last_cycle": 0,
+        "is_mining_active": False,
         "proof_hash": "ECO_GENESIS_PROOF_00000000",
         "cloud_gist_id": "",
         "bridge_transactions": []
     }
 
 def save_local_only(data):
-    try:
-        filepath = get_data_filepath()
-        folder = os.path.dirname(filepath)
-        if folder and not os.path.exists(folder):
-            os.makedirs(folder, exist_ok=True)
-        with open(filepath, "w") as f:
-            json.dump(data, f)
-        with open(os.path.join(BASE_DIR, "barat_data.json"), "w") as f2:
-            json.dump(data, f2)
-    except Exception:
-        pass
+    paths = [get_data_filepath(), os.path.join(BASE_DIR, "barat_data.json")]
+    for p in paths:
+        try:
+            folder = os.path.dirname(p)
+            if folder and not os.path.exists(folder):
+                os.makedirs(folder, exist_ok=True)
+            with open(p, "w") as f:
+                json.dump(data, f)
+        except Exception:
+            pass
 
 def save_data(data):
     save_local_only(data)
     sync_to_github_cloud(data)
+
+def get_current_live_mined(data):
+    base = data.get("base_mined", data.get("balance", 0.0))
+    if not data.get("is_mining_active", False):
+        return base
+    
+    last = data.get("last_cycle", 0)
+    now = time.time()
+    elapsed = max(0, min(now - last, CYCLE_HOURS * 3600))
+    
+    total_mined = data.get("total_mined", base)
+    phase = int(total_mined // HALVING_INTERVAL) + 1
+    cycle_reward = (BLOCK_REWARD_INITIAL / (2 ** (phase - 1))) * data.get("mining_speed_multiplier", 1.0)
+    
+    rate_per_sec = cycle_reward / (CYCLE_HOURS * 3600)
+    current_accrued = base + (elapsed * rate_per_sec)
+    return current_accrued
 
 class ModernCard(BoxLayout):
     def __init__(self, bg_color=(0.11, 0.16, 0.23, 1), border_color=(0.22, 0.31, 0.44, 1), radius=[14], **kwargs):
@@ -227,19 +261,19 @@ class ModernInput(TextInput):
         self.padding = [14, 12, 14, 12]
         self.font_size = '13.5sp'
 
-# పాస్‌వర్డ్ పక్కన కంటి గుర్తు (Eye Icon) ఉండే సరికొత్త విడ్జెట్
 class PasswordField(BoxLayout):
     def __init__(self, hint_text="Password", **kwargs):
         super().__init__(orientation='horizontal', spacing=6, **kwargs)
-        self.input = ModernInput(hint_text=hint_text, password=True, multiline=False, size_hint_x=0.82)
+        self.input = ModernInput(hint_text=hint_text, password=True, multiline=False, size_hint_x=0.78)
         self.add_widget(self.input)
 
         self.eye_btn = Button(
-            text="👁️",
-            size_hint_x=0.18,
+            text="SHOW",
+            size_hint_x=0.22,
             background_normal='',
             background_color=(0.18, 0.26, 0.36, 1),
-            font_size='16sp'
+            font_size='11sp',
+            bold=True
         )
         self.eye_btn.bind(on_press=self.toggle_visibility)
         self.add_widget(self.eye_btn)
@@ -247,11 +281,11 @@ class PasswordField(BoxLayout):
     def toggle_visibility(self, instance):
         if self.input.password:
             self.input.password = False
-            self.eye_btn.text = "🙈"
+            self.eye_btn.text = "HIDE"
             self.eye_btn.background_color = (0.05, 0.62, 0.38, 1)
         else:
             self.input.password = True
-            self.eye_btn.text = "👁️"
+            self.eye_btn.text = "SHOW"
             self.eye_btn.background_color = (0.18, 0.26, 0.36, 1)
 
     @property
@@ -272,9 +306,9 @@ class LandingScreen(Screen):
                 logo = Image(source=LOGO_FILE, size_hint_y=0.42, allow_stretch=True, keep_ratio=True)
                 root.add_widget(logo)
             else:
-                root.add_widget(Label(text="⚡ BARAT CORE ⚡", font_size='24sp', bold=True, color=(0.05, 0.88, 0.55, 1), size_hint_y=0.35))
+                root.add_widget(Label(text="BARAT CORE", font_size='24sp', bold=True, color=(0.05, 0.88, 0.55, 1), size_hint_y=0.35))
         except Exception:
-            root.add_widget(Label(text="⚡ BARAT CORE ⚡", font_size='24sp', bold=True, color=(0.05, 0.88, 0.55, 1), size_hint_y=0.35))
+            root.add_widget(Label(text="BARAT CORE", font_size='24sp', bold=True, color=(0.05, 0.88, 0.55, 1), size_hint_y=0.35))
 
         title_card = ModernCard(orientation='vertical', size_hint_y=0.15, padding=[10, 8, 10, 8], spacing=2)
         title_card.add_widget(Label(
@@ -322,7 +356,7 @@ class LandingScreen(Screen):
     def on_enter(self):
         try:
             data = load_data()
-            tot = data.get("balance", 0.0)
+            tot = get_current_live_mined(data)
             for w in data.get("wallets", []):
                 tot += w.get("balance", 0.0)
             self.mined_preview.text = f"Global Tokens Mined\n{tot:.2f} $BARAT"
@@ -398,7 +432,6 @@ class RegisterScreen(Screen):
         self.num1 = random.randint(5, 20)
         self.num2 = random.randint(2, 9)
 
-        # కీబోర్డ్ అడ్డురాకుండా సాఫీగా స్క్రోల్ అయ్యేలా సెటప్
         scroll = ScrollView(do_scroll_x=False, do_scroll_y=True)
         root = BoxLayout(orientation='vertical', padding=[20, 15, 20, 30], spacing=12, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
@@ -408,11 +441,9 @@ class RegisterScreen(Screen):
         self.email_input = ModernInput(hint_text="Valid Gmail Address (@gmail.com)", multiline=False, size_hint_y=None, height='48dp')
         root.add_widget(self.email_input)
 
-        # Password Field with Eye Icon
         self.pass_field = PasswordField(hint_text="Strong Password (8+ chars)", size_hint_y=None, height='48dp')
         root.add_widget(self.pass_field)
 
-        # Confirm Password Field with Eye Icon
         self.confirm_pass_field = PasswordField(hint_text="Confirm Password", size_hint_y=None, height='48dp')
         root.add_widget(self.confirm_pass_field)
 
@@ -438,10 +469,18 @@ class RegisterScreen(Screen):
         back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'auth_choice'))
         root.add_widget(back_btn)
 
-        # బాటమ్‌లో కీబోర్డ్ కోసం అదనపు ఖాళీ స్పేస్
-        root.add_widget(Label(text="", size_hint_y=None, height='120dp'))
+        root.add_widget(Label(text="", size_hint_y=None, height='140dp'))
         scroll.add_widget(root)
         self.add_widget(scroll)
+
+    def on_pre_enter(self):
+        self.email_input.text = ""
+        self.pass_field.text = ""
+        self.confirm_pass_field.text = ""
+        self.invite_input.text = ""
+        self.captcha_input.text = ""
+        self.msg.text = ""
+        self.refresh_captcha()
 
     def refresh_captcha(self):
         self.num1 = random.randint(5, 20)
@@ -503,7 +542,6 @@ class LoginScreen(Screen):
         self.num2 = random.randint(2, 9)
         self.generated_otp = None
 
-        # పూర్తిగా స్క్రోల్ అయ్యేలా సెటప్
         scroll = ScrollView(do_scroll_x=False, do_scroll_y=True)
         root = BoxLayout(orientation='vertical', padding=[20, 15, 20, 30], spacing=12, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
@@ -513,7 +551,6 @@ class LoginScreen(Screen):
         self.ident_input = ModernInput(hint_text="Registered User ID or Gmail", multiline=False, size_hint_y=None, height='48dp')
         root.add_widget(self.ident_input)
 
-        # Login Password Field with Eye Icon
         self.pass_field = PasswordField(hint_text="Password", size_hint_y=None, height='48dp')
         root.add_widget(self.pass_field)
 
@@ -540,10 +577,16 @@ class LoginScreen(Screen):
         back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'auth_choice'))
         root.add_widget(back_btn)
 
-        # కీబోర్డ్ పైన స్క్రోల్ అవ్వడానికి స్పేస్
-        root.add_widget(Label(text="", size_hint_y=None, height='120dp'))
+        root.add_widget(Label(text="", size_hint_y=None, height='140dp'))
         scroll.add_widget(root)
         self.add_widget(scroll)
+
+    def on_pre_enter(self):
+        self.ident_input.text = ""
+        self.pass_field.text = ""
+        self.captcha_input.text = ""
+        self.msg.text = ""
+        self.refresh_captcha()
 
     def refresh_captcha(self):
         self.num1 = random.randint(5, 20)
@@ -710,25 +753,26 @@ class MainHubScreen(Screen):
 
         nav_bar = ModernCard(size_hint_y=0.09, padding=[6, 4, 6, 4], spacing=6)
 
-        self.tab_mining_btn = Button(text="⛏️\nMining", background_normal='', background_color=(0.05, 0.62, 0.38, 1), font_size='10.5sp', bold=True)
+        self.tab_mining_btn = Button(text="Mining", background_normal='', background_color=(0.05, 0.62, 0.38, 1), font_size='11sp', bold=True)
         self.tab_mining_btn.bind(on_press=lambda x: self.switch_tab("mining"))
         nav_bar.add_widget(self.tab_mining_btn)
 
-        self.tab_team_btn = Button(text="👥\nTeam", background_normal='', background_color=(0.18, 0.24, 0.34, 1), font_size='10.5sp')
+        self.tab_team_btn = Button(text="Team", background_normal='', background_color=(0.18, 0.24, 0.34, 1), font_size='11sp')
         self.tab_team_btn.bind(on_press=lambda x: self.switch_tab("team"))
         nav_bar.add_widget(self.tab_team_btn)
 
-        self.tab_wallet_btn = Button(text="💼\nWallet", background_normal='', background_color=(0.18, 0.24, 0.34, 1), font_size='10.5sp')
+        self.tab_wallet_btn = Button(text="Wallet", background_normal='', background_color=(0.18, 0.24, 0.34, 1), font_size='11sp')
         self.tab_wallet_btn.bind(on_press=lambda x: self.switch_tab("wallet"))
         nav_bar.add_widget(self.tab_wallet_btn)
 
-        self.tab_profile_btn = Button(text="👤\nProfile", background_normal='', background_color=(0.18, 0.24, 0.34, 1), font_size='10.5sp')
+        self.tab_profile_btn = Button(text="Profile", background_normal='', background_color=(0.18, 0.24, 0.34, 1), font_size='11sp')
         self.tab_profile_btn.bind(on_press=lambda x: self.switch_tab("profile"))
         nav_bar.add_widget(self.tab_profile_btn)
 
         root.add_widget(nav_bar)
         self.add_widget(root)
 
+        # 1 సెకనుకు ఒకసారి లైవ్ కౌంటర్ మరియు టైమర్ అప్‌డేట్
         Clock.schedule_interval(self.timer_tick, 1.0)
 
     def on_enter(self):
@@ -761,11 +805,11 @@ class MainHubScreen(Screen):
             self.render_profile_tab(data)
 
     def render_mining_tab(self, data):
-        mined = data.get("balance", 0.0)
+        cur_mined = get_current_live_mined(data)
 
         bal_card = ModernCard(orientation='vertical', size_hint_y=0.25, padding=[10, 8, 10, 8])
         bal_card.add_widget(Label(text="TOTAL MINED BALANCE", font_size='12sp', color=(0.8, 0.88, 0.94, 1)))
-        self.live_bal_lbl = Label(text=f"{mined:.4f} $BARAT", font_size='26sp', bold=True, color=(0.05, 0.88, 0.55, 1))
+        self.live_bal_lbl = Label(text=f"{cur_mined:.5f} $BARAT", font_size='26sp', bold=True, color=(0.05, 0.88, 0.55, 1))
         bal_card.add_widget(self.live_bal_lbl)
         mult = data.get("mining_speed_multiplier", 1.0)
         bal_card.add_widget(Label(text=f"Active Boost: {mult}x | +{(0.416 * mult):.3f} BARAT/hr", font_size='11sp', color=(1.0, 0.84, 0.24, 1)))
@@ -774,15 +818,15 @@ class MainHubScreen(Screen):
         info_card = ModernCard(orientation='vertical', size_hint_y=0.26, padding=[10, 8, 10, 8], spacing=3)
         height = data.get("block_height", 3)
         target = CANCER_TARGETS[height % len(CANCER_TARGETS)]
-        info_card.add_widget(Label(text=f"🔬 Oncology Computing Block #{height}", font_size='12sp', bold=True, color=(0.4, 0.76, 1, 1)))
+        info_card.add_widget(Label(text=f"Oncology Computing Block #{height}", font_size='12sp', bold=True, color=(0.4, 0.76, 1, 1)))
         info_card.add_widget(Label(text=f"Target: {target}", font_size='11sp', color=(0.85, 0.9, 0.95, 1)))
-        info_card.add_widget(Label(text=f"Consensus: Proof of Intelligence", font_size='10.5sp', color=(0.7, 0.8, 0.85, 1)))
-        self.timer_lbl = Label(text="Engine: Ready to Mine", font_size='11.5sp', bold=True, color=(0.05, 0.88, 0.55, 1))
+        info_card.add_widget(Label(text="Consensus: Proof of Intelligence", font_size='10.5sp', color=(0.7, 0.8, 0.85, 1)))
+        self.timer_lbl = Label(text="Node Engine: Ready to Mine", font_size='11.5sp', bold=True, color=(0.05, 0.88, 0.55, 1))
         info_card.add_widget(self.timer_lbl)
         self.content_area.add_widget(info_card)
 
         self.mine_btn = Button(
-            text="⚡ SOLVE TARGET & MINE BLOCK",
+            text="SOLVE TARGET & MINE BLOCK",
             size_hint_y=0.18,
             background_normal='',
             background_color=(0.05, 0.72, 0.42, 1),
@@ -796,23 +840,32 @@ class MainHubScreen(Screen):
         self.content_area.add_widget(self.mining_status_lbl)
 
     def render_team_tab(self, data):
-        ref_card = ModernCard(orientation='vertical', size_hint_y=0.32, padding=[12, 10, 12, 10], spacing=4)
+        ref_card = ModernCard(orientation='vertical', size_hint_y=0.36, padding=[12, 10, 12, 10], spacing=6)
         ref_card.add_widget(Label(text="YOUR REFERRAL CODE", font_size='13sp', bold=True, color=(0.05, 0.88, 0.55, 1)))
         code = data.get("referral_code", "CORE2026")
         ref_card.add_widget(Label(text=code, font_size='22sp', bold=True, color=(1.0, 0.84, 0.24, 1)))
-        ref_card.add_widget(Label(text="Share code to get permanent +25% mining speed boost!", font_size='11sp', color=(0.8, 0.88, 0.94, 1)))
+        ref_card.add_widget(Label(text="Share code to get +25% mining speed boost!", font_size='11sp', color=(0.8, 0.88, 0.94, 1)))
         
-        copy_ref_btn = Button(text="📋 Copy Invite Link", size_hint_y=0.35, background_normal='', background_color=(0.18, 0.52, 0.85, 1), bold=True)
-        copy_ref_btn.bind(on_press=lambda x: Clipboard.copy(f"Join my Barat Core node with code: {code}"))
-        ref_card.add_widget(copy_ref_btn)
+        share_msg = f"Join my Barat Core crypto node and start mining $BARAT! Use my referral code: {code}"
+
+        btn_row = BoxLayout(spacing=8, size_hint_y=0.35)
+        copy_ref_btn = Button(text="Copy Referral Link", background_normal='', background_color=(0.18, 0.52, 0.85, 1), font_size='12sp', bold=True)
+        copy_ref_btn.bind(on_press=lambda x: Clipboard.copy(share_msg))
+        
+        share_social_btn = Button(text="Share to WhatsApp / Apps", background_normal='', background_color=(0.05, 0.65, 0.38, 1), font_size='12sp', bold=True)
+        share_social_btn.bind(on_press=lambda x: share_to_social_apps(share_msg))
+        
+        btn_row.add_widget(copy_ref_btn)
+        btn_row.add_widget(share_social_btn)
+        ref_card.add_widget(btn_row)
         self.content_area.add_widget(ref_card)
 
-        team_list_card = ModernCard(orientation='vertical', size_hint_y=0.45, padding=[12, 10, 12, 10], spacing=4)
+        team_list_card = ModernCard(orientation='vertical', size_hint_y=0.42, padding=[12, 10, 12, 10], spacing=4)
         team_list_card.add_widget(Label(text="MINING TEAM MEMBERS", font_size='13sp', bold=True, color=(0.4, 0.76, 1, 1)))
         team_list_card.add_widget(Label(text="Referred By: " + data.get("referred_by", "NONE"), font_size='11.5sp', color=(0.85, 0.9, 0.95, 1)))
         team_list_card.add_widget(Label(text="Active Team Nodes: 1 (You)", font_size='11sp', color=(0.7, 0.8, 0.85, 1)))
         
-        ping_btn = Button(text="🔔 Ping Inactive Members", size_hint_y=0.35, background_normal='', background_color=(0.48, 0.36, 0.22, 1))
+        ping_btn = Button(text="Ping Inactive Members", size_hint_y=0.35, background_normal='', background_color=(0.48, 0.36, 0.22, 1))
         team_list_card.add_widget(ping_btn)
         self.content_area.add_widget(team_list_card)
 
@@ -868,16 +921,33 @@ class MainHubScreen(Screen):
             return
 
         data = load_data()
+        is_active = data.get("is_mining_active", False)
         last_cycle = data.get("last_cycle", 0)
         now = time.time()
         cooldown = CYCLE_HOURS * 3600
         elapsed = now - last_cycle
 
+        # మైనింగ్ ఆన్‌లో ఉన్నప్పుడు లైవ్‌గా రన్ అయ్యే కాయిన్స్ కౌంటర్
+        if hasattr(self, 'live_bal_lbl'):
+            cur_bal = get_current_live_mined(data)
+            self.live_bal_lbl.text = f"{cur_bal:.5f} $BARAT"
+
         if hasattr(self, 'timer_lbl') and hasattr(self, 'mine_btn'):
-            if elapsed >= cooldown:
-                self.timer_lbl.text = "Node Engine: Ready to Solve Block"
+            if not is_active or elapsed >= cooldown:
+                # 24 గంటలు పూర్తయిన తర్వాత కాయిన్స్ సేవ్ చేయడం
+                if is_active and elapsed >= cooldown:
+                    cur_bal = get_current_live_mined(data)
+                    data["base_mined"] = cur_bal
+                    data["balance"] = cur_bal
+                    data["total_mined"] = data.get("total_mined", 0.0) + (cur_bal - data.get("base_mined", 0.0))
+                    data["is_mining_active"] = False
+                    data["completed_cycles"] = data.get("completed_cycles", 0) + 1
+                    save_data(data)
+
+                self.timer_lbl.text = "Node Engine: Ready to Mine"
                 self.timer_lbl.color = (0.05, 0.88, 0.55, 1)
                 self.mine_btn.disabled = False
+                self.mine_btn.text = "SOLVE TARGET & MINE BLOCK"
                 self.mine_btn.background_color = (0.05, 0.72, 0.42, 1)
             else:
                 rem = int(cooldown - elapsed)
@@ -887,32 +957,28 @@ class MainHubScreen(Screen):
                 self.timer_lbl.text = f"Next Block In: {hrs:02d}h {mins:02d}m {secs:02d}s"
                 self.timer_lbl.color = (0.8, 0.88, 0.94, 1)
                 self.mine_btn.disabled = True
+                self.mine_btn.text = f"MINING ACTIVE ({hrs:02d}h {mins:02d}m {secs:02d}s)"
                 self.mine_btn.background_color = (0.24, 0.28, 0.34, 1)
 
     def start_mining(self, instance):
         now = get_server_time()
         data = load_data()
         cooldown = CYCLE_HOURS * 3600
-        if (now - data.get("last_cycle", 0)) < cooldown:
+        if data.get("is_mining_active", False) and (now - data.get("last_cycle", 0)) < cooldown:
             return
 
         self.mine_btn.disabled = True
-        self.mine_btn.text = "⚡ Mining Block in Progress..."
+        self.mine_btn.text = "Connecting Engine..."
         self.mining_status_lbl.color = (1.0, 0.84, 0.24, 1)
         self.mining_status_lbl.text = "Processing cryptographic target..."
 
-        def finish_mining(dt):
-            total_mined = data.get("total_mined", 0.0)
-            phase = int(total_mined // HALVING_INTERVAL) + 1
-            base_reward = BLOCK_REWARD_INITIAL / (2 ** (phase - 1))
-            mult = data.get("mining_speed_multiplier", 1.0)
-            reward = base_reward * mult
-
-            data["balance"] = data.get("balance", 0.0) + reward
-            data["total_mined"] = total_mined + reward
-            data["block_height"] = data.get("block_height", 3) + 1
-            data["completed_cycles"] = data.get("completed_cycles", 0) + 1
+        def finish_start(dt):
+            cur = get_current_live_mined(data)
+            data["base_mined"] = cur
+            data["balance"] = cur
             data["last_cycle"] = now
+            data["is_mining_active"] = True
+            data["block_height"] = data.get("block_height", 3) + 1
 
             target = CANCER_TARGETS[data["block_height"] % len(CANCER_TARGETS)]
             proof_src = f"{data['block_height']}_{target}_{now}"
@@ -921,12 +987,14 @@ class MainHubScreen(Screen):
             save_data(data)
             self.render_active_tab()
             self.timer_tick(0)
+            self.mining_status_lbl.color = (0.05, 0.88, 0.55, 1)
+            self.mining_status_lbl.text = "Consensus Active. Live Coins Running!"
 
-        Clock.schedule_once(finish_mining, 2.5)
+        Clock.schedule_once(finish_start, 1.2)
 
     def claim_to_active_wallet(self, instance):
         data = load_data()
-        mined = data.get("balance", 0.0)
+        mined = get_current_live_mined(data)
         if mined <= 0:
             return
 
@@ -936,7 +1004,9 @@ class MainHubScreen(Screen):
             return
 
         wallets[idx]["balance"] = wallets[idx].get("balance", 0.0) + mined
+        data["base_mined"] = 0.0
         data["balance"] = 0.0
+        data["last_cycle"] = time.time()
         data["wallets"] = wallets
         save_data(data)
         self.render_active_tab()
@@ -966,7 +1036,7 @@ class MainHubScreen(Screen):
         copy_status = Label(text="", font_size='11sp', color=(0.05, 0.88, 0.55, 1), size_hint_y=0.08)
         box.add_widget(copy_status)
 
-        copy_btn = Button(text="📋 Copy 12-Word Phrase", size_hint_y=0.14, background_normal='', background_color=(0.18, 0.52, 0.85, 1), bold=True)
+        copy_btn = Button(text="Copy 12-Word Phrase", size_hint_y=0.14, background_normal='', background_color=(0.18, 0.52, 0.85, 1), bold=True)
         box.add_widget(copy_btn)
 
         confirm_btn = Button(text="Confirm & Activate Wallet", size_hint_y=0.15, background_normal='', background_color=(0.05, 0.68, 0.38, 1), bold=True)
