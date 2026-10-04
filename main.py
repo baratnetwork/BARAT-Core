@@ -3,6 +3,7 @@ import json
 import time
 import hashlib
 import random
+import re
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
@@ -30,6 +31,11 @@ HALVING_INTERVAL = 5250000.0
 BLOCK_REWARD_INITIAL = 10.0
 CYCLE_HOURS = 24
 
+MIN_CYCLES_REQUIRED = 5
+MIN_WITHDRAW_AMOUNT = 50.0
+GAS_FEE_PERCENTAGE = 0.02
+FOUNDER_SOLANA_WALLET = "BARATFoundationTreasuryMasterNodeSolanaPubkey111"
+
 CANCER_TARGETS = [
     "KRAS-G12D-Target-Model-X7",
     "MYC-Oncogene-Transcription-L3",
@@ -45,6 +51,12 @@ WORD_DICTIONARY = [
     "solana", "target", "ultra", "vector", "wallet", "xenon"
 ]
 
+def is_valid_solana_address(addr):
+    if not (32 <= len(addr) <= 44):
+        return False
+    base58_pattern = r'^[1-9A-HJ-NP-Za-km-z]+$'
+    return bool(re.match(base58_pattern, addr))
+
 def load_data():
     if os.path.exists(DATA_FILE):
         try:
@@ -59,10 +71,13 @@ def load_data():
         "wallet_phrase": "",
         "wallet_confirmed": False,
         "balance": 0.0,
+        "wallet_balance": 0.0,
         "total_mined": 0.0,
+        "completed_cycles": 0,
         "block_height": 3,
         "last_cycle": 0,
-        "proof_hash": "ECO_GENESIS_PROOF_00000000"
+        "proof_hash": "ECO_GENESIS_PROOF_00000000",
+        "bridge_transactions": []
     }
 
 def save_data(data):
@@ -72,7 +87,6 @@ def save_data(data):
     except Exception:
         pass
 
-# 1. మొదటి స్క్రీన్ (ల్యాండింగ్ పేజీ)
 class LandingScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -131,7 +145,6 @@ class LandingScreen(Screen):
         else:
             self.manager.current = "main"
 
-# 2. లాగిన్, రిజిస్టర్ మరియు హ్యూమన్ వెరిఫికేషన్ స్క్రీన్
 class AuthScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -234,7 +247,6 @@ class AuthScreen(Screen):
         else:
             self.msg.text = "No account registered yet."
 
-# 3. 12-పదాల వాలెట్ జనరేషన్ మరియు కన్ఫర్మేషన్ స్క్రీన్
 class WalletScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -275,72 +287,96 @@ class WalletScreen(Screen):
         else:
             self.msg.text = "Incorrect phrase! Enter exact words in order."
 
-# 4. మెయిన్ మైనింగ్ స్క్రీన్
 class MainScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        root = BoxLayout(orientation='vertical', padding=[18, 15, 18, 15], spacing=7)
+        root = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=6)
 
-        root.add_widget(Label(text="BARAT CORE: GREEN RESEARCH NODE", font_size='15sp', bold=True, color=(0.2, 0.9, 0.5, 1), size_hint_y=0.07))
+        root.add_widget(Label(text="BARAT CORE: GREEN RESEARCH NODE", font_size='15sp', bold=True, color=(0.2, 0.9, 0.5, 1), size_hint_y=0.06))
 
         try:
-            self.logo_img = Image(source=LOGO_FILE, size_hint_y=0.22, allow_stretch=True, keep_ratio=True)
+            self.logo_img = Image(source=LOGO_FILE, size_hint_y=0.20, allow_stretch=True, keep_ratio=True)
             root.add_widget(self.logo_img)
         except Exception:
             pass
 
-        self.bal_lbl = Label(text="0.0000 BARAT", font_size='28sp', bold=True, color=(0.95, 0.95, 0.95, 1), size_hint_y=0.11)
-        root.add_widget(self.bal_lbl)
+        bal_box = BoxLayout(size_hint_y=0.12)
+        self.mined_bal_lbl = Label(text="Mined: 0.0000", font_size='16sp', bold=True, color=(0.95, 0.95, 0.95, 1))
+        self.wallet_bal_lbl = Label(text="Wallet: 0.0000", font_size='16sp', bold=True, color=(0.1, 0.9, 0.5, 1))
+        bal_box.add_widget(self.mined_bal_lbl)
+        bal_box.add_widget(self.wallet_bal_lbl)
+        root.add_widget(bal_box)
 
-        self.phase_lbl = Label(text="Phase: Initializing...", font_size='12sp', color=(0.95, 0.8, 0.2, 1), size_hint_y=0.05)
+        self.claim_wallet_btn = Button(text="Transfer Mined to Wallet", size_hint_y=0.07, background_color=(0.15, 0.5, 0.35, 1), font_size='13sp')
+        self.claim_wallet_btn.bind(on_press=self.claim_to_wallet)
+        root.add_widget(self.claim_wallet_btn)
+
+        self.phase_lbl = Label(text="Phase: Initializing...", font_size='11sp', color=(0.95, 0.8, 0.2, 1), size_hint_y=0.04)
         root.add_widget(self.phase_lbl)
 
-        self.puzzle_lbl = Label(text="Research Target: Loading...", font_size='12sp', color=(0.4, 0.65, 1, 1), size_hint_y=0.05)
+        self.puzzle_lbl = Label(text="Target: Loading...", font_size='11sp', color=(0.4, 0.65, 1, 1), size_hint_y=0.04)
         root.add_widget(self.puzzle_lbl)
 
-        self.block_lbl = Label(text="Block Height: #0000 | Proof: Verifying", font_size='11sp', color=(0.7, 0.7, 0.7, 1), size_hint_y=0.05)
+        self.block_lbl = Label(text="Height: #0000 | Proof: Verifying", font_size='10sp', color=(0.7, 0.7, 0.7, 1), size_hint_y=0.04)
         root.add_widget(self.block_lbl)
 
-        self.timer_lbl = Label(text="Node Engine: Ready", font_size='12sp', size_hint_y=0.06)
+        self.timer_lbl = Label(text="Engine: Ready", font_size='11sp', size_hint_y=0.05)
         root.add_widget(self.timer_lbl)
 
-        self.mine_btn = Button(text="Solve Puzzle & Mine Block", size_hint_y=0.1, background_color=(0.1, 0.65, 0.35, 1), font_size='14sp', bold=True)
+        self.mine_btn = Button(text="Solve Puzzle & Mine Block", size_hint_y=0.09, background_color=(0.1, 0.65, 0.35, 1), font_size='14sp', bold=True)
         self.mine_btn.bind(on_press=self.start_mining)
         root.add_widget(self.mine_btn)
 
         self.sol_btn = Button(text="Sync With Solana Bridge", size_hint_y=0.08, background_color=(0.5, 0.2, 0.7, 1), font_size='13sp', bold=True)
-        self.sol_btn.bind(on_press=self.claim_solana)
+        self.sol_btn.bind(on_press=self.open_solana_bridge_popup)
         root.add_widget(self.sol_btn)
 
-        self.logout_btn = Button(text="Switch Node / Exit", size_hint_y=0.06, background_color=(0.35, 0.15, 0.15, 1), font_size='12sp')
+        self.logout_btn = Button(text="Switch Node / Exit", size_hint_y=0.05, background_color=(0.35, 0.15, 0.15, 1), font_size='11sp')
         self.logout_btn.bind(on_press=self.do_logout)
         root.add_widget(self.logout_btn)
 
-        self.status_msg = Label(text="Bridge Verified: Oncology Research Proof queued.", font_size='10sp', color=(1, 0.85, 0.3, 1), size_hint_y=0.05)
+        self.status_msg = Label(text="Node Verified: Oncology Research Proof active.", font_size='10sp', color=(1, 0.85, 0.3, 1), size_hint_y=0.04)
         root.add_widget(self.status_msg)
 
         self.add_widget(root)
         Clock.schedule_interval(self.update_timer, 1.0)
 
     def on_enter(self):
+        self.refresh_dashboard()
+
+    def refresh_dashboard(self):
         data = load_data()
-        current_bal = data.get("balance", 0.0)
-        self.bal_lbl.text = f"{current_bal:.4f} BARAT"
-        self.phase_lbl.text = self.calculate_reward(current_bal)
+        mined = data.get("balance", 0.0)
+        wallet = data.get("wallet_balance", 0.0)
+        self.mined_bal_lbl.text = f"Mined:\n{mined:.2f} BARAT"
+        self.wallet_bal_lbl.text = f"Wallet:\n{wallet:.2f} BARAT"
+        self.phase_lbl.text = self.calculate_reward(data.get("total_mined", mined))
         self.update_block_display()
 
-    def calculate_reward(self, current_bal):
-        phase = int(current_bal // HALVING_INTERVAL) + 1
+    def claim_to_wallet(self, instance):
+        data = load_data()
+        mined = data.get("balance", 0.0)
+        if mined <= 0:
+            self.status_msg.text = "No mined balance available to transfer."
+            return
+
+        data["wallet_balance"] = data.get("wallet_balance", 0.0) + mined
+        data["balance"] = 0.0
+        save_data(data)
+        self.refresh_dashboard()
+        self.status_msg.text = f"Successfully credited {mined:.2f} BARAT to Node Wallet!"
+
+    def calculate_reward(self, total_mined):
+        phase = int(total_mined // HALVING_INTERVAL) + 1
         reward = BLOCK_REWARD_INITIAL / (2 ** (phase - 1))
-        return f"Phase {phase}: Genesis ({reward:.1f} BARAT)"
+        return f"Phase {phase}: Genesis ({reward:.1f} BARAT/cycle)"
 
     def update_block_display(self):
         data = load_data()
         height = data.get("block_height", 3)
         target = CANCER_TARGETS[height % len(CANCER_TARGETS)]
-        proof = data.get("proof_hash", "ECO_GENESIS_PROOF")[:16] + "..."
         self.puzzle_lbl.text = f"Research Target: {target}"
-        self.block_lbl.text = f"Block Height: #{height} | Proof: {proof}"
+        self.block_lbl.text = f"Block Height: #{height} | Cycles: {data.get('completed_cycles', 0)}"
 
     def update_timer(self, dt):
         data = load_data()
@@ -359,7 +395,7 @@ class MainScreen(Screen):
             hrs = rem // 3600
             mins = (rem % 3600) // 60
             secs = rem % 60
-            self.timer_lbl.text = f"Next Puzzle In: {hrs:02d}h {mins:02d}m {secs:02d}s"
+            self.timer_lbl.text = f"Next Block In: {hrs:02d}h {mins:02d}m {secs:02d}s"
             self.timer_lbl.color = (0.85, 0.85, 0.85, 1)
             self.mine_btn.disabled = True
             self.mine_btn.background_color = (0.2, 0.25, 0.25, 1)
@@ -371,13 +407,14 @@ class MainScreen(Screen):
         if (now - data.get("last_cycle", 0)) < cooldown:
             return
 
-        current_bal = data.get("balance", 0.0)
-        phase = int(current_bal // HALVING_INTERVAL) + 1
+        total_mined = data.get("total_mined", 0.0)
+        phase = int(total_mined // HALVING_INTERVAL) + 1
         reward = BLOCK_REWARD_INITIAL / (2 ** (phase - 1))
 
-        data["balance"] = current_bal + reward
-        data["total_mined"] = data.get("total_mined", 0.0) + reward
+        data["balance"] = data.get("balance", 0.0) + reward
+        data["total_mined"] = total_mined + reward
         data["block_height"] = data.get("block_height", 3) + 1
+        data["completed_cycles"] = data.get("completed_cycles", 0) + 1
         data["last_cycle"] = now
 
         target = CANCER_TARGETS[data["block_height"] % len(CANCER_TARGETS)]
@@ -385,17 +422,97 @@ class MainScreen(Screen):
         data["proof_hash"] = hashlib.sha256(proof_src.encode()).hexdigest()
 
         save_data(data)
-
-        self.bal_lbl.text = f"{data['balance']:.4f} BARAT"
-        self.phase_lbl.text = self.calculate_reward(data["balance"])
-        self.update_block_display()
+        self.refresh_dashboard()
         self.update_timer(0)
+
+    def open_solana_bridge_popup(self, instance):
+        data = load_data()
+        wallet_bal = data.get("wallet_balance", 0.0)
+        cycles = data.get("completed_cycles", 0)
+
+        box = BoxLayout(orientation='vertical', padding=15, spacing=8)
+        box.add_widget(Label(text="BARAT -> SOLANA MAIN BRIDGE", font_size='15sp', bold=True, color=(0.6, 0.3, 0.9, 1)))
+
+        info_text = f"Available: {wallet_bal:.2f} BARAT | Cycles: {cycles}/{MIN_CYCLES_REQUIRED}"
+        box.add_widget(Label(text=info_text, font_size='11sp', color=(0.85, 0.85, 0.85, 1)))
+
+        self.addr_input = TextInput(hint_text="Paste Solana Wallet (Phantom) Address", multiline=False, size_hint_y=None, height=42, padding=[8, 8])
+        box.add_widget(self.addr_input)
+
+        self.amount_input = TextInput(hint_text="Enter BARAT Amount to Bridge", multiline=False, input_filter='float', size_hint_y=None, height=42, padding=[8, 8])
+        box.add_widget(self.amount_input)
+
+        fee_label = Label(text="Bridge Gas Fee: 2% (Auto-deducted in $BARAT)", font_size='10sp', color=(0.95, 0.8, 0.2, 1))
+        box.add_widget(fee_label)
+
+        self.popup_msg = Label(text="", font_size='11sp', color=(1, 0.3, 0.3, 1), size_hint_y=None, height=25)
+        box.add_widget(self.popup_msg)
+
+        btn_box = BoxLayout(spacing=10, size_hint_y=None, height=42)
+        submit_btn = Button(text="Confirm Bridge", background_color=(0.5, 0.2, 0.7, 1), bold=True)
+        cancel_btn = Button(text="Cancel", background_color=(0.4, 0.2, 0.2, 1))
+        btn_box.add_widget(submit_btn)
+        btn_box.add_widget(cancel_btn)
+        box.add_widget(btn_box)
+
+        popup = Popup(title="Decentralized Solana Gateway", content=box, size_hint=(0.92, 0.62), auto_dismiss=False)
+
+        def execute_bridge(btn):
+            sol_addr = self.addr_input.text.strip()
+            amt_text = self.amount_input.text.strip()
+
+            if cycles < MIN_CYCLES_REQUIRED:
+                self.popup_msg.text = f"Failed: Minimum {MIN_CYCLES_REQUIRED} cycles required! ({cycles} done)"
+                return
+
+            try:
+                amt = float(amt_text)
+            except ValueError:
+                self.popup_msg.text = "Failed: Enter valid numeric amount!"
+                return
+
+            if amt < MIN_WITHDRAW_AMOUNT:
+                self.popup_msg.text = f"Failed: Minimum bridge amount is {MIN_WITHDRAW_AMOUNT} BARAT!"
+                return
+
+            if amt > wallet_bal:
+                self.popup_msg.text = "Failed: Insufficient Wallet Balance!"
+                return
+
+            if not is_valid_solana_address(sol_addr):
+                self.popup_msg.text = "Transaction Failed: Invalid Solana (Base58) Address!"
+                return
+
+            gas_fee = amt * GAS_FEE_PERCENTAGE
+            user_receives = amt - gas_fee
+
+            data["wallet_balance"] = wallet_bal - amt
+            
+            tx_record = {
+                "timestamp": time.time(),
+                "destination": sol_addr,
+                "gross_amount": amt,
+                "gas_fee_cut": gas_fee,
+                "net_transferred": user_receives,
+                "founder_wallet": FOUNDER_SOLANA_WALLET,
+                "status": "QUEUED_ON_SOLANA_DEVNET"
+            }
+            tx_list = data.get("bridge_transactions", [])
+            tx_list.append(tx_record)
+            data["bridge_transactions"] = tx_list
+
+            save_data(data)
+            self.refresh_dashboard()
+
+            popup.dismiss()
+            self.status_msg.text = f"Success! {user_receives:.2f} sent. {gas_fee:.2f} BARAT fee routed to Founder Node."
+
+        submit_btn.bind(on_press=execute_bridge)
+        cancel_btn.bind(on_press=popup.dismiss)
+        popup.open()
 
     def do_logout(self, instance):
         self.manager.current = "landing"
-
-    def claim_solana(self, instance):
-        self.status_msg.text = "Bridge Verified: Oncology Research Proof queued."
 
 class BaratCoreApp(App):
     def build(self):
