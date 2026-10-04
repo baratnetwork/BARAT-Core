@@ -19,10 +19,13 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.core.clipboard import Clipboard
-from kivy.animation import Animation
+from kivy.graphics import Color, RoundedRectangle, Line
 from kivy.resources import resource_find, resource_add_path
 
-Window.softinput_mode = "below_target"
+try:
+    Window.softinput_mode = "below_target"
+except Exception:
+    pass
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 resource_add_path(BASE_DIR)
@@ -65,9 +68,12 @@ WORD_DICTIONARY = [
 ]
 
 def get_data_filepath():
-    app = App.get_running_app()
-    if app and hasattr(app, 'user_data_dir') and app.user_data_dir:
-        return os.path.join(app.user_data_dir, "barat_data.json")
+    try:
+        app = App.get_running_app()
+        if app and getattr(app, 'user_data_dir', None):
+            return os.path.join(app.user_data_dir, "barat_data.json")
+    except Exception:
+        pass
     return os.path.join(BASE_DIR, "barat_data.json")
 
 def get_server_time():
@@ -181,116 +187,146 @@ def save_data(data):
     save_local_only(data)
     sync_to_github_cloud(data)
 
+# High-Contrast Modern Slate Blue Container Card
+class ModernCard(BoxLayout):
+    def __init__(self, bg_color=(0.11, 0.16, 0.23, 1), border_color=(0.22, 0.31, 0.44, 1), radius=[14], **kwargs):
+        super().__init__(**kwargs)
+        self.bg_color = bg_color
+        self.border_color = border_color
+        self.radius = radius
+        with self.canvas.before:
+            self.color_bg = Color(*self.bg_color)
+            self.rect_bg = RoundedRectangle(pos=self.pos, size=self.size, radius=self.radius)
+            self.color_border = Color(*self.border_color)
+            self.rect_border = Line(rounded_rectangle=(self.x, self.y, self.width, self.height, self.radius[0]), width=1.2)
+        self.bind(pos=self._update_canvas, size=self._update_canvas)
+
+    def _update_canvas(self, *args):
+        self.rect_bg.pos = self.pos
+        self.rect_bg.size = self.size
+        self.rect_border.rounded_rectangle = (self.x, self.y, self.width, self.height, self.radius[0])
+
 class ModernInput(TextInput):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.background_normal = ''
         self.background_active = ''
-        self.background_color = (0.12, 0.15, 0.20, 1)
+        self.background_color = (0.13, 0.18, 0.26, 1)
         self.foreground_color = (1, 1, 1, 1)
-        self.cursor_color = (0.2, 0.9, 0.5, 1)
-        self.padding = [12, 10, 12, 10]
-        self.font_size = '13sp'
+        self.cursor_color = (0.05, 0.88, 0.55, 1)
+        self.padding = [14, 12, 14, 12]
+        self.font_size = '13.5sp'
 
 class LandingScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        root = BoxLayout(orientation='vertical', padding=[24, 25, 24, 25], spacing=12)
+        root = BoxLayout(orientation='vertical', padding=[24, 25, 24, 25], spacing=14)
 
         try:
-            logo = Image(source=LOGO_FILE, size_hint_y=0.45, allow_stretch=True, keep_ratio=True)
-            root.add_widget(logo)
+            if os.path.exists(LOGO_FILE):
+                logo = Image(source=LOGO_FILE, size_hint_y=0.42, allow_stretch=True, keep_ratio=True)
+                root.add_widget(logo)
+            else:
+                root.add_widget(Label(text="⚡ BARAT CORE ⚡", font_size='24sp', bold=True, color=(0.05, 0.88, 0.55, 1), size_hint_y=0.35))
         except Exception:
-            pass
+            root.add_widget(Label(text="⚡ BARAT CORE ⚡", font_size='24sp', bold=True, color=(0.05, 0.88, 0.55, 1), size_hint_y=0.35))
 
-        root.add_widget(Label(
-            text="PROOF OF INTELLIGENCE\nSUSTAINABLE MOBILE MINING",
+        title_card = ModernCard(orientation='vertical', size_hint_y=0.15, padding=[10, 8, 10, 8], spacing=2)
+        title_card.add_widget(Label(
+            text="PROOF OF INTELLIGENCE",
+            font_size='14.5sp',
+            bold=True,
+            halign="center",
+            color=(0.05, 0.88, 0.55, 1)
+        ))
+        title_card.add_widget(Label(
+            text="SUSTAINABLE MOBILE CONSENSUS",
+            font_size='11sp',
+            halign="center",
+            color=(0.75, 0.85, 0.95, 1)
+        ))
+        root.add_widget(title_card)
+
+        mined_card = ModernCard(size_hint_y=0.13, padding=[10, 8, 10, 8])
+        self.mined_preview = Label(
+            text="Global Tokens Mined\n0.00 $BARAT",
             font_size='14sp',
             bold=True,
             halign="center",
-            color=(0.85, 0.75, 0.45, 1),
-            size_hint_y=0.12
-        ))
-
-        self.mined_preview = Label(
-            text="Tokens Mined\n0.00 $BARAT",
-            font_size='15sp',
-            halign="center",
-            color=(0.8, 0.8, 0.8, 1),
-            size_hint_y=0.12
+            color=(1, 1, 1, 1)
         )
-        root.add_widget(self.mined_preview)
+        mined_card.add_widget(self.mined_preview)
+        root.add_widget(mined_card)
 
         self.start_btn = Button(
             text="START",
             size_hint=(None, None),
-            size=('130dp', '130dp'),
+            size=('132dp', '132dp'),
             pos_hint={'center_x': 0.5},
             background_normal='',
-            background_color=(0.1, 0.75, 0.45, 1),
+            background_color=(0.05, 0.78, 0.48, 1),
             font_size='22sp',
             bold=True
         )
         self.start_btn.bind(on_press=self.go_next)
         root.add_widget(self.start_btn)
 
-        root.add_widget(Label(text="", size_hint_y=0.06))
+        root.add_widget(Label(text="", size_hint_y=0.04))
         self.add_widget(root)
 
     def on_enter(self):
-        data = load_data()
-        tot = data.get("balance", 0.0)
-        for w in data.get("wallets", []):
-            tot += w.get("balance", 0.0)
-        self.mined_preview.text = f"Tokens Mined\n{tot:.2f} $BARAT"
-        Clock.schedule_once(self.safe_start_pulse, 0.2)
-
-    def safe_start_pulse(self, dt):
         try:
-            anim = Animation(size=('138dp', '138dp'), duration=0.8, t='in_out_quad') + \
-                   Animation(size=('130dp', '130dp'), duration=0.8, t='in_out_quad')
-            anim.repeat = True
-            anim.start(self.start_btn)
+            data = load_data()
+            tot = data.get("balance", 0.0)
+            for w in data.get("wallets", []):
+                tot += w.get("balance", 0.0)
+            self.mined_preview.text = f"Global Tokens Mined\n{tot:.2f} $BARAT"
         except Exception:
             pass
 
     def go_next(self, instance):
-        data = load_data()
-        if data.get("registered", False) and data.get("is_logged_in", False):
-            self.manager.current = "main"
-        else:
+        try:
+            data = load_data()
+            if data.get("registered", False) and data.get("is_logged_in", False):
+                self.manager.current = "main"
+            else:
+                self.manager.current = "auth_choice"
+        except Exception:
             self.manager.current = "auth_choice"
 
 class AuthChoiceScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        root = BoxLayout(orientation='vertical', padding=[26, 30, 26, 30], spacing=15)
+        root = BoxLayout(orientation='vertical', padding=[24, 28, 24, 28], spacing=16)
 
         try:
-            root.add_widget(Image(source=LOGO_FILE, size_hint_y=0.35, allow_stretch=True, keep_ratio=True))
+            if os.path.exists(LOGO_FILE):
+                root.add_widget(Image(source=LOGO_FILE, size_hint_y=0.35, allow_stretch=True, keep_ratio=True))
+            else:
+                root.add_widget(Label(text="BARAT NETWORK", font_size='20sp', bold=True, color=(0.05, 0.88, 0.55, 1), size_hint_y=0.25))
         except Exception:
             pass
 
-        root.add_widget(Label(
+        info_card = ModernCard(orientation='vertical', size_hint_y=0.22, padding=[12, 10, 12, 10], spacing=4)
+        info_card.add_widget(Label(
             text="WELCOME TO BARAT NETWORK",
-            font_size='16sp',
+            font_size='15sp',
             bold=True,
-            color=(0.2, 0.9, 0.5, 1),
-            size_hint_y=0.1
+            color=(0.05, 0.88, 0.55, 1)
         ))
-
-        root.add_widget(Label(
-            text="Join the secure decentralized network.\nChoose an option below to proceed:",
-            font_size='12sp',
+        info_card.add_widget(Label(
+            text="Join decentralized quantum consensus.\nSelect an access option to continue:",
+            font_size='11.5sp',
             halign='center',
-            color=(0.75, 0.75, 0.75, 1),
-            size_hint_y=0.12
+            color=(0.8, 0.88, 0.96, 1)
         ))
+        root.add_widget(info_card)
 
         reg_btn = Button(
             text="CREATE NEW ACCOUNT",
-            size_hint_y=0.14,
-            background_color=(0.1, 0.65, 0.35, 1),
+            size_hint_y=0.13,
+            background_normal='',
+            background_color=(0.05, 0.72, 0.42, 1),
             font_size='13sp',
             bold=True
         )
@@ -298,16 +334,17 @@ class AuthChoiceScreen(Screen):
         root.add_widget(reg_btn)
 
         login_btn = Button(
-            text="ALREADY HAVE AN ACCOUNT? LOGIN",
-            size_hint_y=0.14,
-            background_color=(0.18, 0.45, 0.75, 1),
-            font_size='12sp',
+            text="EXISTING ACCOUNT LOGIN",
+            size_hint_y=0.13,
+            background_normal='',
+            background_color=(0.18, 0.48, 0.82, 1),
+            font_size='13sp',
             bold=True
         )
         login_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'login'))
         root.add_widget(login_btn)
 
-        root.add_widget(Label(text="", size_hint_y=0.15))
+        root.add_widget(Label(text="", size_hint_y=0.12))
         self.add_widget(root)
 
 class RegisterScreen(Screen):
@@ -317,10 +354,10 @@ class RegisterScreen(Screen):
         self.num2 = random.randint(2, 9)
 
         scroll = ScrollView(do_scroll_x=False)
-        root = BoxLayout(orientation='vertical', padding=[22, 15, 22, 25], spacing=10, size_hint_y=None)
+        root = BoxLayout(orientation='vertical', padding=[20, 15, 20, 25], spacing=10, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
 
-        root.add_widget(Label(text="CREATE BARAT NODE ACCOUNT", font_size='16sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=None, height='35dp'))
+        root.add_widget(Label(text="CREATE BARAT NODE ACCOUNT", font_size='16sp', bold=True, color=(0.05, 0.88, 0.55, 1), size_hint_y=None, height='35dp'))
 
         self.email_input = ModernInput(hint_text="Valid Gmail Address (@gmail.com)", multiline=False, size_hint_y=None, height='45dp')
         root.add_widget(self.email_input)
@@ -331,20 +368,22 @@ class RegisterScreen(Screen):
         self.confirm_pass_input = ModernInput(hint_text="Confirm Password", password=True, multiline=False, size_hint_y=None, height='45dp')
         root.add_widget(self.confirm_pass_input)
 
-        self.captcha_lbl = Label(text=f"Verification: {self.num1} + {self.num2} = ?", font_size='13sp', color=(0.95, 0.8, 0.2, 1), size_hint_y=None, height='28dp')
-        root.add_widget(self.captcha_lbl)
+        captcha_card = ModernCard(size_hint_y=None, height='42dp', padding=[10, 4, 10, 4])
+        self.captcha_lbl = Label(text=f"Verification: {self.num1} + {self.num2} = ?", font_size='13sp', color=(1.0, 0.84, 0.24, 1), bold=True)
+        captcha_card.add_widget(self.captcha_lbl)
+        root.add_widget(captcha_card)
 
         self.captcha_input = ModernInput(hint_text="Enter Math Answer", multiline=False, input_filter='int', size_hint_y=None, height='45dp')
         root.add_widget(self.captcha_input)
 
-        self.msg = Label(text="", font_size='11sp', color=(1, 0.35, 0.35, 1), size_hint_y=None, height='28dp')
+        self.msg = Label(text="", font_size='11sp', color=(1, 0.38, 0.38, 1), size_hint_y=None, height='28dp')
         root.add_widget(self.msg)
 
-        reg_btn = Button(text="Register & Start Mining", background_color=(0.1, 0.65, 0.35, 1), bold=True, size_hint_y=None, height='48dp')
+        reg_btn = Button(text="Register & Start Mining", background_normal='', background_color=(0.05, 0.72, 0.42, 1), bold=True, size_hint_y=None, height='48dp')
         reg_btn.bind(on_press=self.do_register)
         root.add_widget(reg_btn)
 
-        back_btn = Button(text="Back to Options", background_color=(0.3, 0.2, 0.2, 1), size_hint_y=None, height='40dp')
+        back_btn = Button(text="Back to Options", background_normal='', background_color=(0.28, 0.22, 0.26, 1), size_hint_y=None, height='40dp')
         back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'auth_choice'))
         root.add_widget(back_btn)
 
@@ -367,23 +406,23 @@ class RegisterScreen(Screen):
         cpwd = self.confirm_pass_input.text.strip()
 
         if not is_valid_gmail(email):
-            self.msg.color = (1, 0.35, 0.35, 1)
+            self.msg.color = (1, 0.38, 0.38, 1)
             self.msg.text = "Invalid Gmail address! Please use a valid @gmail.com"
             return
 
         is_strong, pwd_err = is_strong_password(pwd)
         if not is_strong:
-            self.msg.color = (1, 0.35, 0.35, 1)
+            self.msg.color = (1, 0.38, 0.38, 1)
             self.msg.text = pwd_err
             return
 
         if pwd != cpwd:
-            self.msg.color = (1, 0.35, 0.35, 1)
+            self.msg.color = (1, 0.38, 0.38, 1)
             self.msg.text = "Passwords do not match!"
             return
 
         if not self.verify_captcha():
-            self.msg.color = (1, 0.35, 0.35, 1)
+            self.msg.color = (1, 0.38, 0.38, 1)
             self.msg.text = "Captcha verification failed! Try again."
             self.refresh_captcha()
             return
@@ -408,10 +447,10 @@ class LoginScreen(Screen):
         self.generated_otp = None
 
         scroll = ScrollView(do_scroll_x=False)
-        root = BoxLayout(orientation='vertical', padding=[22, 15, 22, 25], spacing=10, size_hint_y=None)
+        root = BoxLayout(orientation='vertical', padding=[20, 15, 20, 25], spacing=10, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
 
-        root.add_widget(Label(text="BARAT NODE LOGIN", font_size='16sp', bold=True, color=(0.2, 0.7, 1, 1), size_hint_y=None, height='35dp'))
+        root.add_widget(Label(text="BARAT NODE LOGIN", font_size='16sp', bold=True, color=(0.2, 0.68, 1, 1), size_hint_y=None, height='35dp'))
 
         self.ident_input = ModernInput(hint_text="Registered User ID or Gmail", multiline=False, size_hint_y=None, height='45dp')
         root.add_widget(self.ident_input)
@@ -419,24 +458,26 @@ class LoginScreen(Screen):
         self.pass_input = ModernInput(hint_text="Password", password=True, multiline=False, size_hint_y=None, height='45dp')
         root.add_widget(self.pass_input)
 
-        self.captcha_lbl = Label(text=f"Verification: {self.num1} + {self.num2} = ?", font_size='13sp', color=(0.95, 0.8, 0.2, 1), size_hint_y=None, height='28dp')
-        root.add_widget(self.captcha_lbl)
+        captcha_card = ModernCard(size_hint_y=None, height='42dp', padding=[10, 4, 10, 4])
+        self.captcha_lbl = Label(text=f"Verification: {self.num1} + {self.num2} = ?", font_size='13sp', color=(1.0, 0.84, 0.24, 1), bold=True)
+        captcha_card.add_widget(self.captcha_lbl)
+        root.add_widget(captcha_card)
 
         self.captcha_input = ModernInput(hint_text="Enter Math Answer", multiline=False, input_filter='int', size_hint_y=None, height='45dp')
         root.add_widget(self.captcha_input)
 
-        self.msg = Label(text="", font_size='11sp', color=(1, 0.35, 0.35, 1), size_hint_y=None, height='28dp')
+        self.msg = Label(text="", font_size='11sp', color=(1, 0.38, 0.38, 1), size_hint_y=None, height='28dp')
         root.add_widget(self.msg)
 
-        login_btn = Button(text="Secure Login", background_color=(0.15, 0.55, 0.8, 1), bold=True, size_hint_y=None, height='48dp')
+        login_btn = Button(text="Secure Login", background_normal='', background_color=(0.16, 0.52, 0.88, 1), bold=True, size_hint_y=None, height='48dp')
         login_btn.bind(on_press=self.do_login)
         root.add_widget(login_btn)
 
-        forgot_btn = Button(text="Forgot Password?", size_hint_y=None, height='38dp', background_color=(0.2, 0.2, 0.3, 1), font_size='11sp')
+        forgot_btn = Button(text="Forgot Password?", size_hint_y=None, height='38dp', background_normal='', background_color=(0.2, 0.26, 0.36, 1), font_size='11.5sp')
         forgot_btn.bind(on_press=self.open_forgot_password_popup)
         root.add_widget(forgot_btn)
 
-        back_btn = Button(text="Back to Options", background_color=(0.3, 0.2, 0.2, 1), size_hint_y=None, height='38dp')
+        back_btn = Button(text="Back to Options", background_normal='', background_color=(0.28, 0.22, 0.26, 1), size_hint_y=None, height='38dp')
         back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'auth_choice'))
         root.add_widget(back_btn)
 
@@ -458,12 +499,12 @@ class LoginScreen(Screen):
         pwd = self.pass_input.text.strip()
 
         if not ident or not pwd:
-            self.msg.color = (1, 0.35, 0.35, 1)
+            self.msg.color = (1, 0.38, 0.38, 1)
             self.msg.text = "Please enter User ID/Gmail and Password!"
             return
 
         if not self.verify_captcha():
-            self.msg.color = (1, 0.35, 0.35, 1)
+            self.msg.color = (1, 0.38, 0.38, 1)
             self.msg.text = "Captcha verification failed! Try again."
             self.refresh_captcha()
             return
@@ -474,7 +515,7 @@ class LoginScreen(Screen):
         saved_pwd = data.get("password", "")
 
         if not data.get("registered", False) or not saved_e:
-            self.msg.color = (1, 0.35, 0.35, 1)
+            self.msg.color = (1, 0.38, 0.38, 1)
             self.msg.text = "No account found! Please register first."
             self.refresh_captcha()
             return
@@ -490,13 +531,13 @@ class LoginScreen(Screen):
             save_data(data)
             self.manager.current = "main"
         else:
-            self.msg.color = (1, 0.35, 0.35, 1)
+            self.msg.color = (1, 0.38, 0.38, 1)
             self.msg.text = "Invalid Credentials! Check User ID/Gmail or Password."
             self.refresh_captcha()
 
     def open_forgot_password_popup(self, instance):
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
-        box.add_widget(Label(text="PASSWORD RECOVERY", font_size='14sp', bold=True, color=(0.95, 0.8, 0.2, 1), size_hint_y=0.15))
+        box.add_widget(Label(text="PASSWORD RECOVERY", font_size='14sp', bold=True, color=(1.0, 0.84, 0.24, 1), size_hint_y=0.15))
 
         email_in = ModernInput(hint_text="Registered Gmail ID", multiline=False, size_hint_y=0.18)
         box.add_widget(email_in)
@@ -511,9 +552,9 @@ class LoginScreen(Screen):
         box.add_widget(status_lbl)
 
         btn_box = BoxLayout(spacing=8, size_hint_y=0.21)
-        send_otp_btn = Button(text="Send OTP", background_color=(0.2, 0.45, 0.7, 1), font_size='11sp')
-        reset_btn = Button(text="Reset", background_color=(0.1, 0.6, 0.35, 1), font_size='11sp', bold=True)
-        close_btn = Button(text="Close", background_color=(0.4, 0.2, 0.2, 1), font_size='11sp')
+        send_otp_btn = Button(text="Send OTP", background_normal='', background_color=(0.18, 0.48, 0.82, 1), font_size='11sp')
+        reset_btn = Button(text="Reset", background_normal='', background_color=(0.05, 0.72, 0.42, 1), font_size='11sp', bold=True)
+        close_btn = Button(text="Close", background_normal='', background_color=(0.32, 0.18, 0.2, 1), font_size='11sp')
         btn_box.add_widget(send_otp_btn)
         btn_box.add_widget(reset_btn)
         btn_box.add_widget(close_btn)
@@ -526,7 +567,7 @@ class LoginScreen(Screen):
             target_mail = email_in.text.strip().lower()
             if target_mail == data.get("email", "").lower() and data.get("email"):
                 self.generated_otp = str(random.randint(1000, 9999))
-                status_lbl.color = (0.2, 0.9, 0.5, 1)
+                status_lbl.color = (0.05, 0.88, 0.55, 1)
                 status_lbl.text = f"OTP Code: {self.generated_otp} (Sent to registered Gmail)"
             else:
                 status_lbl.color = (1, 0.4, 0.4, 1)
@@ -548,7 +589,7 @@ class LoginScreen(Screen):
             data["password"] = new_p
             save_data(data)
             popup.dismiss()
-            self.msg.color = (0.2, 0.9, 0.5, 1)
+            self.msg.color = (0.05, 0.88, 0.55, 1)
             self.msg.text = "Password reset successfully! Please login."
 
         send_otp_btn.bind(on_press=do_send_otp)
@@ -559,62 +600,67 @@ class LoginScreen(Screen):
 class MainScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        root = BoxLayout(orientation='vertical', padding=[16, 10, 16, 10], spacing=5)
+        root = BoxLayout(orientation='vertical', padding=[16, 10, 16, 10], spacing=6)
 
-        top_bar = BoxLayout(size_hint_y=0.07, spacing=6)
-        top_bar.add_widget(Label(text="BARAT CORE NODE", font_size='13sp', bold=True, color=(0.2, 0.9, 0.5, 1)))
+        # Top Bar
+        top_bar = ModernCard(size_hint_y=0.075, padding=[8, 4, 8, 4], spacing=6)
+        top_bar.add_widget(Label(text="BARAT CORE NODE", font_size='13sp', bold=True, color=(0.05, 0.88, 0.55, 1)))
         
-        wallet_mgr_btn = Button(text="Wallets", size_hint_x=0.28, background_color=(0.2, 0.5, 0.7, 1), font_size='11sp', bold=True)
+        wallet_mgr_btn = Button(text="Wallets", size_hint_x=0.28, background_normal='', background_color=(0.18, 0.48, 0.78, 1), font_size='11sp', bold=True)
         wallet_mgr_btn.bind(on_press=self.open_wallet_manager_popup)
         top_bar.add_widget(wallet_mgr_btn)
 
-        profile_btn = Button(text="Profile", size_hint_x=0.28, background_color=(0.15, 0.45, 0.65, 1), font_size='11sp', bold=True)
+        profile_btn = Button(text="Profile", size_hint_x=0.28, background_normal='', background_color=(0.14, 0.40, 0.68, 1), font_size='11sp', bold=True)
         profile_btn.bind(on_press=self.open_profile_popup)
         top_bar.add_widget(profile_btn)
         root.add_widget(top_bar)
 
         try:
-            self.logo_img = Image(source=LOGO_FILE, size_hint_y=0.17, allow_stretch=True, keep_ratio=True)
-            root.add_widget(self.logo_img)
+            if os.path.exists(LOGO_FILE):
+                self.logo_img = Image(source=LOGO_FILE, size_hint_y=0.16, allow_stretch=True, keep_ratio=True)
+                root.add_widget(self.logo_img)
+            else:
+                root.add_widget(Label(text="[ BARAT CORE ]", font_size='18sp', bold=True, color=(0.05, 0.88, 0.55, 1), size_hint_y=0.11))
         except Exception:
             pass
 
-        bal_box = BoxLayout(size_hint_y=0.11)
-        self.mined_bal_lbl = Label(text="Mined: 0.00", font_size='14sp', bold=True, color=(0.95, 0.95, 0.95, 1))
-        self.active_wallet_lbl = Label(text="Active: None\nBal: 0.00", font_size='13sp', bold=True, color=(0.1, 0.9, 0.5, 1), halign="center")
-        bal_box.add_widget(self.mined_bal_lbl)
-        bal_box.add_widget(self.active_wallet_lbl)
-        root.add_widget(bal_box)
+        # Balances Card
+        bal_card = ModernCard(size_hint_y=0.115, padding=[10, 6, 10, 6], spacing=6)
+        self.mined_bal_lbl = Label(text="Mined: 0.00", font_size='13.5sp', bold=True, color=(1, 1, 1, 1))
+        self.active_wallet_lbl = Label(text="Active: None\nBal: 0.00", font_size='12.5sp', bold=True, color=(0.05, 0.88, 0.55, 1), halign="center")
+        bal_card.add_widget(self.mined_bal_lbl)
+        bal_card.add_widget(self.active_wallet_lbl)
+        root.add_widget(bal_card)
 
-        self.claim_wallet_btn = Button(text="Claim Mined to Active Wallet", size_hint_y=0.07, background_color=(0.15, 0.5, 0.35, 1), font_size='12sp')
+        self.claim_wallet_btn = Button(text="Claim Mined to Active Wallet", size_hint_y=0.065, background_normal='', background_color=(0.05, 0.62, 0.38, 1), font_size='12sp', bold=True)
         self.claim_wallet_btn.bind(on_press=self.claim_to_active_wallet)
         root.add_widget(self.claim_wallet_btn)
 
-        self.phase_lbl = Label(text="Phase: Initializing...", font_size='11sp', color=(0.95, 0.8, 0.2, 1), size_hint_y=0.04)
-        root.add_widget(self.phase_lbl)
+        # Mining Info Card
+        info_card = ModernCard(orientation='vertical', size_hint_y=0.17, padding=[10, 6, 10, 6], spacing=2)
+        self.phase_lbl = Label(text="Phase: Initializing...", font_size='11sp', color=(1.0, 0.84, 0.24, 1), bold=True)
+        self.puzzle_lbl = Label(text="Target: Loading...", font_size='11sp', color=(0.4, 0.76, 1, 1))
+        self.block_lbl = Label(text="Height: #0000 | Proof: Verifying", font_size='10sp', color=(0.8, 0.88, 0.94, 1))
+        self.timer_lbl = Label(text="Engine: Ready", font_size='11sp', color=(0.05, 0.88, 0.55, 1), bold=True)
+        info_card.add_widget(self.phase_lbl)
+        info_card.add_widget(self.puzzle_lbl)
+        info_card.add_widget(self.block_lbl)
+        info_card.add_widget(self.timer_lbl)
+        root.add_widget(info_card)
 
-        self.puzzle_lbl = Label(text="Target: Loading...", font_size='11sp', color=(0.4, 0.65, 1, 1), size_hint_y=0.04)
-        root.add_widget(self.puzzle_lbl)
-
-        self.block_lbl = Label(text="Height: #0000 | Proof: Verifying", font_size='10sp', color=(0.7, 0.7, 0.7, 1), size_hint_y=0.04)
-        root.add_widget(self.block_lbl)
-
-        self.timer_lbl = Label(text="Engine: Ready", font_size='11sp', size_hint_y=0.05)
-        root.add_widget(self.timer_lbl)
-
-        self.mine_btn = Button(text="Solve Puzzle & Mine Block", size_hint_y=0.09, background_color=(0.1, 0.65, 0.35, 1), font_size='13sp', bold=True)
+        self.mine_btn = Button(text="Solve Puzzle & Mine Block", size_hint_y=0.09, background_normal='', background_color=(0.05, 0.72, 0.42, 1), font_size='13sp', bold=True)
         self.mine_btn.bind(on_press=self.start_mining)
         root.add_widget(self.mine_btn)
 
-        self.sol_btn = Button(text="Sync With Solana Bridge", size_hint_y=0.08, background_color=(0.5, 0.2, 0.7, 1), font_size='12sp', bold=True)
+        self.sol_btn = Button(text="Sync With Solana Bridge", size_hint_y=0.075, background_normal='', background_color=(0.54, 0.26, 0.82, 1), font_size='12sp', bold=True)
         self.sol_btn.bind(on_press=self.open_solana_bridge_popup)
         root.add_widget(self.sol_btn)
 
-        self.logout_btn = Button(text="Switch Node / Exit", size_hint_y=0.05, background_color=(0.35, 0.15, 0.15, 1), font_size='11sp')
+        self.logout_btn = Button(text="Switch Node / Exit", size_hint_y=0.05, background_normal='', background_color=(0.36, 0.18, 0.22, 1), font_size='11sp')
         self.logout_btn.bind(on_press=self.do_logout)
         root.add_widget(self.logout_btn)
 
-        self.status_msg = Label(text="Cloud Engine Synchronized.", font_size='10sp', color=(1, 0.85, 0.3, 1), size_hint_y=0.04)
+        self.status_msg = Label(text="Cloud Engine Synchronized.", font_size='10sp', color=(1.0, 0.88, 0.4, 1), size_hint_y=0.04)
         root.add_widget(self.status_msg)
 
         self.add_widget(root)
@@ -650,14 +696,14 @@ class MainScreen(Screen):
         data = load_data()
         mined = data.get("balance", 0.0)
         if mined <= 0:
-            self.status_msg.color = (1, 0.35, 0.35, 1)
+            self.status_msg.color = (1, 0.38, 0.38, 1)
             self.status_msg.text = "No mined balance available to claim."
             return
 
         wallets = data.get("wallets", [])
         idx = data.get("active_wallet_index", 0)
         if not wallets or idx >= len(wallets):
-            self.status_msg.color = (1, 0.35, 0.35, 1)
+            self.status_msg.color = (1, 0.38, 0.38, 1)
             self.status_msg.text = "Please create and confirm an active wallet first!"
             return
 
@@ -666,7 +712,7 @@ class MainScreen(Screen):
         data["wallets"] = wallets
         save_data(data)
         self.refresh_dashboard()
-        self.status_msg.color = (0.2, 0.9, 0.5, 1)
+        self.status_msg.color = (0.05, 0.88, 0.55, 1)
         self.status_msg.text = f"Claimed {mined:.2f} BARAT to {wallets[idx]['name']}!"
 
     def calculate_reward(self, total_mined):
@@ -690,18 +736,18 @@ class MainScreen(Screen):
 
         if elapsed >= cooldown:
             self.timer_lbl.text = "Node Engine: Ready to Solve Block"
-            self.timer_lbl.color = (0.2, 0.9, 0.5, 1)
+            self.timer_lbl.color = (0.05, 0.88, 0.55, 1)
             self.mine_btn.disabled = False
-            self.mine_btn.background_color = (0.1, 0.65, 0.35, 1)
+            self.mine_btn.background_color = (0.05, 0.72, 0.42, 1)
         else:
             rem = int(cooldown - elapsed)
             hrs = rem // 3600
             mins = (rem % 3600) // 60
             secs = rem % 60
             self.timer_lbl.text = f"Next Block In: {hrs:02d}h {mins:02d}m {secs:02d}s"
-            self.timer_lbl.color = (0.85, 0.85, 0.85, 1)
+            self.timer_lbl.color = (0.8, 0.88, 0.94, 1)
             self.mine_btn.disabled = True
-            self.mine_btn.background_color = (0.2, 0.25, 0.25, 1)
+            self.mine_btn.background_color = (0.24, 0.28, 0.34, 1)
 
     def start_mining(self, instance):
         now = get_server_time()
@@ -712,7 +758,7 @@ class MainScreen(Screen):
 
         self.mine_btn.disabled = True
         self.mine_btn.text = "⚡ Mining Block in Progress..."
-        self.status_msg.color = (0.95, 0.85, 0.2, 1)
+        self.status_msg.color = (1.0, 0.84, 0.24, 1)
         self.status_msg.text = "Processing cryptographic target..."
 
         def finish_mining(dt):
@@ -733,7 +779,7 @@ class MainScreen(Screen):
             save_data(data)
             self.refresh_dashboard()
             self.mine_btn.text = "Solve Puzzle & Mine Block"
-            self.status_msg.color = (0.2, 0.9, 0.5, 1)
+            self.status_msg.color = (0.05, 0.88, 0.55, 1)
             self.status_msg.text = f"Block #{data['block_height']} solved! +{reward:.1f} BARAT mined."
             self.update_timer(0)
 
@@ -745,7 +791,7 @@ class MainScreen(Screen):
         idx = data.get("active_wallet_index", 0)
 
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
-        box.add_widget(Label(text="WALLET CONTROL CENTER", font_size='14sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.12))
+        box.add_widget(Label(text="WALLET CONTROL CENTER", font_size='14sp', bold=True, color=(0.05, 0.88, 0.55, 1), size_hint_y=0.12))
 
         active_wallet = wallets[idx] if (wallets and 0 <= idx < len(wallets)) else None
         if active_wallet:
@@ -753,15 +799,15 @@ class MainScreen(Screen):
         else:
             active_info = "No active wallet. Create or import below."
 
-        box.add_widget(Label(text=active_info, font_size='11sp', halign='center', color=(0.85, 0.85, 0.85, 1), size_hint_y=0.12))
+        box.add_widget(Label(text=active_info, font_size='11sp', halign='center', color=(0.85, 0.9, 0.95, 1), size_hint_y=0.12))
 
         w_list = f"Total Wallets: {len(wallets)}"
-        box.add_widget(Label(text=w_list, font_size='10sp', color=(0.7, 0.7, 0.7, 1), size_hint_y=0.08))
+        box.add_widget(Label(text=w_list, font_size='10sp', color=(0.7, 0.8, 0.9, 1), size_hint_y=0.08))
 
-        create_btn = Button(text="+ Generate & Confirm New Wallet", size_hint_y=0.14, background_color=(0.1, 0.6, 0.35, 1), font_size='11sp', bold=True)
-        import_btn = Button(text="Import / Switch by 12-Word Key", size_hint_y=0.14, background_color=(0.2, 0.45, 0.7, 1), font_size='11sp', bold=True)
-        switch_btn = Button(text="Switch to Next Wallet", size_hint_y=0.14, background_color=(0.5, 0.35, 0.2, 1), font_size='11sp')
-        close_btn = Button(text="Done / Close", size_hint_y=0.14, background_color=(0.35, 0.15, 0.15, 1))
+        create_btn = Button(text="+ Generate & Confirm New Wallet", size_hint_y=0.14, background_normal='', background_color=(0.05, 0.68, 0.38, 1), font_size='11sp', bold=True)
+        import_btn = Button(text="Import / Switch by 12-Word Key", size_hint_y=0.14, background_normal='', background_color=(0.18, 0.48, 0.82, 1), font_size='11sp', bold=True)
+        switch_btn = Button(text="Switch to Next Wallet", size_hint_y=0.14, background_normal='', background_color=(0.48, 0.36, 0.22, 1), font_size='11sp')
+        close_btn = Button(text="Done / Close", size_hint_y=0.14, background_normal='', background_color=(0.34, 0.18, 0.22, 1))
 
         box.add_widget(create_btn)
         box.add_widget(import_btn)
@@ -799,26 +845,27 @@ class MainScreen(Screen):
         phrase = " ".join(random.sample(WORD_DICTIONARY, 12))
 
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
-        box.add_widget(Label(text=f"GENERATE: {new_name}", font_size='14sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.12))
+        box.add_widget(Label(text=f"GENERATE: {new_name}", font_size='14sp', bold=True, color=(0.05, 0.88, 0.55, 1), size_hint_y=0.12))
         
         phrase_display = Label(
             text=phrase,
-            font_size='12sp',
-            color=(0.95, 0.85, 0.3, 1),
+            font_size='12.5sp',
+            color=(1.0, 0.86, 0.35, 1),
+            bold=True,
             halign='center',
             size_hint_y=0.25
         )
         phrase_display.bind(size=phrase_display.setter('text_size'))
         box.add_widget(phrase_display)
 
-        copy_status = Label(text="", font_size='11sp', color=(0.2, 0.9, 0.5, 1), size_hint_y=0.08)
+        copy_status = Label(text="", font_size='11sp', color=(0.05, 0.88, 0.55, 1), size_hint_y=0.08)
         box.add_widget(copy_status)
 
-        copy_btn = Button(text="📋 Copy 12-Word Phrase", size_hint_y=0.14, background_color=(0.2, 0.55, 0.8, 1), bold=True)
+        copy_btn = Button(text="📋 Copy 12-Word Phrase", size_hint_y=0.14, background_normal='', background_color=(0.18, 0.52, 0.85, 1), bold=True)
         box.add_widget(copy_btn)
 
-        confirm_btn = Button(text="Confirm & Activate Wallet", size_hint_y=0.15, background_color=(0.1, 0.6, 0.35, 1), bold=True)
-        cancel_btn = Button(text="Cancel", size_hint_y=0.13, background_color=(0.4, 0.2, 0.2, 1))
+        confirm_btn = Button(text="Confirm & Activate Wallet", size_hint_y=0.15, background_normal='', background_color=(0.05, 0.68, 0.38, 1), bold=True)
+        cancel_btn = Button(text="Cancel", size_hint_y=0.13, background_normal='', background_color=(0.34, 0.2, 0.22, 1))
         box.add_widget(confirm_btn)
         box.add_widget(cancel_btn)
 
@@ -846,20 +893,20 @@ class MainScreen(Screen):
         wallets = data.get("wallets", [])
 
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
-        box.add_widget(Label(text="IMPORT / RESTORE WALLET", font_size='14sp', bold=True, color=(0.2, 0.6, 0.9, 1), size_hint_y=0.12))
+        box.add_widget(Label(text="IMPORT / RESTORE WALLET", font_size='14sp', bold=True, color=(0.2, 0.68, 1, 1), size_hint_y=0.12))
 
         input_phrase = ModernInput(hint_text="Enter 12 words separated by space", multiline=True, size_hint_y=0.25)
         box.add_widget(input_phrase)
 
-        paste_btn = Button(text="📋 Paste from Clipboard", size_hint_y=0.14, background_color=(0.2, 0.5, 0.7, 1))
+        paste_btn = Button(text="📋 Paste from Clipboard", size_hint_y=0.14, background_normal='', background_color=(0.18, 0.48, 0.72, 1))
         box.add_widget(paste_btn)
 
         status_lbl = Label(text="", font_size='11sp', color=(1, 0.4, 0.4, 1), size_hint_y=0.08)
         box.add_widget(status_lbl)
 
         btn_box = BoxLayout(spacing=10, size_hint_y=0.16)
-        import_btn = Button(text="Import / Switch", background_color=(0.15, 0.5, 0.7, 1), bold=True)
-        cancel_btn = Button(text="Cancel", background_color=(0.4, 0.2, 0.2, 1))
+        import_btn = Button(text="Import / Switch", background_normal='', background_color=(0.14, 0.52, 0.82, 1), bold=True)
+        cancel_btn = Button(text="Cancel", background_normal='', background_color=(0.34, 0.2, 0.22, 1))
         btn_box.add_widget(import_btn)
         btn_box.add_widget(cancel_btn)
         box.add_widget(btn_box)
@@ -905,7 +952,7 @@ class MainScreen(Screen):
             text="NODE IDENTITY & PROFILE", 
             font_size='15sp', 
             bold=True, 
-            color=(0.1, 0.9, 0.5, 1), 
+            color=(0.05, 0.88, 0.55, 1), 
             size_hint_y=0.15
         ))
         
@@ -918,8 +965,8 @@ class MainScreen(Screen):
         )
         box.add_widget(Label(
             text=info_txt, 
-            font_size='11sp', 
-            color=(0.9, 0.9, 0.9, 1),
+            font_size='11.5sp', 
+            color=(0.95, 0.98, 1, 1),
             halign='left',
             size_hint_y=0.45
         ))
@@ -927,14 +974,16 @@ class MainScreen(Screen):
         btn_box = BoxLayout(spacing=10, size_hint_y=0.22)
         logout_profile_btn = Button(
             text="Logout", 
-            background_color=(0.75, 0.2, 0.2, 1), 
+            background_normal='',
+            background_color=(0.82, 0.22, 0.26, 1), 
             font_size='12sp', 
             bold=True
         )
         close_btn = Button(
             text="Close", 
             size_hint_x=0.45,
-            background_color=(0.3, 0.35, 0.4, 1), 
+            background_normal='',
+            background_color=(0.28, 0.35, 0.44, 1), 
             font_size='12sp'
         )
         btn_box.add_widget(logout_profile_btn)
@@ -964,7 +1013,7 @@ class MainScreen(Screen):
         wallet_bal = active.get("balance", 0.0) if active else 0.0
 
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
-        box.add_widget(Label(text="BARAT -> SOLANA MAIN BRIDGE", font_size='14sp', bold=True, color=(0.6, 0.3, 0.9, 1), size_hint_y=0.12))
+        box.add_widget(Label(text="BARAT -> SOLANA MAIN BRIDGE", font_size='14sp', bold=True, color=(0.65, 0.38, 0.95, 1), size_hint_y=0.12))
         
         addr_input = ModernInput(hint_text="Paste Solana Wallet Address", multiline=False, size_hint_y=0.16)
         amount_input = ModernInput(hint_text="BARAT Amount (Min 50)", multiline=False, input_filter='float', size_hint_y=0.16)
@@ -972,8 +1021,8 @@ class MainScreen(Screen):
         box.add_widget(amount_input)
 
         btn_box = BoxLayout(spacing=10, size_hint_y=0.16)
-        submit_btn = Button(text="Confirm Bridge", background_color=(0.5, 0.2, 0.7, 1), bold=True)
-        cancel_btn = Button(text="Cancel", background_color=(0.4, 0.2, 0.2, 1))
+        submit_btn = Button(text="Confirm Bridge", background_normal='', background_color=(0.54, 0.26, 0.82, 1), bold=True)
+        cancel_btn = Button(text="Cancel", background_normal='', background_color=(0.34, 0.2, 0.22, 1))
         btn_box.add_widget(submit_btn)
         btn_box.add_widget(cancel_btn)
         box.add_widget(btn_box)
@@ -1012,8 +1061,13 @@ class MainScreen(Screen):
 
 class BaratCoreApp(App):
     def build(self):
-        Window.clearcolor = (0.04, 0.05, 0.06, 1.0)
-        self.icon = LOGO_FILE
+        # Deep Royal Slate-Blue Background (High Contrast & Clear)
+        Window.clearcolor = (0.06, 0.09, 0.14, 1.0)
+        try:
+            if os.path.exists(LOGO_FILE):
+                self.icon = LOGO_FILE
+        except Exception:
+            pass
         sm = ScreenManager()
         sm.add_widget(LandingScreen(name="landing"))
         sm.add_widget(AuthChoiceScreen(name="auth_choice"))
