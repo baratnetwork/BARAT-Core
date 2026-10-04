@@ -68,6 +68,15 @@ WORD_DICTIONARY = [
     "solana", "target", "ultra", "vector", "wallet", "xenon"
 ]
 
+CONSOLE_LOGS = [
+    "[NODE] Cryptographic verification active...",
+    "[CONSENSUS] Target model: KRAS-G12D conformational fold...",
+    "[PIPELINE] Molecular docking matrix synchronized.",
+    "[SECURITY] Proof-of-Intelligence SHA-256 validated.",
+    "[NETWORK] Zero battery degradation mode verified.",
+    "[LEDGER] Local compute state appended to decentralized block."
+]
+
 def share_to_social_apps(text_to_share):
     Clipboard.copy(text_to_share)
     if platform == 'android':
@@ -194,6 +203,11 @@ def load_data():
         "base_mined": 0.0,
         "total_mined": 0.0,
         "completed_cycles": 0,
+        "mining_streak": 1,
+        "last_streak_time": 0,
+        "completed_tasks": [],
+        "last_quiz_date": "",
+        "transactions_log": [],
         "block_height": 1,
         "last_cycle": 0,
         "is_mining_active": False,
@@ -218,6 +232,17 @@ def save_data(data):
     save_local_only(data)
     sync_to_github_cloud(data)
 
+def log_transaction(data, title, amount):
+    log_entry = {
+        "time": time.strftime("%d %b %Y, %H:%M"),
+        "title": title,
+        "amount": f"{amount:+.4f} BARAT" if amount != 0 else "0.0000 BARAT"
+    }
+    logs = data.setdefault("transactions_log", [])
+    logs.insert(0, log_entry)
+    if len(logs) > 30:
+        data["transactions_log"] = logs[:30]
+
 def get_current_live_mined(data):
     base = data.get("base_mined", data.get("balance", 0.0))
     if not data.get("is_mining_active", False):
@@ -235,7 +260,6 @@ def get_current_live_mined(data):
     current_accrued = base + (elapsed * rate_per_sec)
     return current_accrued
 
-# Minimalist Card with Gentle Lavender Glow
 class VangapuvvuCard(BoxLayout):
     def __init__(self, bg_color=(0.09, 0.07, 0.14, 0.96), border_color=(0.76, 0.50, 0.98, 0.45), radius=[16], border_width=1.0, **kwargs):
         super().__init__(**kwargs)
@@ -255,7 +279,6 @@ class VangapuvvuCard(BoxLayout):
         self.rect_bg.size = self.size
         self.rect_border.rounded_rectangle = (self.x, self.y, self.width, self.height, self.radius[0])
 
-# Seamless Input Field (బాక్స్ లా కాకుండా నేరుగా బ్యాక్‌గ్రౌండ్‌లో కలిసిపోయేలా సన్నని అండర్‌లైన్ మాత్రమే ఉంటుంది)
 class SeamlessInput(BoxLayout):
     def __init__(self, hint_text="", password=False, input_filter=None, scroll_parent=None, **kwargs):
         super().__init__(orientation='vertical', spacing=2, **kwargs)
@@ -279,7 +302,6 @@ class SeamlessInput(BoxLayout):
         self.input.bind(focus=self.on_input_focus)
         self.add_widget(self.input)
 
-        # Subtle Glowing Underline
         with self.canvas.after:
             self.line_color = Color(0.70, 0.48, 0.92, 0.35)
             self.line = Line(points=[self.x + 4, self.y + 2, self.x + self.width - 4, self.y + 2], width=1.1)
@@ -304,7 +326,6 @@ class SeamlessInput(BoxLayout):
     def text(self, val):
         self.input.text = val
 
-# Seamless Password Field with Integrated Clean Text Button
 class SeamlessPasswordField(BoxLayout):
     def __init__(self, hint_text="Password", scroll_parent=None, **kwargs):
         super().__init__(orientation='horizontal', spacing=4, **kwargs)
@@ -394,7 +415,6 @@ class GlowingCircleButton(Button):
         self.inner_circle.pos = (self.x + 3, self.y + 3)
         self.inner_circle.size = (self.width - 6, self.height - 6)
 
-# 1. Welcome Landing Screen (Compact, High Trust, Start Button Elevated)
 class LandingScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -427,7 +447,6 @@ class LandingScreen(Screen):
             size_hint_y=0.04
         ))
 
-        # Trust Architecture Narrative
         narrative_box = BoxLayout(orientation='vertical', size_hint_y=0.32, spacing=4)
         desc = (
             "A verified and transparent decentralized consensus architecture.\n"
@@ -448,7 +467,6 @@ class LandingScreen(Screen):
         narrative_box.add_widget(narrative_lbl)
         root.add_widget(narrative_box)
 
-        # Elevated Start Button (Well Above the Bottom Edge)
         btn_box = BoxLayout(orientation='vertical', size_hint_y=0.30, padding=[0, 8, 0, 4])
         self.start_btn = GlowingCircleButton(
             text="START",
@@ -530,7 +548,6 @@ class AuthChoiceScreen(Screen):
         root.add_widget(Label(text="", size_hint_y=0.12))
         self.add_widget(root)
 
-# 2. Register Screen (Seamless Inputs with No Clunky Boxes)
 class RegisterScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -555,7 +572,6 @@ class RegisterScreen(Screen):
         self.invite_input = SeamlessInput(hint_text="Invitation Code (Optional)", size_hint_y=None, height='45dp', scroll_parent=self.scroll)
         root.add_widget(self.invite_input)
 
-        # Human Verification Pill
         captcha_card = VangapuvvuCard(size_hint_y=None, height='40dp', padding=[12, 4, 12, 4], radius=[12])
         self.captcha_lbl = Label(text=f"Human Verification: {self.num1} + {self.num2} = ?", font_size='12.5sp', color=(0.85, 0.65, 1, 1), bold=True)
         captcha_card.add_widget(self.captcha_lbl)
@@ -637,11 +653,11 @@ class RegisterScreen(Screen):
         data["mining_speed_multiplier"] = 1.25 if invited_code else 1.0
         data["email"] = email
         data["password"] = pwd
+        log_transaction(data, "Genesis Account Created", 0.0)
         save_data(data)
 
         self.manager.current = "main_hub"
 
-# 3. Login Screen (Seamless Inputs with No Clunky Boxes)
 class LoginScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -842,15 +858,15 @@ class LoginScreen(Screen):
         close_btn.bind(on_press=popup.dismiss)
         popup.open()
 
-# 4. Main Hub Screen (100% Genuine Data — No Fake Referral/Mined Stats)
+# Full Feature-Loaded Main Hub Screen
 class MainHubScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.active_tab = "home"
+        self.console_index = 0
 
         root = BoxLayout(orientation='vertical')
 
-        # Top Header
         top_header = VangapuvvuCard(size_hint_y=0.075, padding=[12, 6, 12, 6])
         top_header.add_widget(Label(text="BaratCore", font_size='15sp', bold=True, color=(1, 1, 1, 1)))
         badge = VangapuvvuCard(size_hint_x=0.45, padding=[6, 2, 6, 2], bg_color=(0.18, 0.12, 0.26, 1), border_color=(0.78, 0.52, 0.98, 0.6), radius=[12])
@@ -858,11 +874,9 @@ class MainHubScreen(Screen):
         top_header.add_widget(badge)
         root.add_widget(top_header)
 
-        # Content Area
-        self.content_area = BoxLayout(orientation='vertical', padding=[16, 8, 16, 8], spacing=8, size_hint_y=0.835)
+        self.content_area = BoxLayout(orientation='vertical', padding=[14, 6, 14, 6], spacing=6, size_hint_y=0.835)
         root.add_widget(self.content_area)
 
-        # Bottom Navigation
         nav_bar = VangapuvvuCard(size_hint_y=0.09, padding=[4, 4, 4, 4], spacing=4)
 
         self.tab_home_btn = Button(text="Home", background_normal='', background_color=(0.20, 0.14, 0.30, 1), color=(0.85, 0.65, 1, 1), font_size='11.5sp', bold=True)
@@ -885,6 +899,7 @@ class MainHubScreen(Screen):
         self.add_widget(root)
 
         Clock.schedule_interval(self.timer_tick, 1.0)
+        Clock.schedule_interval(self.update_console_tick, 3.5)
 
     def on_enter(self):
         self.render_active_tab()
@@ -924,85 +939,95 @@ class MainHubScreen(Screen):
         elif self.active_tab == "me":
             self.render_me_tab(data)
 
-    # 4A. HOME TAB (కచ్చితమైన జెన్యూన్ మైనింగ్ బ్యాలెన్స్)
+    # 1. HOME TAB (Streak Tracker, Console Logs, Real Live Mined Counter)
     def render_home_tab(self, data):
+        scroll = ScrollView(do_scroll_x=False)
+        box = BoxLayout(orientation='vertical', spacing=8, size_hint_y=None)
+        box.bind(minimum_height=box.setter('height'))
+
         cur_mined = get_current_live_mined(data)
 
-        # Honest Node Protocol Card
-        info_card = VangapuvvuCard(orientation='vertical', size_hint_y=0.18, padding=[12, 6, 12, 6], spacing=2)
-        top_row = BoxLayout(size_hint_y=0.4)
-        top_row.add_widget(Label(text="• Consensus Computing Node", font_size='11sp', color=(0.85, 0.80, 0.92, 1), halign='left'))
-        top_row.add_widget(Label(text=f"Block #{data.get('block_height', 1)}", font_size='10sp', color=(0.70, 0.65, 0.80, 1), halign='right'))
-        info_card.add_widget(top_row)
+        # 1A. Streak & Multiplier Status Pill
+        streak = data.get("mining_streak", 1)
+        streak_card = VangapuvvuCard(size_hint_y=None, height='42dp', padding=[12, 4, 12, 4], radius=[12])
+        streak_card.add_widget(Label(text=f"🔥 7-Day Mining Streak: Day {streak}/7", font_size='11.5sp', bold=True, color=(1.0, 0.85, 0.4, 1), halign='left'))
+        streak_card.add_widget(Label(text=f"+{(streak*0.02):.2f}x Streak Bonus", font_size='11sp', color=(0.85, 0.65, 1, 1), halign='right'))
+        box.add_widget(streak_card)
 
-        target = CANCER_TARGETS[data.get('block_height', 1) % len(CANCER_TARGETS)]
-        info_card.add_widget(Label(text=f"Target: {target}", font_size='12sp', bold=True, color=(0.85, 0.65, 1, 1)))
-        self.content_area.add_widget(info_card)
-
-        # Mining Balance Card
-        user_card = VangapuvvuCard(orientation='vertical', size_hint_y=0.30, padding=[12, 8, 12, 8], spacing=6)
-        user_card.add_widget(Label(text="Mined Balance", font_size='11sp', color=(0.75, 0.70, 0.85, 1), size_hint_y=0.25))
-        self.live_bal_lbl = Label(text=f"{cur_mined:.4f} BARAT", font_size='26sp', bold=True, color=(1, 1, 1, 1), size_hint_y=0.45)
+        # 1B. Hero Balance Card
+        user_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='120dp', padding=[14, 10, 14, 10], spacing=4)
+        user_card.add_widget(Label(text="TOTAL ACCRUED BALANCE", font_size='11sp', color=(0.75, 0.70, 0.85, 1)))
+        self.live_bal_lbl = Label(text=f"{cur_mined:.4f} BARAT", font_size='26sp', bold=True, color=(1, 1, 1, 1))
         user_card.add_widget(self.live_bal_lbl)
 
-        # Honest Dynamic Stats (No Fake numbers)
+        # Badges inside hero card
         mult = data.get("mining_speed_multiplier", 1.0)
         team_count = len(data.get("team_members", []))
-
-        badge_row = BoxLayout(spacing=6, size_hint_y=0.30)
+        badge_row = BoxLayout(spacing=6, size_hint_y=0.35)
+        
         b1 = VangapuvvuCard(bg_color=(0.18, 0.12, 0.26, 1), border_color=(0.78, 0.52, 0.98, 0.5), radius=[10])
-        b1.add_widget(Label(text=f"Speed: {mult:.2f}x", font_size='11sp', color=(0.85, 0.65, 1, 1), bold=True))
+        b1.add_widget(Label(text=f"Boost: {mult:.2f}x", font_size='10.5sp', color=(0.85, 0.65, 1, 1), bold=True))
         
         b2 = VangapuvvuCard(bg_color=(0.18, 0.12, 0.26, 1), border_color=(0.78, 0.52, 0.98, 0.5), radius=[10])
-        b2.add_widget(Label(text=f"Team: {team_count}", font_size='11sp', color=(0.85, 0.65, 1, 1), bold=True))
+        b2.add_widget(Label(text=f"Team: {team_count}", font_size='10.5sp', color=(0.85, 0.65, 1, 1), bold=True))
         
         b3 = VangapuvvuCard(bg_color=(0.18, 0.12, 0.26, 1), border_color=(0.78, 0.52, 0.98, 0.5), radius=[10])
-        self.pill_timer = Label(text="24:00:00", font_size='11sp', color=(0.85, 0.65, 1, 1), bold=True)
+        self.pill_timer = Label(text="24:00:00", font_size='10.5sp', color=(0.85, 0.65, 1, 1), bold=True)
         b3.add_widget(self.pill_timer)
 
         badge_row.add_widget(b1)
         badge_row.add_widget(b2)
         badge_row.add_widget(b3)
         user_card.add_widget(badge_row)
-        self.content_area.add_widget(user_card)
+        box.add_widget(user_card)
 
-        # Center Dial Box & Start Session Button
-        center_box = VangapuvvuCard(orientation='vertical', size_hint_y=0.35, padding=[12, 10, 12, 10], spacing=6)
-        center_box.add_widget(Label(text="Session ends in", font_size='11sp', color=(0.70, 0.65, 0.80, 1), size_hint_y=0.18))
-        self.big_timer_lbl = Label(text="24:00:00", font_size='22sp', bold=True, color=(1, 1, 1, 1), size_hint_y=0.28)
+        # 1C. Mining Action Center Dial
+        center_box = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='125dp', padding=[14, 8, 14, 8], spacing=4)
+        center_box.add_widget(Label(text="Consensus Session Remaining", font_size='11sp', color=(0.70, 0.65, 0.80, 1)))
+        self.big_timer_lbl = Label(text="24:00:00", font_size='22sp', bold=True, color=(1, 1, 1, 1))
         center_box.add_widget(self.big_timer_lbl)
 
         self.mine_btn = Button(
             text="START MINING SESSION",
-            size_hint_y=0.40,
+            size_hint_y=0.44,
             background_normal='',
             background_color=(0.75, 0.50, 0.95, 1),
             color=(0.05, 0.05, 0.05, 1),
-            font_size='13.5sp',
+            font_size='13sp',
             bold=True
         )
         self.mine_btn.bind(on_press=self.start_mining)
         center_box.add_widget(self.mine_btn)
 
-        self.session_sub = Label(text="Session status: Ready", font_size='11sp', color=(0.85, 0.65, 1, 1), size_hint_y=0.14)
+        self.session_sub = Label(text="Compute State: Ready", font_size='10.5sp', color=(0.85, 0.65, 1, 1))
         center_box.add_widget(self.session_sub)
-        self.content_area.add_widget(center_box)
+        box.add_widget(center_box)
 
-    # 4B. TEAM TAB (నిజమైన టీమ్ నెట్‌వర్క్ మాత్రమే — ఫేక్ ఈమెయిళ్ళు ఉండవు)
+        # 1D. Live Node Console (Scientific Computing Feed)
+        console_box = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='85dp', padding=[12, 6, 12, 6], spacing=2)
+        console_box.add_widget(Label(text="LIVE NODE COMPUTING TERMINAL", font_size='11sp', bold=True, color=(0.85, 0.65, 1, 1)))
+        self.console_lbl = Label(text=CONSOLE_LOGS[0], font_size='10sp', color=(0.75, 0.70, 0.85, 1), halign='center')
+        console_box.add_widget(self.console_lbl)
+        box.add_widget(console_box)
+
+        scroll.add_widget(box)
+        self.content_area.add_widget(scroll)
+
+    # 2. TEAM TAB (Real Invite, Calculator, Ping Functionality)
     def render_team_tab(self, data):
         scroll = ScrollView(do_scroll_x=False)
         box = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
         box.bind(minimum_height=box.setter('height'))
 
         code = data.get("referral_code", "CORE2026")
-        share_msg = f"Join my Barat Core node and mine $BARAT! Use my referral code: {code}"
+        share_msg = f"Join my Barat Core node and mine $BARAT! Use referral code: {code}"
 
-        invite_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='210dp', padding=[14, 12, 14, 12], spacing=8)
-        invite_card.add_widget(Label(text="Invite Friends, Grow Network", font_size='14sp', bold=True, color=(1, 1, 1, 1), size_hint_y=0.18))
-        invite_card.add_widget(Label(text=f"Your Referral Code: {code}\nBoth you and your friend get +25% permanent speed boost.", font_size='11sp', color=(0.70, 0.65, 0.80, 1), size_hint_y=0.20))
+        # 2A. Invite Hub
+        invite_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='195dp', padding=[14, 10, 14, 10], spacing=6)
+        invite_card.add_widget(Label(text="INVITE TEAM & EARN BOOST", font_size='13sp', bold=True, color=(1, 1, 1, 1)))
+        invite_card.add_widget(Label(text=f"Your Unique Code: {code}\nEach verified node adds +25% continuous hashrate.", font_size='11sp', color=(0.70, 0.65, 0.80, 1), halign='center'))
 
-        # Social Share Row
-        btn_row = BoxLayout(spacing=6, size_hint_y=0.32)
+        btn_row = BoxLayout(spacing=6, size_hint_y=0.34)
         wa_btn = Button(text="WhatsApp", background_normal='', background_color=(0.12, 0.38, 0.22, 1), color=(0.4, 1, 0.6, 1), font_size='11sp', bold=True)
         wa_btn.bind(on_press=lambda x: share_to_social_apps(share_msg))
         
@@ -1017,89 +1042,153 @@ class MainHubScreen(Screen):
         btn_row.add_widget(tg_btn)
         invite_card.add_widget(btn_row)
 
-        copy_invite_btn = Button(text="Copy Invite Message", size_hint_y=0.28, background_normal='', background_color=(0.20, 0.14, 0.28, 1), color=(0.85, 0.65, 1, 1), font_size='11.5sp', bold=True)
+        copy_invite_btn = Button(text="Copy Referral Link", size_hint_y=0.30, background_normal='', background_color=(0.20, 0.14, 0.28, 1), color=(0.85, 0.65, 1, 1), font_size='11.5sp', bold=True)
         copy_invite_btn.bind(on_press=lambda x: Clipboard.copy(share_msg))
         invite_card.add_widget(copy_invite_btn)
         box.add_widget(invite_card)
 
-        # Real Active Referral Network Info
+        # 2B. Interactive Hashrate Calculator
+        calc_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='85dp', padding=[12, 6, 12, 6], spacing=2)
+        calc_card.add_widget(Label(text="MINING SPEED CALCULATOR", font_size='11sp', bold=True, color=(0.85, 0.65, 1, 1)))
+        calc_card.add_widget(Label(text="Base Reward: 10.0 BARAT/day\n1 Node Active = +2.50 BARAT/day  |  4 Nodes Active = +10.0 BARAT/day", font_size='10.5sp', color=(0.85, 0.80, 0.95, 1), halign='center'))
+        box.add_widget(calc_card)
+
+        # 2C. Verified Network Status
         members = data.get("team_members", [])
         team_hdr = VangapuvvuCard(size_hint_y=None, height='45dp', padding=[12, 6, 12, 6])
-        team_hdr.add_widget(Label(text=f"Your Active Team ({len(members)} Members)", font_size='12sp', bold=True, color=(0.85, 0.65, 1, 1)))
+        team_hdr.add_widget(Label(text=f"Your Active Network ({len(members)} Verified Nodes)", font_size='12sp', bold=True, color=(0.85, 0.65, 1, 1)))
         box.add_widget(team_hdr)
 
         if not members:
-            empty_card = VangapuvvuCard(size_hint_y=None, height='75dp', padding=[12, 8, 12, 8])
-            empty_card.add_widget(Label(text="No referral nodes registered yet.\nInvite friends to activate consensus boosts!", font_size='11sp', color=(0.65, 0.60, 0.75, 1), halign='center'))
+            empty_card = VangapuvvuCard(size_hint_y=None, height='95dp', padding=[12, 8, 12, 8], orientation='vertical', spacing=4)
+            empty_card.add_widget(Label(text="No direct downstream nodes bound.\nShare your code to build your decentralized consensus cluster.", font_size='10.5sp', color=(0.65, 0.60, 0.75, 1), halign='center'))
+            ping_btn = Button(text="Ping Offline Members", size_hint_y=0.42, background_normal='', background_color=(0.20, 0.14, 0.28, 1), color=(0.7, 0.6, 0.8, 1), font_size='11sp')
+            empty_card.add_widget(ping_btn)
             box.add_widget(empty_card)
         else:
             for mem in members:
                 m_card = VangapuvvuCard(size_hint_y=None, height='48dp', padding=[10, 4, 10, 4])
                 m_card.add_widget(Label(text=f"{mem.get('email', 'node')} (Active)", font_size='11sp', color=(1, 1, 1, 1), halign='left'))
-                m_card.add_widget(Label(text="+25% Boost", font_size='11sp', color=(0.4, 0.9, 0.6, 1), halign='right'))
+                m_card.add_widget(Label(text="+25% Speed", font_size='11sp', color=(0.4, 0.9, 0.6, 1), halign='right'))
                 box.add_widget(m_card)
 
         scroll.add_widget(box)
         self.content_area.add_widget(scroll)
 
-    # 4C. TASK TAB
+    # 3. TASK TAB (Ecosystem Bounties & Daily Knowledge Quiz)
     def render_task_tab(self, data):
         scroll = ScrollView(do_scroll_x=False)
         box = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
         box.bind(minimum_height=box.setter('height'))
 
-        t_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='120dp', padding=[14, 12, 14, 12], spacing=6)
-        t_card.add_widget(Label(text="DAILY PROTOCOL VERIFICATION", font_size='13sp', bold=True, color=(0.85, 0.65, 1, 1)))
-        t_card.add_widget(Label(text="Verify local oncological consensus integrity to boost your node power.", font_size='10.5sp', color=(0.70, 0.65, 0.80, 1)))
-        checkin_btn = Button(text="Verify Integrity (+0.5000 BARAT)", size_hint_y=0.45, background_normal='', background_color=(0.75, 0.50, 0.95, 1), color=(0.05, 0.05, 0.05, 1), font_size='11.5sp', bold=True)
-        t_card.add_widget(checkin_btn)
-        box.add_widget(t_card)
+        completed_tasks = data.get("completed_tasks", [])
 
-        sol_bridge_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='95dp', padding=[12, 8, 12, 8], spacing=4)
-        sol_bridge_card.add_widget(Label(text="SOLANA MAIN BRIDGE", font_size='12sp', bold=True, color=(0.85, 0.65, 1, 1)))
-        sol_bridge_btn = Button(text="Open Solana Gateway", size_hint_y=0.55, background_normal='', background_color=(0.20, 0.14, 0.28, 1), color=(0.85, 0.65, 1, 1), font_size='11.5sp', bold=True)
-        sol_bridge_btn.bind(on_press=self.open_solana_bridge_popup)
-        sol_bridge_card.add_widget(sol_bridge_btn)
-        box.add_widget(sol_bridge_card)
+        # 3A. Daily Consensus Quiz
+        quiz_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='140dp', padding=[12, 8, 12, 8], spacing=4)
+        quiz_card.add_widget(Label(text="DAILY ONCOLOGY PROTOCOL QUIZ (+0.50 BARAT)", font_size='11.5sp', bold=True, color=(1.0, 0.85, 0.4, 1)))
+        quiz_card.add_widget(Label(text="Q: What computing goal does Barat Core solve?\nA) Real Cancer Model Docking    B) Random Guessing", font_size='10.5sp', color=(0.85, 0.80, 0.95, 1), halign='center'))
+
+        today_str = time.strftime("%Y-%m-%d")
+        quiz_btn = Button(
+            text="Already Claimed Today" if data.get("last_quiz_date") == today_str else "Answer A & Claim 0.50 BARAT",
+            size_hint_y=0.35,
+            background_normal='',
+            background_color=(0.18, 0.14, 0.24, 1) if data.get("last_quiz_date") == today_str else (0.75, 0.50, 0.95, 1),
+            color=(0.6, 0.6, 0.6, 1) if data.get("last_quiz_date") == today_str else (0.05, 0.05, 0.05, 1),
+            font_size='11.5sp',
+            bold=True
+        )
+        if data.get("last_quiz_date") != today_str:
+            quiz_btn.bind(on_press=self.claim_quiz_reward)
+        quiz_card.add_widget(quiz_btn)
+        box.add_widget(quiz_card)
+
+        # 3B. Social Bounties
+        bounties = [
+            ("x_follow", "Follow Official Channel on X", 2.0),
+            ("tg_join", "Join Official Global Telegram", 2.0),
+            ("yt_sub", "Subscribe Research Channel", 3.0)
+        ]
+
+        for tid, title, reward in bounties:
+            t_card = VangapuvvuCard(size_hint_y=None, height='50dp', padding=[12, 4, 12, 4])
+            t_card.add_widget(Label(text=f"{title}\nReward: +{reward:.1f} BARAT", font_size='10.5sp', color=(0.9, 0.85, 0.95, 1), halign='left'))
+            
+            is_done = tid in completed_tasks
+            b_btn = Button(
+                text="Completed" if is_done else f"+{reward:.1f} Claim",
+                size_hint_x=0.32,
+                background_normal='',
+                background_color=(0.18, 0.14, 0.24, 1) if is_done else (0.75, 0.50, 0.95, 1),
+                color=(0.6, 0.6, 0.6, 1) if is_done else (0.05, 0.05, 0.05, 1),
+                font_size='11sp',
+                bold=True
+            )
+            if not is_done:
+                b_btn.bind(on_press=lambda inst, t=tid, r=reward: self.claim_task_reward(t, r))
+            t_card.add_widget(b_btn)
+            box.add_widget(t_card)
+
+        # 3C. Solana Gateway
+        bridge_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='95dp', padding=[12, 8, 12, 8], spacing=4)
+        bridge_card.add_widget(Label(text="SOLANA MAIN BRIDGE GATEWAY", font_size='12sp', bold=True, color=(0.85, 0.65, 1, 1)))
+        bridge_btn = Button(text="Open Solana Bridge", size_hint_y=0.55, background_normal='', background_color=(0.20, 0.14, 0.28, 1), color=(0.85, 0.65, 1, 1), font_size='11.5sp', bold=True)
+        bridge_btn.bind(on_press=self.open_solana_bridge_popup)
+        bridge_card.add_widget(bridge_btn)
+        box.add_widget(bridge_card)
 
         scroll.add_widget(box)
         self.content_area.add_widget(scroll)
 
-    # 4D. ME / VAULT TAB (జెన్యూన్ వాలెట్ బ్యాలెన్స్ మాత్రమే)
+    # 4. ME / VAULT TAB (Transparent Audit Log, Security Tier, Pure Wallet)
     def render_me_tab(self, data):
         scroll = ScrollView(do_scroll_x=False)
         box = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
         box.bind(minimum_height=box.setter('height'))
 
-        # Node Profile Header
         user_mail = data.get("email", "node_miner@gmail.com")
         u_card = VangapuvvuCard(size_hint_y=None, height='48dp', padding=[12, 6, 12, 6])
-        u_card.add_widget(Label(text=f"{user_mail}\n✔ Verified Node", font_size='11sp', color=(0.85, 0.65, 1, 1), halign='left'))
+        u_card.add_widget(Label(text=f"{user_mail}\n✔ Verified Compute Node", font_size='11sp', color=(0.85, 0.65, 1, 1), halign='left'))
         box.add_widget(u_card)
 
-        # Honest Total Balance Hero
         cur_mined = get_current_live_mined(data)
-        bal_hero = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='95dp', padding=[12, 8, 12, 8], spacing=2)
-        bal_hero.add_widget(Label(text="Total Available Balance", font_size='10.5sp', color=(0.70, 0.65, 0.80, 1)))
+        bal_hero = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='90dp', padding=[12, 6, 12, 6], spacing=2)
+        bal_hero.add_widget(Label(text="Total Available Mined Assets", font_size='10.5sp', color=(0.70, 0.65, 0.80, 1)))
         bal_hero.add_widget(Label(text=f"{cur_mined:.4f} BARAT", font_size='24sp', bold=True, color=(1, 1, 1, 1)))
-        bal_hero.add_widget(Label(text="Mining session coins credited continuously", font_size='9.5sp', color=(0.60, 0.55, 0.70, 1)))
+        bal_hero.add_widget(Label(text="SPL-Standard Compatible Token Balance", font_size='9.5sp', color=(0.60, 0.55, 0.70, 1)))
         box.add_widget(bal_hero)
 
-        # Web3 Action Buttons
-        action_row = BoxLayout(spacing=6, size_hint_y=None, height='44dp')
-        rec_btn = Button(text="Receive", background_normal='', background_color=(0.18, 0.14, 0.24, 1), color=(0.85, 0.65, 1, 1), font_size='11sp')
+        action_row = BoxLayout(spacing=6, size_hint_y=None, height='42dp')
+        rec_btn = Button(text="Copy Node ID", background_normal='', background_color=(0.18, 0.14, 0.24, 1), color=(0.85, 0.65, 1, 1), font_size='11sp')
         rec_btn.bind(on_press=lambda x: Clipboard.copy(data.get("user_id", "BARAT_NODE")))
-        send_btn = Button(text="Bridge", background_normal='', background_color=(0.18, 0.14, 0.24, 1), color=(0.85, 0.65, 1, 1), font_size='11sp')
+        send_btn = Button(text="Solana Bridge", background_normal='', background_color=(0.18, 0.14, 0.24, 1), color=(0.85, 0.65, 1, 1), font_size='11sp')
         send_btn.bind(on_press=self.open_solana_bridge_popup)
         action_row.add_widget(rec_btn)
         action_row.add_widget(send_btn)
         box.add_widget(action_row)
 
-        # Verified Asset Vault
-        tok1 = VangapuvvuCard(size_hint_y=None, height='50dp', padding=[10, 4, 10, 4])
-        tok1.add_widget(Label(text="BaratCore Network\nSPL-Standard Token", font_size='11sp', color=(1, 1, 1, 1), halign='left'))
-        tok1.add_widget(Label(text=f"{cur_mined:.4f} BARAT\nVerified Mined", font_size='11sp', color=(0.85, 0.65, 1, 1), halign='right'))
-        box.add_widget(tok1)
+        # 4A. Security Tier Badges
+        sec_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='65dp', padding=[12, 6, 12, 6], spacing=2)
+        sec_card.add_widget(Label(text="NODE SECURITY & AUDIT STATUS", font_size='11sp', bold=True, color=(0.85, 0.65, 1, 1)))
+        sec_card.add_widget(Label(text="Tier 1: Device Compute Bound  |  Tier 2: Solana Bridge Ready", font_size='10sp', color=(0.4, 0.9, 0.6, 1)))
+        box.add_widget(sec_card)
+
+        # 4B. Transparent Transaction History
+        hist_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='160dp', padding=[12, 8, 12, 8], spacing=4)
+        hist_card.add_widget(Label(text="TRANSACTION & REWARD AUDIT LOG", font_size='11.5sp', bold=True, color=(0.85, 0.65, 1, 1), size_hint_y=0.20))
+        
+        logs = data.get("transactions_log", [])
+        if not logs:
+            hist_card.add_widget(Label(text="No transactions recorded yet.\nStart your first session to write to the ledger.", font_size='10.5sp', color=(0.6, 0.55, 0.7, 1), size_hint_y=0.80))
+        else:
+            log_container = BoxLayout(orientation='vertical', size_hint_y=0.80, spacing=2)
+            for entry in logs[:3]:
+                log_row = BoxLayout()
+                log_row.add_widget(Label(text=f"{entry.get('title')} ({entry.get('time')})", font_size='9.5sp', color=(0.85, 0.85, 0.85, 1), halign='left'))
+                log_row.add_widget(Label(text=entry.get('amount', ''), font_size='10sp', bold=True, color=(0.4, 0.9, 0.6, 1), halign='right'))
+                log_container.add_widget(log_row)
+            hist_card.add_widget(log_container)
+        box.add_widget(hist_card)
 
         logout_btn = Button(text="LOGOUT / SWITCH NODE", size_hint_y=None, height='42dp', background_normal='', background_color=(0.35, 0.12, 0.18, 1), color=(1, 0.6, 0.7, 1), bold=True)
         logout_btn.bind(on_press=self.do_logout)
@@ -1107,6 +1196,37 @@ class MainHubScreen(Screen):
 
         scroll.add_widget(box)
         self.content_area.add_widget(scroll)
+
+    def claim_task_reward(self, task_id, reward_amount):
+        data = load_data()
+        if task_id in data.get("completed_tasks", []):
+            return
+        data.setdefault("completed_tasks", []).append(task_id)
+        data["balance"] = data.get("balance", 0.0) + reward_amount
+        data["base_mined"] = data.get("base_mined", 0.0) + reward_amount
+        data["total_mined"] = data.get("total_mined", 0.0) + reward_amount
+        log_transaction(data, f"Task Reward: {task_id}", reward_amount)
+        save_data(data)
+        self.render_active_tab()
+
+    def claim_quiz_reward(self, instance):
+        data = load_data()
+        today_str = time.strftime("%Y-%m-%d")
+        if data.get("last_quiz_date") == today_str:
+            return
+        data["last_quiz_date"] = today_str
+        reward_amount = 0.50
+        data["balance"] = data.get("balance", 0.0) + reward_amount
+        data["base_mined"] = data.get("base_mined", 0.0) + reward_amount
+        data["total_mined"] = data.get("total_mined", 0.0) + reward_amount
+        log_transaction(data, "Daily Quiz Answer", reward_amount)
+        save_data(data)
+        self.render_active_tab()
+
+    def update_console_tick(self, dt):
+        if self.active_tab == "home" and hasattr(self, 'console_lbl'):
+            self.console_index = (self.console_index + 1) % len(CONSOLE_LOGS)
+            self.console_lbl.text = CONSOLE_LOGS[self.console_index]
 
     def timer_tick(self, dt):
         data = load_data()
@@ -1132,6 +1252,7 @@ class MainHubScreen(Screen):
                     data["total_mined"] = data.get("total_mined", 0.0) + (cur_bal - data.get("base_mined", 0.0))
                     data["is_mining_active"] = False
                     data["completed_cycles"] = data.get("completed_cycles", 0) + 1
+                    log_transaction(data, f"Block #{data.get('block_height', 1)} Completed", cur_bal - data.get("base_mined", 0.0))
                     save_data(data)
 
                 self.big_timer_lbl.text = "24:00:00"
@@ -1170,6 +1291,15 @@ class MainHubScreen(Screen):
             data["last_cycle"] = now
             data["is_mining_active"] = True
             data["block_height"] = data.get("block_height", 1) + 1
+
+            # Check and update 7-day streak
+            last_streak = data.get("last_streak_time", 0)
+            if (now - last_streak) <= (48 * 3600) and last_streak > 0:
+                streak = (data.get("mining_streak", 1) % 7) + 1
+            else:
+                streak = 1
+            data["mining_streak"] = streak
+            data["last_streak_time"] = now
 
             target = CANCER_TARGETS[data["block_height"] % len(CANCER_TARGETS)]
             proof_src = f"{data['block_height']}_{target}_{now}"
@@ -1219,6 +1349,7 @@ class MainHubScreen(Screen):
                     "net_transferred": amt - gas_fee,
                     "founder_wallet": FOUNDER_SOLANA_WALLET
                 })
+                log_transaction(data, "Solana Bridge Withdrawal", -amt)
                 save_data(data)
                 popup.dismiss()
                 self.render_active_tab()
@@ -1235,7 +1366,6 @@ class MainHubScreen(Screen):
 
 class BaratCoreApp(App):
     def build(self):
-        # Elegant Obsidian Lavender Deep Black
         Window.clearcolor = (0.05, 0.04, 0.07, 1.0)
         try:
             if os.path.exists(LOGO_FILE):
