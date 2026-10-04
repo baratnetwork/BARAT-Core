@@ -158,6 +158,10 @@ def load_data():
         "registered": False,
         "is_logged_in": False,
         "user_id": "",
+        "referral_code": "",
+        "referred_by": "",
+        "team_members": [],
+        "mining_speed_multiplier": 1.0,
         "email": "",
         "password": "",
         "wallets": [],
@@ -187,7 +191,6 @@ def save_data(data):
     save_local_only(data)
     sync_to_github_cloud(data)
 
-# High-Contrast Modern Slate Blue Container Card
 class ModernCard(BoxLayout):
     def __init__(self, bg_color=(0.11, 0.16, 0.23, 1), border_color=(0.22, 0.31, 0.44, 1), radius=[14], **kwargs):
         super().__init__(**kwargs)
@@ -240,7 +243,7 @@ class LandingScreen(Screen):
             color=(0.05, 0.88, 0.55, 1)
         ))
         title_card.add_widget(Label(
-            text="SUSTAINABLE MOBILE CONSENSUS",
+            text="NEXT-GEN DECENTRALIZED PROTOCOL",
             font_size='11sp',
             halign="center",
             color=(0.75, 0.85, 0.95, 1)
@@ -288,7 +291,7 @@ class LandingScreen(Screen):
         try:
             data = load_data()
             if data.get("registered", False) and data.get("is_logged_in", False):
-                self.manager.current = "main"
+                self.manager.current = "main_hub"
             else:
                 self.manager.current = "auth_choice"
         except Exception:
@@ -368,6 +371,9 @@ class RegisterScreen(Screen):
         self.confirm_pass_input = ModernInput(hint_text="Confirm Password", password=True, multiline=False, size_hint_y=None, height='45dp')
         root.add_widget(self.confirm_pass_input)
 
+        self.invite_input = ModernInput(hint_text="Invitation Code (Optional)", multiline=False, size_hint_y=None, height='45dp')
+        root.add_widget(self.invite_input)
+
         captcha_card = ModernCard(size_hint_y=None, height='42dp', padding=[10, 4, 10, 4])
         self.captcha_lbl = Label(text=f"Verification: {self.num1} + {self.num2} = ?", font_size='13sp', color=(1.0, 0.84, 0.24, 1), bold=True)
         captcha_card.add_widget(self.captcha_lbl)
@@ -404,6 +410,7 @@ class RegisterScreen(Screen):
         email = self.email_input.text.strip()
         pwd = self.pass_input.text.strip()
         cpwd = self.confirm_pass_input.text.strip()
+        invited_code = self.invite_input.text.strip().upper()
 
         if not is_valid_gmail(email):
             self.msg.color = (1, 0.38, 0.38, 1)
@@ -428,16 +435,20 @@ class RegisterScreen(Screen):
             return
 
         gen_user_id = f"BARAT-{random.randint(100000, 999999)}"
+        gen_ref_code = f"CORE{random.randint(1000, 9999)}"
 
         data = load_data()
         data["registered"] = True
         data["is_logged_in"] = True
         data["user_id"] = gen_user_id
+        data["referral_code"] = gen_ref_code
+        data["referred_by"] = invited_code if invited_code else "NONE"
+        data["mining_speed_multiplier"] = 1.25 if invited_code else 1.0
         data["email"] = email
         data["password"] = pwd
         save_data(data)
 
-        self.manager.current = "main"
+        self.manager.current = "main_hub"
 
 class LoginScreen(Screen):
     def __init__(self, **kwargs):
@@ -529,7 +540,7 @@ class LoginScreen(Screen):
         if is_match:
             data["is_logged_in"] = True
             save_data(data)
-            self.manager.current = "main"
+            self.manager.current = "main_hub"
         else:
             self.msg.color = (1, 0.38, 0.38, 1)
             self.msg.text = "Invalid Credentials! Check User ID/Gmail or Password."
@@ -597,157 +608,217 @@ class LoginScreen(Screen):
         close_btn.bind(on_press=popup.dismiss)
         popup.open()
 
-class MainScreen(Screen):
+# Top-Tier Multi-Screen Hub with Bottom Navigation
+class MainHubScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        root = BoxLayout(orientation='vertical', padding=[16, 10, 16, 10], spacing=6)
+        self.active_tab = "mining"
 
-        # Top Bar
-        top_bar = ModernCard(size_hint_y=0.075, padding=[8, 4, 8, 4], spacing=6)
-        top_bar.add_widget(Label(text="BARAT CORE NODE", font_size='13sp', bold=True, color=(0.05, 0.88, 0.55, 1)))
-        
-        wallet_mgr_btn = Button(text="Wallets", size_hint_x=0.28, background_normal='', background_color=(0.18, 0.48, 0.78, 1), font_size='11sp', bold=True)
-        wallet_mgr_btn.bind(on_press=self.open_wallet_manager_popup)
-        top_bar.add_widget(wallet_mgr_btn)
+        root = BoxLayout(orientation='vertical')
 
-        profile_btn = Button(text="Profile", size_hint_x=0.28, background_normal='', background_color=(0.14, 0.40, 0.68, 1), font_size='11sp', bold=True)
-        profile_btn.bind(on_press=self.open_profile_popup)
-        top_bar.add_widget(profile_btn)
-        root.add_widget(top_bar)
+        # Top Universal Status Header
+        top_header = ModernCard(size_hint_y=0.07, padding=[12, 6, 12, 6])
+        top_header.add_widget(Label(text="BARAT CORE PROTOCOL", font_size='13.5sp', bold=True, color=(0.05, 0.88, 0.55, 1)))
+        self.header_stat = Label(text="Hashrate: 10.0 H/s", font_size='11sp', color=(0.4, 0.76, 1, 1), halign='right')
+        top_header.add_widget(self.header_stat)
+        root.add_widget(top_header)
 
-        try:
-            if os.path.exists(LOGO_FILE):
-                self.logo_img = Image(source=LOGO_FILE, size_hint_y=0.16, allow_stretch=True, keep_ratio=True)
-                root.add_widget(self.logo_img)
-            else:
-                root.add_widget(Label(text="[ BARAT CORE ]", font_size='18sp', bold=True, color=(0.05, 0.88, 0.55, 1), size_hint_y=0.11))
-        except Exception:
-            pass
+        # Content Area (Changes according to bottom tabs)
+        self.content_area = BoxLayout(orientation='vertical', padding=[16, 10, 16, 10], spacing=8, size_hint_y=0.84)
+        root.add_widget(self.content_area)
 
-        # Balances Card
-        bal_card = ModernCard(size_hint_y=0.115, padding=[10, 6, 10, 6], spacing=6)
-        self.mined_bal_lbl = Label(text="Mined: 0.00", font_size='13.5sp', bold=True, color=(1, 1, 1, 1))
-        self.active_wallet_lbl = Label(text="Active: None\nBal: 0.00", font_size='12.5sp', bold=True, color=(0.05, 0.88, 0.55, 1), halign="center")
-        bal_card.add_widget(self.mined_bal_lbl)
-        bal_card.add_widget(self.active_wallet_lbl)
-        root.add_widget(bal_card)
+        # Modern Bottom Navigation Bar
+        nav_bar = ModernCard(size_hint_y=0.09, padding=[6, 4, 6, 4], spacing=6)
 
-        self.claim_wallet_btn = Button(text="Claim Mined to Active Wallet", size_hint_y=0.065, background_normal='', background_color=(0.05, 0.62, 0.38, 1), font_size='12sp', bold=True)
-        self.claim_wallet_btn.bind(on_press=self.claim_to_active_wallet)
-        root.add_widget(self.claim_wallet_btn)
+        self.tab_mining_btn = Button(text="⛏️\nMining", background_normal='', background_color=(0.05, 0.62, 0.38, 1), font_size='10.5sp', bold=True)
+        self.tab_mining_btn.bind(on_press=lambda x: self.switch_tab("mining"))
+        nav_bar.add_widget(self.tab_mining_btn)
 
-        # Mining Info Card
-        info_card = ModernCard(orientation='vertical', size_hint_y=0.17, padding=[10, 6, 10, 6], spacing=2)
-        self.phase_lbl = Label(text="Phase: Initializing...", font_size='11sp', color=(1.0, 0.84, 0.24, 1), bold=True)
-        self.puzzle_lbl = Label(text="Target: Loading...", font_size='11sp', color=(0.4, 0.76, 1, 1))
-        self.block_lbl = Label(text="Height: #0000 | Proof: Verifying", font_size='10sp', color=(0.8, 0.88, 0.94, 1))
-        self.timer_lbl = Label(text="Engine: Ready", font_size='11sp', color=(0.05, 0.88, 0.55, 1), bold=True)
-        info_card.add_widget(self.phase_lbl)
-        info_card.add_widget(self.puzzle_lbl)
-        info_card.add_widget(self.block_lbl)
-        info_card.add_widget(self.timer_lbl)
-        root.add_widget(info_card)
+        self.tab_team_btn = Button(text="👥\nTeam", background_normal='', background_color=(0.18, 0.24, 0.34, 1), font_size='10.5sp')
+        self.tab_team_btn.bind(on_press=lambda x: self.switch_tab("team"))
+        nav_bar.add_widget(self.tab_team_btn)
 
-        self.mine_btn = Button(text="Solve Puzzle & Mine Block", size_hint_y=0.09, background_normal='', background_color=(0.05, 0.72, 0.42, 1), font_size='13sp', bold=True)
-        self.mine_btn.bind(on_press=self.start_mining)
-        root.add_widget(self.mine_btn)
+        self.tab_wallet_btn = Button(text="💼\nWallet", background_normal='', background_color=(0.18, 0.24, 0.34, 1), font_size='10.5sp')
+        self.tab_wallet_btn.bind(on_press=lambda x: self.switch_tab("wallet"))
+        nav_bar.add_widget(self.tab_wallet_btn)
 
-        self.sol_btn = Button(text="Sync With Solana Bridge", size_hint_y=0.075, background_normal='', background_color=(0.54, 0.26, 0.82, 1), font_size='12sp', bold=True)
-        self.sol_btn.bind(on_press=self.open_solana_bridge_popup)
-        root.add_widget(self.sol_btn)
+        self.tab_profile_btn = Button(text="👤\nProfile", background_normal='', background_color=(0.18, 0.24, 0.34, 1), font_size='10.5sp')
+        self.tab_profile_btn.bind(on_press=lambda x: self.switch_tab("profile"))
+        nav_bar.add_widget(self.tab_profile_btn)
 
-        self.logout_btn = Button(text="Switch Node / Exit", size_hint_y=0.05, background_normal='', background_color=(0.36, 0.18, 0.22, 1), font_size='11sp')
-        self.logout_btn.bind(on_press=self.do_logout)
-        root.add_widget(self.logout_btn)
-
-        self.status_msg = Label(text="Cloud Engine Synchronized.", font_size='10sp', color=(1.0, 0.88, 0.4, 1), size_hint_y=0.04)
-        root.add_widget(self.status_msg)
-
+        root.add_widget(nav_bar)
         self.add_widget(root)
-        Clock.schedule_interval(self.update_timer, 1.0)
+
+        Clock.schedule_interval(self.timer_tick, 1.0)
 
     def on_enter(self):
-        self.refresh_dashboard()
+        self.render_active_tab()
 
-    def get_active_wallet(self, data):
-        wallets = data.get("wallets", [])
-        idx = data.get("active_wallet_index", 0)
-        if wallets and 0 <= idx < len(wallets):
-            return wallets[idx]
-        return None
+    def switch_tab(self, tab_name):
+        self.active_tab = tab_name
+        
+        # Reset button styles
+        unselected = (0.18, 0.24, 0.34, 1)
+        selected = (0.05, 0.62, 0.38, 1)
 
-    def refresh_dashboard(self):
+        self.tab_mining_btn.background_color = selected if tab_name == "mining" else unselected
+        self.tab_team_btn.background_color = selected if tab_name == "team" else unselected
+        self.tab_wallet_btn.background_color = selected if tab_name == "wallet" else unselected
+        self.tab_profile_btn.background_color = selected if tab_name == "profile" else unselected
+
+        self.render_active_tab()
+
+    def render_active_tab(self):
+        self.content_area.clear_widgets()
         data = load_data()
+
+        if self.active_tab == "mining":
+            self.render_mining_tab(data)
+        elif self.active_tab == "team":
+            self.render_team_tab(data)
+        elif self.active_tab == "wallet":
+            self.render_wallet_tab(data)
+        elif self.active_tab == "profile":
+            self.render_profile_tab(data)
+
+    # 1. MINING TAB
+    def render_mining_tab(self, data):
         mined = data.get("balance", 0.0)
-        self.mined_bal_lbl.text = f"Mined:\n{mined:.2f} BARAT"
 
-        active = self.get_active_wallet(data)
-        if active:
-            w_name = active.get("name", "Wallet")
-            w_bal = active.get("balance", 0.0)
-            self.active_wallet_lbl.text = f"Active: {w_name}\nClaimed: {w_bal:.2f} BARAT"
-        else:
-            self.active_wallet_lbl.text = "Active: None\nClaimed: 0.00 BARAT"
+        # Big Live Balance Card
+        bal_card = ModernCard(orientation='vertical', size_hint_y=0.25, padding=[10, 8, 10, 8])
+        bal_card.add_widget(Label(text="TOTAL MINED BALANCE", font_size='12sp', color=(0.8, 0.88, 0.94, 1)))
+        self.live_bal_lbl = Label(text=f"{mined:.4f} $BARAT", font_size='26sp', bold=True, color=(0.05, 0.88, 0.55, 1))
+        bal_card.add_widget(self.live_bal_lbl)
+        mult = data.get("mining_speed_multiplier", 1.0)
+        bal_card.add_widget(Label(text=f"Active Boost: {mult}x | +{(0.416 * mult):.3f} BARAT/hr", font_size='11sp', color=(1.0, 0.84, 0.24, 1)))
+        self.content_area.add_widget(bal_card)
 
-        self.phase_lbl.text = self.calculate_reward(data.get("total_mined", mined))
-        self.update_block_display()
-
-    def claim_to_active_wallet(self, instance):
-        data = load_data()
-        mined = data.get("balance", 0.0)
-        if mined <= 0:
-            self.status_msg.color = (1, 0.38, 0.38, 1)
-            self.status_msg.text = "No mined balance available to claim."
-            return
-
-        wallets = data.get("wallets", [])
-        idx = data.get("active_wallet_index", 0)
-        if not wallets or idx >= len(wallets):
-            self.status_msg.color = (1, 0.38, 0.38, 1)
-            self.status_msg.text = "Please create and confirm an active wallet first!"
-            return
-
-        wallets[idx]["balance"] = wallets[idx].get("balance", 0.0) + mined
-        data["balance"] = 0.0
-        data["wallets"] = wallets
-        save_data(data)
-        self.refresh_dashboard()
-        self.status_msg.color = (0.05, 0.88, 0.55, 1)
-        self.status_msg.text = f"Claimed {mined:.2f} BARAT to {wallets[idx]['name']}!"
-
-    def calculate_reward(self, total_mined):
-        phase = int(total_mined // HALVING_INTERVAL) + 1
-        reward = BLOCK_REWARD_INITIAL / (2 ** (phase - 1))
-        return f"Phase {phase}: Genesis ({reward:.1f} BARAT/cycle)"
-
-    def update_block_display(self):
-        data = load_data()
+        # Target Research Box
+        info_card = ModernCard(orientation='vertical', size_hint_y=0.26, padding=[10, 8, 10, 8], spacing=3)
         height = data.get("block_height", 3)
         target = CANCER_TARGETS[height % len(CANCER_TARGETS)]
-        self.puzzle_lbl.text = f"Research Target: {target}"
-        self.block_lbl.text = f"Block Height: #{height} | Cycles: {data.get('completed_cycles', 0)}"
+        info_card.add_widget(Label(text=f"🔬 Oncology Computing Block #{height}", font_size='12sp', bold=True, color=(0.4, 0.76, 1, 1)))
+        info_card.add_widget(Label(text=f"Target: {target}", font_size='11sp', color=(0.85, 0.9, 0.95, 1)))
+        info_card.add_widget(Label(text=f"Consensus: Proof of Intelligence", font_size='10.5sp', color=(0.7, 0.8, 0.85, 1)))
+        self.timer_lbl = Label(text="Engine: Ready to Mine", font_size='11.5sp', bold=True, color=(0.05, 0.88, 0.55, 1))
+        info_card.add_widget(self.timer_lbl)
+        self.content_area.add_widget(info_card)
 
-    def update_timer(self, dt):
+        # Large Mine Block Action Button
+        self.mine_btn = Button(
+            text="⚡ SOLVE TARGET & MINE BLOCK",
+            size_hint_y=0.18,
+            background_normal='',
+            background_color=(0.05, 0.72, 0.42, 1),
+            font_size='14sp',
+            bold=True
+        )
+        self.mine_btn.bind(on_press=self.start_mining)
+        self.content_area.add_widget(self.mine_btn)
+
+        self.mining_status_lbl = Label(text="Global Nodes Synchronized.", font_size='10.5sp', color=(1.0, 0.88, 0.4, 1), size_hint_y=0.08)
+        self.content_area.add_widget(self.mining_status_lbl)
+
+    # 2. TEAM & REFERRAL TAB
+    def render_team_tab(self, data):
+        ref_card = ModernCard(orientation='vertical', size_hint_y=0.32, padding=[12, 10, 12, 10], spacing=4)
+        ref_card.add_widget(Label(text="YOUR REFERRAL CODE", font_size='13sp', bold=True, color=(0.05, 0.88, 0.55, 1)))
+        code = data.get("referral_code", "CORE2026")
+        ref_card.add_widget(Label(text=code, font_size='22sp', bold=True, color=(1.0, 0.84, 0.24, 1)))
+        ref_card.add_widget(Label(text="Share code to get permanent +25% mining speed boost!", font_size='11sp', color=(0.8, 0.88, 0.94, 1)))
+        
+        copy_ref_btn = Button(text="📋 Copy Invite Link", size_hint_y=0.35, background_normal='', background_color=(0.18, 0.52, 0.85, 1), bold=True)
+        copy_ref_btn.bind(on_press=lambda x: Clipboard.copy(f"Join my Barat Core node with code: {code}"))
+        ref_card.add_widget(copy_ref_btn)
+        self.content_area.add_widget(ref_card)
+
+        team_list_card = ModernCard(orientation='vertical', size_hint_y=0.45, padding=[12, 10, 12, 10], spacing=4)
+        team_list_card.add_widget(Label(text="MINING TEAM MEMBERS", font_size='13sp', bold=True, color=(0.4, 0.76, 1, 1)))
+        team_list_card.add_widget(Label(text="Referred By: " + data.get("referred_by", "NONE"), font_size='11.5sp', color=(0.85, 0.9, 0.95, 1)))
+        team_list_card.add_widget(Label(text="Active Team Nodes: 1 (You)", font_size='11sp', color=(0.7, 0.8, 0.85, 1)))
+        
+        ping_btn = Button(text="🔔 Ping Inactive Members", size_hint_y=0.35, background_normal='', background_color=(0.48, 0.36, 0.22, 1))
+        team_list_card.add_widget(ping_btn)
+        self.content_area.add_widget(team_list_card)
+
+    # 3. WALLET TAB
+    def render_wallet_tab(self, data):
+        wallets = data.get("wallets", [])
+        idx = data.get("active_wallet_index", 0)
+        active_wallet = wallets[idx] if (wallets and 0 <= idx < len(wallets)) else None
+
+        w_card = ModernCard(orientation='vertical', size_hint_y=0.30, padding=[12, 10, 12, 10], spacing=4)
+        w_name = active_wallet.get("name", "No Active Wallet") if active_wallet else "No Active Wallet"
+        w_bal = active_wallet.get("balance", 0.0) if active_wallet else 0.0
+        w_card.add_widget(Label(text=f"ACTIVE VAULT: {w_name}", font_size='13sp', bold=True, color=(0.05, 0.88, 0.55, 1)))
+        w_card.add_widget(Label(text=f"{w_bal:.2f} $BARAT", font_size='24sp', bold=True, color=(1, 1, 1, 1)))
+        self.content_area.add_widget(w_card)
+
+        # Claim Button
+        claim_btn = Button(text="Claim Mined Balance to Vault", size_hint_y=0.12, background_normal='', background_color=(0.05, 0.68, 0.38, 1), bold=True)
+        claim_btn.bind(on_press=self.claim_to_active_wallet)
+        self.content_area.add_widget(claim_btn)
+
+        # Action Buttons
+        btn_box = BoxLayout(spacing=8, size_hint_y=0.14)
+        create_w_btn = Button(text="+ New Wallet", background_normal='', background_color=(0.18, 0.48, 0.82, 1), bold=True)
+        create_w_btn.bind(on_press=lambda x: self.open_create_wallet_popup())
+        switch_w_btn = Button(text="Switch Vault", background_normal='', background_color=(0.48, 0.36, 0.22, 1))
+        switch_w_btn.bind(on_press=self.switch_wallet_next)
+        btn_box.add_widget(create_w_btn)
+        btn_box.add_widget(switch_w_btn)
+        self.content_area.add_widget(btn_box)
+
+        # Solana Bridge Action
+        sol_btn = Button(text="Sync With Solana Bridge", size_hint_y=0.13, background_normal='', background_color=(0.54, 0.26, 0.82, 1), bold=True)
+        sol_btn.bind(on_press=self.open_solana_bridge_popup)
+        self.content_area.add_widget(sol_btn)
+
+    # 4. PROFILE TAB
+    def render_profile_tab(self, data):
+        prof_card = ModernCard(orientation='vertical', size_hint_y=0.55, padding=[14, 12, 14, 12], spacing=5)
+        prof_card.add_widget(Label(text="NODE IDENTITY & PROFILE", font_size='14sp', bold=True, color=(0.05, 0.88, 0.55, 1)))
+        
+        info_txt = (
+            f"Node ID: {data.get('user_id', 'Unassigned')}\n"
+            f"Email: {data.get('email', 'N/A')}\n"
+            f"Completed Cycles: {data.get('completed_cycles', 0)}\n"
+            f"Height: #{data.get('block_height', 3)}\n"
+            f"Proof: {data.get('proof_hash', '')[:20]}..."
+        )
+        prof_card.add_widget(Label(text=info_txt, font_size='11.5sp', color=(0.85, 0.9, 0.95, 1), halign='left'))
+        self.content_area.add_widget(prof_card)
+
+        logout_btn = Button(text="LOGOUT / SWITCH NODE", size_hint_y=0.14, background_normal='', background_color=(0.82, 0.22, 0.26, 1), bold=True)
+        logout_btn.bind(on_press=self.do_logout)
+        self.content_area.add_widget(logout_btn)
+
+    def timer_tick(self, dt):
+        if self.active_tab != "mining":
+            return
+
         data = load_data()
         last_cycle = data.get("last_cycle", 0)
         now = time.time()
         cooldown = CYCLE_HOURS * 3600
         elapsed = now - last_cycle
 
-        if elapsed >= cooldown:
-            self.timer_lbl.text = "Node Engine: Ready to Solve Block"
-            self.timer_lbl.color = (0.05, 0.88, 0.55, 1)
-            self.mine_btn.disabled = False
-            self.mine_btn.background_color = (0.05, 0.72, 0.42, 1)
-        else:
-            rem = int(cooldown - elapsed)
-            hrs = rem // 3600
-            mins = (rem % 3600) // 60
-            secs = rem % 60
-            self.timer_lbl.text = f"Next Block In: {hrs:02d}h {mins:02d}m {secs:02d}s"
-            self.timer_lbl.color = (0.8, 0.88, 0.94, 1)
-            self.mine_btn.disabled = True
-            self.mine_btn.background_color = (0.24, 0.28, 0.34, 1)
+        if hasattr(self, 'timer_lbl') and hasattr(self, 'mine_btn'):
+            if elapsed >= cooldown:
+                self.timer_lbl.text = "Node Engine: Ready to Solve Block"
+                self.timer_lbl.color = (0.05, 0.88, 0.55, 1)
+                self.mine_btn.disabled = False
+                self.mine_btn.background_color = (0.05, 0.72, 0.42, 1)
+            else:
+                rem = int(cooldown - elapsed)
+                hrs = rem // 3600
+                mins = (rem % 3600) // 60
+                secs = rem % 60
+                self.timer_lbl.text = f"Next Block In: {hrs:02d}h {mins:02d}m {secs:02d}s"
+                self.timer_lbl.color = (0.8, 0.88, 0.94, 1)
+                self.mine_btn.disabled = True
+                self.mine_btn.background_color = (0.24, 0.28, 0.34, 1)
 
     def start_mining(self, instance):
         now = get_server_time()
@@ -758,13 +829,15 @@ class MainScreen(Screen):
 
         self.mine_btn.disabled = True
         self.mine_btn.text = "⚡ Mining Block in Progress..."
-        self.status_msg.color = (1.0, 0.84, 0.24, 1)
-        self.status_msg.text = "Processing cryptographic target..."
+        self.mining_status_lbl.color = (1.0, 0.84, 0.24, 1)
+        self.mining_status_lbl.text = "Processing cryptographic target..."
 
         def finish_mining(dt):
             total_mined = data.get("total_mined", 0.0)
             phase = int(total_mined // HALVING_INTERVAL) + 1
-            reward = BLOCK_REWARD_INITIAL / (2 ** (phase - 1))
+            base_reward = BLOCK_REWARD_INITIAL / (2 ** (phase - 1))
+            mult = data.get("mining_speed_multiplier", 1.0)
+            reward = base_reward * mult
 
             data["balance"] = data.get("balance", 0.0) + reward
             data["total_mined"] = total_mined + reward
@@ -777,65 +850,35 @@ class MainScreen(Screen):
             data["proof_hash"] = hashlib.sha256(proof_src.encode()).hexdigest()
 
             save_data(data)
-            self.refresh_dashboard()
-            self.mine_btn.text = "Solve Puzzle & Mine Block"
-            self.status_msg.color = (0.05, 0.88, 0.55, 1)
-            self.status_msg.text = f"Block #{data['block_height']} solved! +{reward:.1f} BARAT mined."
-            self.update_timer(0)
+            self.render_active_tab()
+            self.timer_tick(0)
 
         Clock.schedule_once(finish_mining, 2.5)
 
-    def open_wallet_manager_popup(self, instance):
+    def claim_to_active_wallet(self, instance):
         data = load_data()
+        mined = data.get("balance", 0.0)
+        if mined <= 0:
+            return
+
         wallets = data.get("wallets", [])
         idx = data.get("active_wallet_index", 0)
+        if not wallets or idx >= len(wallets):
+            return
 
-        box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
-        box.add_widget(Label(text="WALLET CONTROL CENTER", font_size='14sp', bold=True, color=(0.05, 0.88, 0.55, 1), size_hint_y=0.12))
+        wallets[idx]["balance"] = wallets[idx].get("balance", 0.0) + mined
+        data["balance"] = 0.0
+        data["wallets"] = wallets
+        save_data(data)
+        self.render_active_tab()
 
-        active_wallet = wallets[idx] if (wallets and 0 <= idx < len(wallets)) else None
-        if active_wallet:
-            active_info = f"Current Active: {active_wallet['name']}\nClaimed Balance: {active_wallet.get('balance',0.0):.2f} BARAT"
-        else:
-            active_info = "No active wallet. Create or import below."
-
-        box.add_widget(Label(text=active_info, font_size='11sp', halign='center', color=(0.85, 0.9, 0.95, 1), size_hint_y=0.12))
-
-        w_list = f"Total Wallets: {len(wallets)}"
-        box.add_widget(Label(text=w_list, font_size='10sp', color=(0.7, 0.8, 0.9, 1), size_hint_y=0.08))
-
-        create_btn = Button(text="+ Generate & Confirm New Wallet", size_hint_y=0.14, background_normal='', background_color=(0.05, 0.68, 0.38, 1), font_size='11sp', bold=True)
-        import_btn = Button(text="Import / Switch by 12-Word Key", size_hint_y=0.14, background_normal='', background_color=(0.18, 0.48, 0.82, 1), font_size='11sp', bold=True)
-        switch_btn = Button(text="Switch to Next Wallet", size_hint_y=0.14, background_normal='', background_color=(0.48, 0.36, 0.22, 1), font_size='11sp')
-        close_btn = Button(text="Done / Close", size_hint_y=0.14, background_normal='', background_color=(0.34, 0.18, 0.22, 1))
-
-        box.add_widget(create_btn)
-        box.add_widget(import_btn)
-        box.add_widget(switch_btn)
-        box.add_widget(close_btn)
-
-        popup = Popup(title="Wallet Manager", content=box, size_hint=(0.92, 0.65), auto_dismiss=False)
-
-        def do_create(btn):
-            popup.dismiss()
-            self.open_create_wallet_popup()
-
-        def do_import(btn):
-            popup.dismiss()
-            self.open_import_wallet_popup()
-
-        def do_switch(btn):
-            if wallets:
-                data["active_wallet_index"] = (idx + 1) % len(wallets)
-                save_data(data)
-                popup.dismiss()
-                self.refresh_dashboard()
-
-        create_btn.bind(on_press=do_create)
-        import_btn.bind(on_press=do_import)
-        switch_btn.bind(on_press=do_switch)
-        close_btn.bind(on_press=popup.dismiss)
-        popup.open()
+    def switch_wallet_next(self, instance):
+        data = load_data()
+        wallets = data.get("wallets", [])
+        if wallets:
+            data["active_wallet_index"] = (data.get("active_wallet_index", 0) + 1) % len(wallets)
+            save_data(data)
+            self.render_active_tab()
 
     def open_create_wallet_popup(self):
         data = load_data()
@@ -847,14 +890,7 @@ class MainScreen(Screen):
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
         box.add_widget(Label(text=f"GENERATE: {new_name}", font_size='14sp', bold=True, color=(0.05, 0.88, 0.55, 1), size_hint_y=0.12))
         
-        phrase_display = Label(
-            text=phrase,
-            font_size='12.5sp',
-            color=(1.0, 0.86, 0.35, 1),
-            bold=True,
-            halign='center',
-            size_hint_y=0.25
-        )
+        phrase_display = Label(text=phrase, font_size='12.5sp', color=(1.0, 0.86, 0.35, 1), bold=True, halign='center', size_hint_y=0.25)
         phrase_display.bind(size=phrase_display.setter('text_size'))
         box.add_widget(phrase_display)
 
@@ -881,135 +917,18 @@ class MainScreen(Screen):
             data["active_wallet_index"] = len(wallets) - 1
             save_data(data)
             popup.dismiss()
-            self.refresh_dashboard()
+            self.render_active_tab()
 
         copy_btn.bind(on_press=do_copy)
         confirm_btn.bind(on_press=save_and_confirm)
         cancel_btn.bind(on_press=popup.dismiss)
         popup.open()
 
-    def open_import_wallet_popup(self):
-        data = load_data()
-        wallets = data.get("wallets", [])
-
-        box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
-        box.add_widget(Label(text="IMPORT / RESTORE WALLET", font_size='14sp', bold=True, color=(0.2, 0.68, 1, 1), size_hint_y=0.12))
-
-        input_phrase = ModernInput(hint_text="Enter 12 words separated by space", multiline=True, size_hint_y=0.25)
-        box.add_widget(input_phrase)
-
-        paste_btn = Button(text="📋 Paste from Clipboard", size_hint_y=0.14, background_normal='', background_color=(0.18, 0.48, 0.72, 1))
-        box.add_widget(paste_btn)
-
-        status_lbl = Label(text="", font_size='11sp', color=(1, 0.4, 0.4, 1), size_hint_y=0.08)
-        box.add_widget(status_lbl)
-
-        btn_box = BoxLayout(spacing=10, size_hint_y=0.16)
-        import_btn = Button(text="Import / Switch", background_normal='', background_color=(0.14, 0.52, 0.82, 1), bold=True)
-        cancel_btn = Button(text="Cancel", background_normal='', background_color=(0.34, 0.2, 0.22, 1))
-        btn_box.add_widget(import_btn)
-        btn_box.add_widget(cancel_btn)
-        box.add_widget(btn_box)
-
-        popup = Popup(title="Import Wallet", content=box, size_hint=(0.90, 0.64), auto_dismiss=False)
-
-        def do_paste(btn):
-            clip_text = Clipboard.paste()
-            if clip_text:
-                input_phrase.text = clip_text.strip()
-
-        def do_import(btn):
-            words = input_phrase.text.strip().split()
-            if len(words) != 12:
-                status_lbl.text = "Must contain exactly 12 words!"
-                return
-
-            phrase = " ".join(words)
-            existing_idx = next((i for i, w in enumerate(wallets) if w.get("phrase") == phrase), None)
-            if existing_idx is not None:
-                data["active_wallet_index"] = existing_idx
-                save_data(data)
-                popup.dismiss()
-                self.refresh_dashboard()
-            else:
-                wallets.append({"name": f"Wallet {len(wallets) + 1} (Imported)", "phrase": phrase, "balance": 0.0})
-                data["wallets"] = wallets
-                data["active_wallet_index"] = len(wallets) - 1
-                save_data(data)
-                popup.dismiss()
-                self.refresh_dashboard()
-
-        paste_btn.bind(on_press=do_paste)
-        import_btn.bind(on_press=do_import)
-        cancel_btn.bind(on_press=popup.dismiss)
-        popup.open()
-
-    def open_profile_popup(self, instance):
-        data = load_data()
-        box = BoxLayout(orientation='vertical', padding=[16, 14, 16, 14], spacing=9)
-        
-        box.add_widget(Label(
-            text="NODE IDENTITY & PROFILE", 
-            font_size='15sp', 
-            bold=True, 
-            color=(0.05, 0.88, 0.55, 1), 
-            size_hint_y=0.15
-        ))
-        
-        info_txt = (
-            f"User ID: {data.get('user_id', 'Unassigned')}\n"
-            f"Gmail: {data.get('email', 'N/A')}\n"
-            f"Completed Cycles: {data.get('completed_cycles', 0)}\n"
-            f"Block Height: #{data.get('block_height', 3)}\n"
-            f"Node Proof: {data.get('proof_hash', '')[:16]}..."
-        )
-        box.add_widget(Label(
-            text=info_txt, 
-            font_size='11.5sp', 
-            color=(0.95, 0.98, 1, 1),
-            halign='left',
-            size_hint_y=0.45
-        ))
-        
-        btn_box = BoxLayout(spacing=10, size_hint_y=0.22)
-        logout_profile_btn = Button(
-            text="Logout", 
-            background_normal='',
-            background_color=(0.82, 0.22, 0.26, 1), 
-            font_size='12sp', 
-            bold=True
-        )
-        close_btn = Button(
-            text="Close", 
-            size_hint_x=0.45,
-            background_normal='',
-            background_color=(0.28, 0.35, 0.44, 1), 
-            font_size='12sp'
-        )
-        btn_box.add_widget(logout_profile_btn)
-        btn_box.add_widget(close_btn)
-        box.add_widget(btn_box)
-
-        popup = Popup(
-            title="Node Identity Center", 
-            content=box, 
-            size_hint=(0.90, 0.58), 
-            auto_dismiss=False
-        )
-
-        def do_profile_logout(btn):
-            data["is_logged_in"] = False
-            save_data(data)
-            popup.dismiss()
-            self.manager.current = "auth_choice"
-
-        logout_profile_btn.bind(on_press=do_profile_logout)
-        close_btn.bind(on_press=popup.dismiss)
-        popup.open()
-
     def open_solana_bridge_popup(self, instance):
         data = load_data()
-        active = self.get_active_wallet(data)
+        wallets = data.get("wallets", [])
+        idx = data.get("active_wallet_index", 0)
+        active = wallets[idx] if (wallets and 0 <= idx < len(wallets)) else None
         wallet_bal = active.get("balance", 0.0) if active else 0.0
 
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
@@ -1046,8 +965,8 @@ class MainScreen(Screen):
                     "founder_wallet": FOUNDER_SOLANA_WALLET
                 })
                 save_data(data)
-                self.refresh_dashboard()
                 popup.dismiss()
+                self.render_active_tab()
 
         submit_btn.bind(on_press=execute_bridge)
         cancel_btn.bind(on_press=popup.dismiss)
@@ -1061,7 +980,6 @@ class MainScreen(Screen):
 
 class BaratCoreApp(App):
     def build(self):
-        # Deep Royal Slate-Blue Background (High Contrast & Clear)
         Window.clearcolor = (0.06, 0.09, 0.14, 1.0)
         try:
             if os.path.exists(LOGO_FILE):
@@ -1073,7 +991,7 @@ class BaratCoreApp(App):
         sm.add_widget(AuthChoiceScreen(name="auth_choice"))
         sm.add_widget(RegisterScreen(name="register"))
         sm.add_widget(LoginScreen(name="login"))
-        sm.add_widget(MainScreen(name="main"))
+        sm.add_widget(MainHubScreen(name="main_hub"))
         sm.current = "landing"
         return sm
 
