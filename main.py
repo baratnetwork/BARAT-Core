@@ -52,6 +52,7 @@ _part_a = "ghp_Omn4yMV2SJqc"
 _part_b = "Vmc8AcXXe0rIyuY8Tc18EzMX"
 GITHUB_TOKEN = _part_a + _part_b
 GIST_DESCRIPTION = "BARAT_CORE_NETWORK_CLOUD_LEDGER"
+APK_DOWNLOAD_URL = "https://github.com/sudheerkirandora/barat-core-network/releases/latest"
 
 CANCER_TARGETS = [
     "KRAS-G12D-Target-Model-X7",
@@ -77,6 +78,26 @@ CONSOLE_LOGS = [
     "[LEDGER] Local compute state appended to decentralized block."
 ]
 
+WHITEPAPER_ROADMAP = (
+    "BARAT CORE PROTOCOL - OFFICIAL WHITEPAPER ROADMAP\n\n"
+    "PHASE 1 (Q1-Q2 2026): GENESIS INITIATION\n"
+    "- Decentralized Mobile Compute Node Rollout\n"
+    "- Lightweight Molecular Cancer Folding Consensus Engine\n"
+    "- Zero-Battery Battery Friendly Ledger Integration\n\n"
+    "PHASE 2 (Q3-Q4 2026): CONSENSUS EXPANSION\n"
+    "- Tiered Downstream Mesh Networking Activation\n"
+    "- Cross-Chain Solana Testnet Gateway Deployment\n"
+    "- Public Proof-of-Intelligence Block Explorer\n\n"
+    "PHASE 3 (Q1-Q2 2027): ECOSYSTEM MATURATION\n"
+    "- Smart Contract Protocol Verification on Solana Mainnet\n"
+    "- Direct SPL Token Minting & P2P Vault Swaps\n"
+    "- Decentralized Oncology Research Lab Data Grants\n\n"
+    "PHASE 4 (Q3-Q4 2027): GLOBAL DECENTRALIZATION\n"
+    "- Global Governance DAO Transition\n"
+    "- Tier-1 Web3 Crypto Exchange Listings\n"
+    "- Mobile Compute Nodes Mainnet Independence"
+)
+
 def share_to_social_apps(text_to_share):
     Clipboard.copy(text_to_share)
     if platform == 'android':
@@ -91,7 +112,7 @@ def share_to_social_apps(text_to_share):
             sendIntent.putExtra(Intent.EXTRA_TEXT, String(text_to_share))
             sendIntent.setType('text/plain')
 
-            chooser = Intent.createChooser(sendIntent, String('Share Invite via'))
+            chooser = Intent.createChooser(sendIntent, String('Share Barat Core Node via'))
             currentActivity = PythonActivity.mActivity
             currentActivity.startActivity(chooser)
         except Exception:
@@ -260,8 +281,9 @@ def get_current_live_mined(data):
     current_accrued = base + (elapsed * rate_per_sec)
     return current_accrued
 
-class VangapuvvuCard(BoxLayout):
-    def __init__(self, bg_color=(0.09, 0.07, 0.14, 0.96), border_color=(0.76, 0.50, 0.98, 0.45), radius=[16], border_width=1.0, **kwargs):
+# OpenCore Style Obsidian Card with Amber Glow Border
+class AmberCard(BoxLayout):
+    def __init__(self, bg_color=(0.06, 0.06, 0.08, 0.98), border_color=(0.95, 0.65, 0.12, 0.55), radius=[16], border_width=1.0, **kwargs):
         super().__init__(**kwargs)
         self.bg_color = bg_color
         self.border_color = border_color
@@ -279,6 +301,7 @@ class VangapuvvuCard(BoxLayout):
         self.rect_bg.size = self.size
         self.rect_border.rounded_rectangle = (self.x, self.y, self.width, self.height, self.radius[0])
 
+# Clean Seamless Underline Input (Box-free UI)
 class SeamlessInput(BoxLayout):
     def __init__(self, hint_text="", password=False, input_filter=None, scroll_parent=None, **kwargs):
         super().__init__(orientation='vertical', spacing=2, **kwargs)
@@ -286,7 +309,7 @@ class SeamlessInput(BoxLayout):
         
         self.input = TextInput(
             hint_text=hint_text,
-            hint_text_color=(0.60, 0.52, 0.72, 0.8),
+            hint_text_color=(0.60, 0.55, 0.45, 0.8),
             password=password,
             input_filter=input_filter,
             multiline=False,
@@ -294,8 +317,8 @@ class SeamlessInput(BoxLayout):
             background_active='',
             background_color=(0, 0, 0, 0),
             foreground_color=(1, 1, 1, 1),
-            cursor_color=(0.85, 0.65, 1, 1),
-            padding=[8, 8, 8, 8],
+            cursor_color=(0.95, 0.65, 0.12, 1),
+            padding=[6, 8, 6, 8],
             font_size='14sp',
             size_hint_y=0.88
         )
@@ -303,7 +326,7 @@ class SeamlessInput(BoxLayout):
         self.add_widget(self.input)
 
         with self.canvas.after:
-            self.line_color = Color(0.70, 0.48, 0.92, 0.35)
+            self.line_color = Color(0.95, 0.65, 0.12, 0.35)
             self.line = Line(points=[self.x + 4, self.y + 2, self.x + self.width - 4, self.y + 2], width=1.1)
         self.bind(pos=self._update_line, size=self._update_line)
 
@@ -312,11 +335,11 @@ class SeamlessInput(BoxLayout):
 
     def on_input_focus(self, instance, value):
         if value:
-            self.line_color.rgba = (0.85, 0.60, 1.0, 0.95)
+            self.line_color.rgba = (0.95, 0.75, 0.20, 0.95)
             if self.scroll_parent:
                 Clock.schedule_once(lambda dt: self.scroll_parent.scroll_to(self, padding=25), 0.1)
         else:
-            self.line_color.rgba = (0.70, 0.48, 0.92, 0.35)
+            self.line_color.rgba = (0.95, 0.65, 0.12, 0.35)
 
     @property
     def text(self):
@@ -333,15 +356,15 @@ class SeamlessPasswordField(BoxLayout):
 
         self.input = TextInput(
             hint_text=hint_text,
-            hint_text_color=(0.60, 0.52, 0.72, 0.8),
+            hint_text_color=(0.60, 0.55, 0.45, 0.8),
             password=True,
             multiline=False,
             background_normal='',
             background_active='',
             background_color=(0, 0, 0, 0),
             foreground_color=(1, 1, 1, 1),
-            cursor_color=(0.85, 0.65, 1, 1),
-            padding=[8, 8, 8, 8],
+            cursor_color=(0.95, 0.65, 0.12, 1),
+            padding=[6, 8, 6, 8],
             font_size='14sp',
             size_hint_x=0.78
         )
@@ -353,7 +376,7 @@ class SeamlessPasswordField(BoxLayout):
             size_hint_x=0.22,
             background_normal='',
             background_color=(0, 0, 0, 0),
-            color=(0.85, 0.65, 1, 0.9),
+            color=(0.95, 0.70, 0.20, 0.9),
             font_size='11sp',
             bold=True
         )
@@ -361,7 +384,7 @@ class SeamlessPasswordField(BoxLayout):
         self.add_widget(self.eye_btn)
 
         with self.canvas.after:
-            self.line_color = Color(0.70, 0.48, 0.92, 0.35)
+            self.line_color = Color(0.95, 0.65, 0.12, 0.35)
             self.line = Line(points=[self.x + 4, self.y + 2, self.x + self.width - 4, self.y + 2], width=1.1)
         self.bind(pos=self._update_line, size=self._update_line)
 
@@ -370,11 +393,11 @@ class SeamlessPasswordField(BoxLayout):
 
     def on_input_focus(self, instance, value):
         if value:
-            self.line_color.rgba = (0.85, 0.60, 1.0, 0.95)
+            self.line_color.rgba = (0.95, 0.75, 0.20, 0.95)
             if self.scroll_parent:
                 Clock.schedule_once(lambda dt: self.scroll_parent.scroll_to(self, padding=25), 0.1)
         else:
-            self.line_color.rgba = (0.70, 0.48, 0.92, 0.35)
+            self.line_color.rgba = (0.95, 0.65, 0.12, 0.35)
 
     def toggle_visibility(self, instance):
         if self.input.password:
@@ -384,7 +407,7 @@ class SeamlessPasswordField(BoxLayout):
         else:
             self.input.password = True
             self.eye_btn.text = "SHOW"
-            self.eye_btn.color = (0.85, 0.65, 1, 0.9)
+            self.eye_btn.color = (0.95, 0.70, 0.20, 0.9)
 
     @property
     def text(self):
@@ -400,11 +423,11 @@ class GlowingCircleButton(Button):
         self.background_normal = ''
         self.background_color = (0, 0, 0, 0)
         with self.canvas.before:
-            self.glow_color = Color(0.75, 0.50, 0.95, 0.28)
+            self.glow_color = Color(0.95, 0.65, 0.12, 0.28)
             self.glow_circle = Ellipse(pos=(self.x - 6, self.y - 6), size=(self.width + 12, self.height + 12))
-            self.outer_ring = Color(0.85, 0.65, 1, 0.9)
+            self.outer_ring = Color(0.95, 0.75, 0.25, 0.9)
             self.outer_line = Line(ellipse=(self.x, self.y, self.width, self.height), width=2.4)
-            self.inner_color = Color(0.75, 0.48, 0.96, 1)
+            self.inner_color = Color(0.90, 0.58, 0.08, 1)
             self.inner_circle = Ellipse(pos=(self.x + 3, self.y + 3), size=(self.width - 6, self.height - 6))
         self.bind(pos=self._update_canvas, size=self._update_canvas)
 
@@ -415,26 +438,27 @@ class GlowingCircleButton(Button):
         self.inner_circle.pos = (self.x + 3, self.y + 3)
         self.inner_circle.size = (self.width - 6, self.height - 6)
 
+# 1. Landing Screen (Compact, Proportionate & Elevated Button)
 class LandingScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        root = BoxLayout(orientation='vertical', padding=[20, 16, 20, 16], spacing=6)
+        root = BoxLayout(orientation='vertical', padding=[20, 16, 20, 18], spacing=6)
 
         try:
             if os.path.exists(LOGO_FILE):
                 logo = Image(source=LOGO_FILE, size_hint_y=0.28, allow_stretch=True, keep_ratio=True)
                 root.add_widget(logo)
             else:
-                root.add_widget(Label(text="BARAT CORE", font_size='24sp', bold=True, color=(0.85, 0.65, 1, 1), size_hint_y=0.25))
+                root.add_widget(Label(text="BARAT CORE", font_size='24sp', bold=True, color=(0.95, 0.65, 0.12, 1), size_hint_y=0.25))
         except Exception:
-            root.add_widget(Label(text="BARAT CORE", font_size='24sp', bold=True, color=(0.85, 0.65, 1, 1), size_hint_y=0.25))
+            root.add_widget(Label(text="BARAT CORE", font_size='24sp', bold=True, color=(0.95, 0.65, 0.12, 1), size_hint_y=0.25))
 
         root.add_widget(Label(
             text="BARAT CORE PROTOCOL",
             font_size='18sp',
             bold=True,
             halign="center",
-            color=(0.92, 0.82, 1, 1),
+            color=(1, 1, 1, 1),
             size_hint_y=0.06
         ))
 
@@ -443,7 +467,7 @@ class LandingScreen(Screen):
             font_size='11.5sp',
             bold=True,
             halign="center",
-            color=(0.78, 0.55, 0.98, 1),
+            color=(0.95, 0.68, 0.15, 1),
             size_hint_y=0.04
         ))
 
@@ -460,7 +484,7 @@ class LandingScreen(Screen):
             text=desc,
             font_size='11sp',
             halign="center",
-            color=(0.88, 0.85, 0.94, 1),
+            color=(0.85, 0.85, 0.85, 1),
             size_hint_y=1.0
         )
         narrative_lbl.bind(size=narrative_lbl.setter('text_size'))
@@ -472,7 +496,7 @@ class LandingScreen(Screen):
             text="START",
             font_size='18sp',
             bold=True,
-            color=(0.08, 0.05, 0.12, 1),
+            color=(0.08, 0.05, 0.02, 1),
             size_hint=(None, None),
             size=('115dp', '115dp'),
             pos_hint={'center_x': 0.5, 'center_y': 0.5}
@@ -502,22 +526,22 @@ class AuthChoiceScreen(Screen):
             if os.path.exists(LOGO_FILE):
                 root.add_widget(Image(source=LOGO_FILE, size_hint_y=0.35, allow_stretch=True, keep_ratio=True))
             else:
-                root.add_widget(Label(text="BARAT CORE", font_size='20sp', bold=True, color=(0.85, 0.65, 1, 1), size_hint_y=0.25))
+                root.add_widget(Label(text="BARAT CORE", font_size='20sp', bold=True, color=(0.95, 0.65, 0.12, 1), size_hint_y=0.25))
         except Exception:
             pass
 
-        info_card = VangapuvvuCard(orientation='vertical', size_hint_y=0.22, padding=[12, 10, 12, 10], spacing=4)
+        info_card = AmberCard(orientation='vertical', size_hint_y=0.22, padding=[12, 10, 12, 10], spacing=4)
         info_card.add_widget(Label(
             text="WELCOME TO BARAT NETWORK",
             font_size='15sp',
             bold=True,
-            color=(0.85, 0.65, 1, 1)
+            color=(0.95, 0.75, 0.20, 1)
         ))
         info_card.add_widget(Label(
             text="Decentralized Quantum Intelligence Node.\nSelect an access option to continue:",
             font_size='11.5sp',
             halign='center',
-            color=(0.80, 0.75, 0.88, 1)
+            color=(0.80, 0.80, 0.80, 1)
         ))
         root.add_widget(info_card)
 
@@ -525,7 +549,7 @@ class AuthChoiceScreen(Screen):
             text="CREATE NEW ACCOUNT",
             size_hint_y=0.13,
             background_normal='',
-            background_color=(0.75, 0.50, 0.95, 1),
+            background_color=(0.90, 0.58, 0.08, 1),
             color=(0.05, 0.05, 0.05, 1),
             font_size='13sp',
             bold=True
@@ -537,8 +561,8 @@ class AuthChoiceScreen(Screen):
             text="EXISTING ACCOUNT LOGIN",
             size_hint_y=0.13,
             background_normal='',
-            background_color=(0.20, 0.14, 0.28, 1),
-            color=(0.85, 0.65, 1, 1),
+            background_color=(0.18, 0.15, 0.12, 1),
+            color=(0.95, 0.75, 0.25, 1),
             font_size='13sp',
             bold=True
         )
@@ -558,7 +582,7 @@ class RegisterScreen(Screen):
         root = BoxLayout(orientation='vertical', padding=[24, 20, 24, 25], spacing=16, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
 
-        root.add_widget(Label(text="CREATE NODE ACCOUNT", font_size='16sp', bold=True, color=(0.85, 0.65, 1, 1), size_hint_y=None, height='35dp'))
+        root.add_widget(Label(text="CREATE NODE ACCOUNT", font_size='16sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=None, height='35dp'))
 
         self.email_input = SeamlessInput(hint_text="Gmail Address (@gmail.com)", size_hint_y=None, height='45dp', scroll_parent=self.scroll)
         root.add_widget(self.email_input)
@@ -572,8 +596,8 @@ class RegisterScreen(Screen):
         self.invite_input = SeamlessInput(hint_text="Invitation Code (Optional)", size_hint_y=None, height='45dp', scroll_parent=self.scroll)
         root.add_widget(self.invite_input)
 
-        captcha_card = VangapuvvuCard(size_hint_y=None, height='40dp', padding=[12, 4, 12, 4], radius=[12])
-        self.captcha_lbl = Label(text=f"Human Verification: {self.num1} + {self.num2} = ?", font_size='12.5sp', color=(0.85, 0.65, 1, 1), bold=True)
+        captcha_card = AmberCard(size_hint_y=None, height='40dp', padding=[12, 4, 12, 4], radius=[12])
+        self.captcha_lbl = Label(text=f"Human Verification: {self.num1} + {self.num2} = ?", font_size='12.5sp', color=(0.95, 0.75, 0.25, 1), bold=True)
         captcha_card.add_widget(self.captcha_lbl)
         root.add_widget(captcha_card)
 
@@ -583,11 +607,11 @@ class RegisterScreen(Screen):
         self.msg = Label(text="", font_size='11sp', color=(1, 0.38, 0.38, 1), size_hint_y=None, height='24dp')
         root.add_widget(self.msg)
 
-        reg_btn = Button(text="Register & Start Mining", background_normal='', background_color=(0.75, 0.50, 0.95, 1), color=(0.05, 0.05, 0.05, 1), bold=True, size_hint_y=None, height='48dp')
+        reg_btn = Button(text="Register & Start Mining", background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), bold=True, size_hint_y=None, height='48dp')
         reg_btn.bind(on_press=self.do_register)
         root.add_widget(reg_btn)
 
-        back_btn = Button(text="Back to Options", background_normal='', background_color=(0.20, 0.16, 0.24, 1), color=(0.85, 0.75, 0.95, 1), size_hint_y=None, height='40dp')
+        back_btn = Button(text="Back to Options", background_normal='', background_color=(0.20, 0.16, 0.14, 1), color=(0.9, 0.8, 0.7, 1), size_hint_y=None, height='40dp')
         back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'auth_choice'))
         root.add_widget(back_btn)
 
@@ -669,7 +693,7 @@ class LoginScreen(Screen):
         root = BoxLayout(orientation='vertical', padding=[24, 20, 24, 25], spacing=16, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
 
-        root.add_widget(Label(text="BARAT NODE LOGIN", font_size='16sp', bold=True, color=(0.85, 0.65, 1, 1), size_hint_y=None, height='35dp'))
+        root.add_widget(Label(text="BARAT NODE LOGIN", font_size='16sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=None, height='35dp'))
 
         self.ident_input = SeamlessInput(hint_text="Registered User ID or Gmail", size_hint_y=None, height='45dp', scroll_parent=self.scroll)
         root.add_widget(self.ident_input)
@@ -677,8 +701,8 @@ class LoginScreen(Screen):
         self.pass_field = SeamlessPasswordField(hint_text="Password", size_hint_y=None, height='45dp', scroll_parent=self.scroll)
         root.add_widget(self.pass_field)
 
-        captcha_card = VangapuvvuCard(size_hint_y=None, height='40dp', padding=[12, 4, 12, 4], radius=[12])
-        self.captcha_lbl = Label(text=f"Human Verification: {self.num1} + {self.num2} = ?", font_size='12.5sp', color=(0.85, 0.65, 1, 1), bold=True)
+        captcha_card = AmberCard(size_hint_y=None, height='40dp', padding=[12, 4, 12, 4], radius=[12])
+        self.captcha_lbl = Label(text=f"Human Verification: {self.num1} + {self.num2} = ?", font_size='12.5sp', color=(0.95, 0.75, 0.25, 1), bold=True)
         captcha_card.add_widget(self.captcha_lbl)
         root.add_widget(captcha_card)
 
@@ -688,15 +712,15 @@ class LoginScreen(Screen):
         self.msg = Label(text="", font_size='11sp', color=(1, 0.38, 0.38, 1), size_hint_y=None, height='24dp')
         root.add_widget(self.msg)
 
-        self.login_btn = Button(text="Secure Login", background_normal='', background_color=(0.75, 0.50, 0.95, 1), color=(0.05, 0.05, 0.05, 1), bold=True, size_hint_y=None, height='48dp')
+        self.login_btn = Button(text="Secure Login", background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), bold=True, size_hint_y=None, height='48dp')
         self.login_btn.bind(on_press=self.do_login)
         root.add_widget(self.login_btn)
 
-        forgot_btn = Button(text="Forgot Password?", size_hint_y=None, height='36dp', background_normal='', background_color=(0.20, 0.14, 0.28, 1), color=(0.85, 0.65, 1, 1), font_size='11.5sp')
+        forgot_btn = Button(text="Forgot Password?", size_hint_y=None, height='36dp', background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='11.5sp')
         forgot_btn.bind(on_press=self.open_forgot_password_popup)
         root.add_widget(forgot_btn)
 
-        back_btn = Button(text="Back to Options", background_normal='', background_color=(0.20, 0.16, 0.24, 1), color=(0.85, 0.75, 0.95, 1), size_hint_y=None, height='40dp')
+        back_btn = Button(text="Back to Options", background_normal='', background_color=(0.20, 0.16, 0.14, 1), color=(0.9, 0.8, 0.7, 1), size_hint_y=None, height='40dp')
         back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'auth_choice'))
         root.add_widget(back_btn)
 
@@ -736,7 +760,7 @@ class LoginScreen(Screen):
             return
 
         self.login_btn.disabled = True
-        self.msg.color = (0.85, 0.65, 1, 1)
+        self.msg.color = (0.95, 0.75, 0.25, 1)
         self.msg.text = "Authenticating with node ledger..."
 
         def check_login_thread():
@@ -798,7 +822,7 @@ class LoginScreen(Screen):
 
     def open_forgot_password_popup(self, instance):
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=12)
-        box.add_widget(Label(text="PASSWORD RECOVERY", font_size='14sp', bold=True, color=(0.85, 0.65, 1, 1), size_hint_y=0.15))
+        box.add_widget(Label(text="PASSWORD RECOVERY", font_size='14sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=0.15))
 
         email_in = SeamlessInput(hint_text="Registered Gmail ID", size_hint_y=0.18)
         box.add_widget(email_in)
@@ -813,9 +837,9 @@ class LoginScreen(Screen):
         box.add_widget(status_lbl)
 
         btn_box = BoxLayout(spacing=8, size_hint_y=0.21)
-        send_otp_btn = Button(text="Send OTP", background_normal='', background_color=(0.20, 0.14, 0.28, 1), color=(0.85, 0.65, 1, 1), font_size='11sp')
-        reset_btn = Button(text="Reset", background_normal='', background_color=(0.75, 0.50, 0.95, 1), color=(0.05, 0.05, 0.05, 1), font_size='11sp', bold=True)
-        close_btn = Button(text="Close", background_normal='', background_color=(0.20, 0.16, 0.24, 1), font_size='11sp')
+        send_otp_btn = Button(text="Send OTP", background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='11sp')
+        reset_btn = Button(text="Reset", background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), font_size='11sp', bold=True)
+        close_btn = Button(text="Close", background_normal='', background_color=(0.20, 0.16, 0.14, 1), font_size='11sp')
         btn_box.add_widget(send_otp_btn)
         btn_box.add_widget(reset_btn)
         btn_box.add_widget(close_btn)
@@ -828,7 +852,7 @@ class LoginScreen(Screen):
             target_mail = email_in.text.strip().lower()
             if target_mail == data.get("email", "").lower() and data.get("email"):
                 self.generated_otp = str(random.randint(1000, 9999))
-                status_lbl.color = (0.85, 0.65, 1, 1)
+                status_lbl.color = (0.95, 0.75, 0.25, 1)
                 status_lbl.text = f"OTP Code: {self.generated_otp} (Sent to registered Gmail)"
             else:
                 status_lbl.color = (1, 0.4, 0.4, 1)
@@ -850,7 +874,7 @@ class LoginScreen(Screen):
             data["password"] = new_p
             save_data(data)
             popup.dismiss()
-            self.msg.color = (0.85, 0.65, 1, 1)
+            self.msg.color = (0.95, 0.75, 0.25, 1)
             self.msg.text = "Password reset successfully! Please login."
 
         send_otp_btn.bind(on_press=do_send_otp)
@@ -858,7 +882,7 @@ class LoginScreen(Screen):
         close_btn.bind(on_press=popup.dismiss)
         popup.open()
 
-# Full Feature-Loaded Main Hub Screen
+# Multi-Tab Main Hub Screen (OpenCore Exact Obsidian & Amber Gold Look)
 class MainHubScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -867,31 +891,34 @@ class MainHubScreen(Screen):
 
         root = BoxLayout(orientation='vertical')
 
-        top_header = VangapuvvuCard(size_hint_y=0.075, padding=[12, 6, 12, 6])
+        # Top Universal Status Header
+        top_header = AmberCard(size_hint_y=0.075, padding=[12, 6, 12, 6])
         top_header.add_widget(Label(text="BaratCore", font_size='15sp', bold=True, color=(1, 1, 1, 1)))
-        badge = VangapuvvuCard(size_hint_x=0.45, padding=[6, 2, 6, 2], bg_color=(0.18, 0.12, 0.26, 1), border_color=(0.78, 0.52, 0.98, 0.6), radius=[12])
-        badge.add_widget(Label(text="Verified Node", font_size='11sp', color=(0.85, 0.65, 1, 1), bold=True))
+        badge = AmberCard(size_hint_x=0.45, padding=[6, 2, 6, 2], bg_color=(0.14, 0.12, 0.08, 1), border_color=(0.95, 0.65, 0.12, 0.6), radius=[12])
+        badge.add_widget(Label(text="Verified Node", font_size='11sp', color=(0.95, 0.75, 0.25, 1), bold=True))
         top_header.add_widget(badge)
         root.add_widget(top_header)
 
+        # Dynamic Content Area
         self.content_area = BoxLayout(orientation='vertical', padding=[14, 6, 14, 6], spacing=6, size_hint_y=0.835)
         root.add_widget(self.content_area)
 
-        nav_bar = VangapuvvuCard(size_hint_y=0.09, padding=[4, 4, 4, 4], spacing=4)
+        # Bottom Navigation Bar
+        nav_bar = AmberCard(size_hint_y=0.09, padding=[4, 4, 4, 4], spacing=4)
 
-        self.tab_home_btn = Button(text="Home", background_normal='', background_color=(0.20, 0.14, 0.30, 1), color=(0.85, 0.65, 1, 1), font_size='11.5sp', bold=True)
+        self.tab_home_btn = Button(text="Home", background_normal='', background_color=(0.18, 0.14, 0.08, 1), color=(0.95, 0.75, 0.25, 1), font_size='11.5sp', bold=True)
         self.tab_home_btn.bind(on_press=lambda x: self.switch_tab("home"))
         nav_bar.add_widget(self.tab_home_btn)
 
-        self.tab_team_btn = Button(text="Team", background_normal='', background_color=(0.09, 0.07, 0.13, 1), color=(0.65, 0.60, 0.75, 1), font_size='11.5sp')
+        self.tab_team_btn = Button(text="Team", background_normal='', background_color=(0.08, 0.08, 0.10, 1), color=(0.65, 0.65, 0.65, 1), font_size='11.5sp')
         self.tab_team_btn.bind(on_press=lambda x: self.switch_tab("team"))
         nav_bar.add_widget(self.tab_team_btn)
 
-        self.tab_task_btn = Button(text="Task", background_normal='', background_color=(0.09, 0.07, 0.13, 1), color=(0.65, 0.60, 0.75, 1), font_size='11.5sp')
+        self.tab_task_btn = Button(text="Task", background_normal='', background_color=(0.08, 0.08, 0.10, 1), color=(0.65, 0.65, 0.65, 1), font_size='11.5sp')
         self.tab_task_btn.bind(on_press=lambda x: self.switch_tab("task"))
         nav_bar.add_widget(self.tab_task_btn)
 
-        self.tab_me_btn = Button(text="Me", background_normal='', background_color=(0.09, 0.07, 0.13, 1), color=(0.65, 0.60, 0.75, 1), font_size='11.5sp')
+        self.tab_me_btn = Button(text="Me", background_normal='', background_color=(0.08, 0.08, 0.10, 1), color=(0.65, 0.65, 0.65, 1), font_size='11.5sp')
         self.tab_me_btn.bind(on_press=lambda x: self.switch_tab("me"))
         nav_bar.add_widget(self.tab_me_btn)
 
@@ -907,10 +934,10 @@ class MainHubScreen(Screen):
     def switch_tab(self, tab_name):
         self.active_tab = tab_name
         
-        unselected_bg = (0.09, 0.07, 0.13, 1)
-        selected_bg = (0.22, 0.15, 0.32, 1)
-        unselected_color = (0.65, 0.60, 0.75, 1)
-        selected_color = (0.85, 0.65, 1, 1)
+        unselected_bg = (0.08, 0.08, 0.10, 1)
+        selected_bg = (0.18, 0.14, 0.08, 1)
+        unselected_color = (0.65, 0.65, 0.65, 1)
+        selected_color = (0.95, 0.75, 0.25, 1)
 
         self.tab_home_btn.background_color = selected_bg if tab_name == "home" else unselected_bg
         self.tab_home_btn.color = selected_color if tab_name == "home" else unselected_color
@@ -947,32 +974,29 @@ class MainHubScreen(Screen):
 
         cur_mined = get_current_live_mined(data)
 
-        # 1A. Streak & Multiplier Status Pill
         streak = data.get("mining_streak", 1)
-        streak_card = VangapuvvuCard(size_hint_y=None, height='42dp', padding=[12, 4, 12, 4], radius=[12])
+        streak_card = AmberCard(size_hint_y=None, height='42dp', padding=[12, 4, 12, 4], radius=[12])
         streak_card.add_widget(Label(text=f"🔥 7-Day Mining Streak: Day {streak}/7", font_size='11.5sp', bold=True, color=(1.0, 0.85, 0.4, 1), halign='left'))
-        streak_card.add_widget(Label(text=f"+{(streak*0.02):.2f}x Streak Bonus", font_size='11sp', color=(0.85, 0.65, 1, 1), halign='right'))
+        streak_card.add_widget(Label(text=f"+{(streak*0.02):.2f}x Streak Bonus", font_size='11sp', color=(0.95, 0.75, 0.25, 1), halign='right'))
         box.add_widget(streak_card)
 
-        # 1B. Hero Balance Card
-        user_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='120dp', padding=[14, 10, 14, 10], spacing=4)
-        user_card.add_widget(Label(text="TOTAL ACCRUED BALANCE", font_size='11sp', color=(0.75, 0.70, 0.85, 1)))
+        user_card = AmberCard(orientation='vertical', size_hint_y=None, height='120dp', padding=[14, 10, 14, 10], spacing=4)
+        user_card.add_widget(Label(text="TOTAL ACCRUED BALANCE", font_size='11sp', color=(0.75, 0.75, 0.75, 1)))
         self.live_bal_lbl = Label(text=f"{cur_mined:.4f} BARAT", font_size='26sp', bold=True, color=(1, 1, 1, 1))
         user_card.add_widget(self.live_bal_lbl)
 
-        # Badges inside hero card
         mult = data.get("mining_speed_multiplier", 1.0)
         team_count = len(data.get("team_members", []))
         badge_row = BoxLayout(spacing=6, size_hint_y=0.35)
         
-        b1 = VangapuvvuCard(bg_color=(0.18, 0.12, 0.26, 1), border_color=(0.78, 0.52, 0.98, 0.5), radius=[10])
-        b1.add_widget(Label(text=f"Boost: {mult:.2f}x", font_size='10.5sp', color=(0.85, 0.65, 1, 1), bold=True))
+        b1 = AmberCard(bg_color=(0.14, 0.12, 0.08, 1), border_color=(0.85, 0.55, 0.08, 0.5), radius=[10])
+        b1.add_widget(Label(text=f"Boost: {mult:.2f}x", font_size='10.5sp', color=(0.95, 0.75, 0.25, 1), bold=True))
         
-        b2 = VangapuvvuCard(bg_color=(0.18, 0.12, 0.26, 1), border_color=(0.78, 0.52, 0.98, 0.5), radius=[10])
-        b2.add_widget(Label(text=f"Team: {team_count}", font_size='10.5sp', color=(0.85, 0.65, 1, 1), bold=True))
+        b2 = AmberCard(bg_color=(0.14, 0.12, 0.08, 1), border_color=(0.85, 0.55, 0.08, 0.5), radius=[10])
+        b2.add_widget(Label(text=f"Team: {team_count}", font_size='10.5sp', color=(0.95, 0.75, 0.25, 1), bold=True))
         
-        b3 = VangapuvvuCard(bg_color=(0.18, 0.12, 0.26, 1), border_color=(0.78, 0.52, 0.98, 0.5), radius=[10])
-        self.pill_timer = Label(text="24:00:00", font_size='10.5sp', color=(0.85, 0.65, 1, 1), bold=True)
+        b3 = AmberCard(bg_color=(0.14, 0.12, 0.08, 1), border_color=(0.85, 0.55, 0.08, 0.5), radius=[10])
+        self.pill_timer = Label(text="24:00:00", font_size='10.5sp', color=(0.95, 0.75, 0.25, 1), bold=True)
         b3.add_widget(self.pill_timer)
 
         badge_row.add_widget(b1)
@@ -981,9 +1005,8 @@ class MainHubScreen(Screen):
         user_card.add_widget(badge_row)
         box.add_widget(user_card)
 
-        # 1C. Mining Action Center Dial
-        center_box = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='125dp', padding=[14, 8, 14, 8], spacing=4)
-        center_box.add_widget(Label(text="Consensus Session Remaining", font_size='11sp', color=(0.70, 0.65, 0.80, 1)))
+        center_box = AmberCard(orientation='vertical', size_hint_y=None, height='125dp', padding=[14, 8, 14, 8], spacing=4)
+        center_box.add_widget(Label(text="Consensus Session Remaining", font_size='11sp', color=(0.70, 0.70, 0.70, 1)))
         self.big_timer_lbl = Label(text="24:00:00", font_size='22sp', bold=True, color=(1, 1, 1, 1))
         center_box.add_widget(self.big_timer_lbl)
 
@@ -991,7 +1014,7 @@ class MainHubScreen(Screen):
             text="START MINING SESSION",
             size_hint_y=0.44,
             background_normal='',
-            background_color=(0.75, 0.50, 0.95, 1),
+            background_color=(0.90, 0.58, 0.08, 1),
             color=(0.05, 0.05, 0.05, 1),
             font_size='13sp',
             bold=True
@@ -999,39 +1022,43 @@ class MainHubScreen(Screen):
         self.mine_btn.bind(on_press=self.start_mining)
         center_box.add_widget(self.mine_btn)
 
-        self.session_sub = Label(text="Compute State: Ready", font_size='10.5sp', color=(0.85, 0.65, 1, 1))
+        self.session_sub = Label(text="Compute State: Ready", font_size='10.5sp', color=(0.95, 0.75, 0.25, 1))
         center_box.add_widget(self.session_sub)
         box.add_widget(center_box)
 
-        # 1D. Live Node Console (Scientific Computing Feed)
-        console_box = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='85dp', padding=[12, 6, 12, 6], spacing=2)
-        console_box.add_widget(Label(text="LIVE NODE COMPUTING TERMINAL", font_size='11sp', bold=True, color=(0.85, 0.65, 1, 1)))
-        self.console_lbl = Label(text=CONSOLE_LOGS[0], font_size='10sp', color=(0.75, 0.70, 0.85, 1), halign='center')
+        console_box = AmberCard(orientation='vertical', size_hint_y=None, height='85dp', padding=[12, 6, 12, 6], spacing=2)
+        console_box.add_widget(Label(text="LIVE NODE COMPUTING TERMINAL", font_size='11sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
+        self.console_lbl = Label(text=CONSOLE_LOGS[0], font_size='10sp', color=(0.80, 0.80, 0.80, 1), halign='center')
         console_box.add_widget(self.console_lbl)
         box.add_widget(console_box)
 
         scroll.add_widget(box)
         self.content_area.add_widget(scroll)
 
-    # 2. TEAM TAB (Real Invite, Calculator, Ping Functionality)
+    # 2. TEAM TAB (Integrated APK Link & Logo Details Sharing)
     def render_team_tab(self, data):
         scroll = ScrollView(do_scroll_x=False)
         box = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
         box.bind(minimum_height=box.setter('height'))
 
         code = data.get("referral_code", "CORE2026")
-        share_msg = f"Join my Barat Core node and mine $BARAT! Use referral code: {code}"
+        share_msg = (
+            f"⚡ BARAT CORE NETWORK ⚡\n"
+            f"Join my decentralized cancer research mobile computing node.\n"
+            f"Download APK: {APK_DOWNLOAD_URL}\n"
+            f"Use My Referral Code: {code}\n"
+            f"Get +25% permanent mining speed boost!"
+        )
 
-        # 2A. Invite Hub
-        invite_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='195dp', padding=[14, 10, 14, 10], spacing=6)
+        invite_card = AmberCard(orientation='vertical', size_hint_y=None, height='210dp', padding=[14, 10, 14, 10], spacing=6)
         invite_card.add_widget(Label(text="INVITE TEAM & EARN BOOST", font_size='13sp', bold=True, color=(1, 1, 1, 1)))
-        invite_card.add_widget(Label(text=f"Your Unique Code: {code}\nEach verified node adds +25% continuous hashrate.", font_size='11sp', color=(0.70, 0.65, 0.80, 1), halign='center'))
+        invite_card.add_widget(Label(text=f"Your Referral Code: {code}\nAPK Link & Node Details are embedded into share button.", font_size='11sp', color=(0.80, 0.80, 0.80, 1), halign='center'))
 
         btn_row = BoxLayout(spacing=6, size_hint_y=0.34)
         wa_btn = Button(text="WhatsApp", background_normal='', background_color=(0.12, 0.38, 0.22, 1), color=(0.4, 1, 0.6, 1), font_size='11sp', bold=True)
         wa_btn.bind(on_press=lambda x: share_to_social_apps(share_msg))
         
-        x_btn = Button(text="Post on X", background_normal='', background_color=(0.18, 0.14, 0.24, 1), color=(0.85, 0.65, 1, 1), font_size='11sp')
+        x_btn = Button(text="Post on X", background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='11sp')
         x_btn.bind(on_press=lambda x: share_to_social_apps(share_msg))
         
         tg_btn = Button(text="Telegram", background_normal='', background_color=(0.12, 0.24, 0.42, 1), color=(0.4, 0.8, 1, 1), font_size='11sp')
@@ -1042,32 +1069,30 @@ class MainHubScreen(Screen):
         btn_row.add_widget(tg_btn)
         invite_card.add_widget(btn_row)
 
-        copy_invite_btn = Button(text="Copy Referral Link", size_hint_y=0.30, background_normal='', background_color=(0.20, 0.14, 0.28, 1), color=(0.85, 0.65, 1, 1), font_size='11.5sp', bold=True)
+        copy_invite_btn = Button(text="Copy Invite Link & Message", size_hint_y=0.30, background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), font_size='11.5sp', bold=True)
         copy_invite_btn.bind(on_press=lambda x: Clipboard.copy(share_msg))
         invite_card.add_widget(copy_invite_btn)
         box.add_widget(invite_card)
 
-        # 2B. Interactive Hashrate Calculator
-        calc_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='85dp', padding=[12, 6, 12, 6], spacing=2)
-        calc_card.add_widget(Label(text="MINING SPEED CALCULATOR", font_size='11sp', bold=True, color=(0.85, 0.65, 1, 1)))
-        calc_card.add_widget(Label(text="Base Reward: 10.0 BARAT/day\n1 Node Active = +2.50 BARAT/day  |  4 Nodes Active = +10.0 BARAT/day", font_size='10.5sp', color=(0.85, 0.80, 0.95, 1), halign='center'))
+        calc_card = AmberCard(orientation='vertical', size_hint_y=None, height='85dp', padding=[12, 6, 12, 6], spacing=2)
+        calc_card.add_widget(Label(text="MINING SPEED CALCULATOR", font_size='11sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
+        calc_card.add_widget(Label(text="Base Reward: 10.0 BARAT/day\n1 Node Active = +2.50 BARAT/day  |  4 Nodes Active = +10.0 BARAT/day", font_size='10.5sp', color=(0.85, 0.85, 0.85, 1), halign='center'))
         box.add_widget(calc_card)
 
-        # 2C. Verified Network Status
         members = data.get("team_members", [])
-        team_hdr = VangapuvvuCard(size_hint_y=None, height='45dp', padding=[12, 6, 12, 6])
-        team_hdr.add_widget(Label(text=f"Your Active Network ({len(members)} Verified Nodes)", font_size='12sp', bold=True, color=(0.85, 0.65, 1, 1)))
+        team_hdr = AmberCard(size_hint_y=None, height='45dp', padding=[12, 6, 12, 6])
+        team_hdr.add_widget(Label(text=f"Your Active Network ({len(members)} Verified Nodes)", font_size='12sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
         box.add_widget(team_hdr)
 
         if not members:
-            empty_card = VangapuvvuCard(size_hint_y=None, height='95dp', padding=[12, 8, 12, 8], orientation='vertical', spacing=4)
-            empty_card.add_widget(Label(text="No direct downstream nodes bound.\nShare your code to build your decentralized consensus cluster.", font_size='10.5sp', color=(0.65, 0.60, 0.75, 1), halign='center'))
-            ping_btn = Button(text="Ping Offline Members", size_hint_y=0.42, background_normal='', background_color=(0.20, 0.14, 0.28, 1), color=(0.7, 0.6, 0.8, 1), font_size='11sp')
+            empty_card = AmberCard(size_hint_y=None, height='95dp', padding=[12, 8, 12, 8], orientation='vertical', spacing=4)
+            empty_card.add_widget(Label(text="No direct downstream nodes bound.\nShare your code to build your decentralized consensus cluster.", font_size='10.5sp', color=(0.70, 0.70, 0.70, 1), halign='center'))
+            ping_btn = Button(text="Ping Offline Members", size_hint_y=0.42, background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.85, 0.75, 0.25, 1), font_size='11sp')
             empty_card.add_widget(ping_btn)
             box.add_widget(empty_card)
         else:
             for mem in members:
-                m_card = VangapuvvuCard(size_hint_y=None, height='48dp', padding=[10, 4, 10, 4])
+                m_card = AmberCard(size_hint_y=None, height='48dp', padding=[10, 4, 10, 4])
                 m_card.add_widget(Label(text=f"{mem.get('email', 'node')} (Active)", font_size='11sp', color=(1, 1, 1, 1), halign='left'))
                 m_card.add_widget(Label(text="+25% Speed", font_size='11sp', color=(0.4, 0.9, 0.6, 1), halign='right'))
                 box.add_widget(m_card)
@@ -1083,17 +1108,16 @@ class MainHubScreen(Screen):
 
         completed_tasks = data.get("completed_tasks", [])
 
-        # 3A. Daily Consensus Quiz
-        quiz_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='140dp', padding=[12, 8, 12, 8], spacing=4)
+        quiz_card = AmberCard(orientation='vertical', size_hint_y=None, height='140dp', padding=[12, 8, 12, 8], spacing=4)
         quiz_card.add_widget(Label(text="DAILY ONCOLOGY PROTOCOL QUIZ (+0.50 BARAT)", font_size='11.5sp', bold=True, color=(1.0, 0.85, 0.4, 1)))
-        quiz_card.add_widget(Label(text="Q: What computing goal does Barat Core solve?\nA) Real Cancer Model Docking    B) Random Guessing", font_size='10.5sp', color=(0.85, 0.80, 0.95, 1), halign='center'))
+        quiz_card.add_widget(Label(text="Q: What computing goal does Barat Core solve?\nA) Real Cancer Model Docking    B) Random Guessing", font_size='10.5sp', color=(0.85, 0.85, 0.85, 1), halign='center'))
 
         today_str = time.strftime("%Y-%m-%d")
         quiz_btn = Button(
             text="Already Claimed Today" if data.get("last_quiz_date") == today_str else "Answer A & Claim 0.50 BARAT",
             size_hint_y=0.35,
             background_normal='',
-            background_color=(0.18, 0.14, 0.24, 1) if data.get("last_quiz_date") == today_str else (0.75, 0.50, 0.95, 1),
+            background_color=(0.18, 0.15, 0.12, 1) if data.get("last_quiz_date") == today_str else (0.90, 0.58, 0.08, 1),
             color=(0.6, 0.6, 0.6, 1) if data.get("last_quiz_date") == today_str else (0.05, 0.05, 0.05, 1),
             font_size='11.5sp',
             bold=True
@@ -1103,7 +1127,6 @@ class MainHubScreen(Screen):
         quiz_card.add_widget(quiz_btn)
         box.add_widget(quiz_card)
 
-        # 3B. Social Bounties
         bounties = [
             ("x_follow", "Follow Official Channel on X", 2.0),
             ("tg_join", "Join Official Global Telegram", 2.0),
@@ -1111,15 +1134,15 @@ class MainHubScreen(Screen):
         ]
 
         for tid, title, reward in bounties:
-            t_card = VangapuvvuCard(size_hint_y=None, height='50dp', padding=[12, 4, 12, 4])
-            t_card.add_widget(Label(text=f"{title}\nReward: +{reward:.1f} BARAT", font_size='10.5sp', color=(0.9, 0.85, 0.95, 1), halign='left'))
+            t_card = AmberCard(size_hint_y=None, height='50dp', padding=[12, 4, 12, 4])
+            t_card.add_widget(Label(text=f"{title}\nReward: +{reward:.1f} BARAT", font_size='10.5sp', color=(0.9, 0.9, 0.9, 1), halign='left'))
             
             is_done = tid in completed_tasks
             b_btn = Button(
                 text="Completed" if is_done else f"+{reward:.1f} Claim",
                 size_hint_x=0.32,
                 background_normal='',
-                background_color=(0.18, 0.14, 0.24, 1) if is_done else (0.75, 0.50, 0.95, 1),
+                background_color=(0.18, 0.15, 0.12, 1) if is_done else (0.90, 0.58, 0.08, 1),
                 color=(0.6, 0.6, 0.6, 1) if is_done else (0.05, 0.05, 0.05, 1),
                 font_size='11sp',
                 bold=True
@@ -1129,10 +1152,9 @@ class MainHubScreen(Screen):
             t_card.add_widget(b_btn)
             box.add_widget(t_card)
 
-        # 3C. Solana Gateway
-        bridge_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='95dp', padding=[12, 8, 12, 8], spacing=4)
-        bridge_card.add_widget(Label(text="SOLANA MAIN BRIDGE GATEWAY", font_size='12sp', bold=True, color=(0.85, 0.65, 1, 1)))
-        bridge_btn = Button(text="Open Solana Bridge", size_hint_y=0.55, background_normal='', background_color=(0.20, 0.14, 0.28, 1), color=(0.85, 0.65, 1, 1), font_size='11.5sp', bold=True)
+        bridge_card = AmberCard(orientation='vertical', size_hint_y=None, height='95dp', padding=[12, 8, 12, 8], spacing=4)
+        bridge_card.add_widget(Label(text="SOLANA MAIN BRIDGE GATEWAY", font_size='12sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
+        bridge_btn = Button(text="Open Solana Bridge", size_hint_y=0.55, background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='11.5sp', bold=True)
         bridge_btn.bind(on_press=self.open_solana_bridge_popup)
         bridge_card.add_widget(bridge_btn)
         box.add_widget(bridge_card)
@@ -1140,46 +1162,50 @@ class MainHubScreen(Screen):
         scroll.add_widget(box)
         self.content_area.add_widget(scroll)
 
-    # 4. ME / VAULT TAB (Transparent Audit Log, Security Tier, Pure Wallet)
+    # 4. ME / VAULT TAB (Shows Profile Node ID & Whitepaper Roadmap)
     def render_me_tab(self, data):
         scroll = ScrollView(do_scroll_x=False)
         box = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
         box.bind(minimum_height=box.setter('height'))
 
         user_mail = data.get("email", "node_miner@gmail.com")
-        u_card = VangapuvvuCard(size_hint_y=None, height='48dp', padding=[12, 6, 12, 6])
-        u_card.add_widget(Label(text=f"{user_mail}\n✔ Verified Compute Node", font_size='11sp', color=(0.85, 0.65, 1, 1), halign='left'))
+        uid = data.get("user_id", "BARAT-NODE-000000")
+        
+        # Profile Node ID Card
+        u_card = AmberCard(size_hint_y=None, height='58dp', padding=[12, 6, 12, 6])
+        u_card.add_widget(Label(text=f"Node ID: {uid}\nEmail: {user_mail}", font_size='11sp', color=(0.95, 0.75, 0.25, 1), halign='left'))
+        copy_uid_btn = Button(text="Copy ID", size_hint_x=0.28, background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='11sp')
+        copy_uid_btn.bind(on_press=lambda x: Clipboard.copy(uid))
+        u_card.add_widget(copy_uid_btn)
         box.add_widget(u_card)
 
         cur_mined = get_current_live_mined(data)
-        bal_hero = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='90dp', padding=[12, 6, 12, 6], spacing=2)
-        bal_hero.add_widget(Label(text="Total Available Mined Assets", font_size='10.5sp', color=(0.70, 0.65, 0.80, 1)))
+        bal_hero = AmberCard(orientation='vertical', size_hint_y=None, height='90dp', padding=[12, 6, 12, 6], spacing=2)
+        bal_hero.add_widget(Label(text="Total Available Mined Assets", font_size='10.5sp', color=(0.75, 0.75, 0.75, 1)))
         bal_hero.add_widget(Label(text=f"{cur_mined:.4f} BARAT", font_size='24sp', bold=True, color=(1, 1, 1, 1)))
-        bal_hero.add_widget(Label(text="SPL-Standard Compatible Token Balance", font_size='9.5sp', color=(0.60, 0.55, 0.70, 1)))
+        bal_hero.add_widget(Label(text="SPL-Standard Compatible Token Balance", font_size='9.5sp', color=(0.65, 0.65, 0.65, 1)))
         box.add_widget(bal_hero)
 
         action_row = BoxLayout(spacing=6, size_hint_y=None, height='42dp')
-        rec_btn = Button(text="Copy Node ID", background_normal='', background_color=(0.18, 0.14, 0.24, 1), color=(0.85, 0.65, 1, 1), font_size='11sp')
-        rec_btn.bind(on_press=lambda x: Clipboard.copy(data.get("user_id", "BARAT_NODE")))
-        send_btn = Button(text="Solana Bridge", background_normal='', background_color=(0.18, 0.14, 0.24, 1), color=(0.85, 0.65, 1, 1), font_size='11sp')
+        whitepaper_btn = Button(text="Whitepaper Roadmap", background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), font_size='11sp', bold=True)
+        whitepaper_btn.bind(on_press=self.open_whitepaper_popup)
+        send_btn = Button(text="Solana Bridge", background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='11sp')
         send_btn.bind(on_press=self.open_solana_bridge_popup)
-        action_row.add_widget(rec_btn)
+        action_row.add_widget(whitepaper_btn)
         action_row.add_widget(send_btn)
         box.add_widget(action_row)
 
-        # 4A. Security Tier Badges
-        sec_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='65dp', padding=[12, 6, 12, 6], spacing=2)
-        sec_card.add_widget(Label(text="NODE SECURITY & AUDIT STATUS", font_size='11sp', bold=True, color=(0.85, 0.65, 1, 1)))
+        sec_card = AmberCard(orientation='vertical', size_hint_y=None, height='65dp', padding=[12, 6, 12, 6], spacing=2)
+        sec_card.add_widget(Label(text="NODE SECURITY & AUDIT STATUS", font_size='11sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
         sec_card.add_widget(Label(text="Tier 1: Device Compute Bound  |  Tier 2: Solana Bridge Ready", font_size='10sp', color=(0.4, 0.9, 0.6, 1)))
         box.add_widget(sec_card)
 
-        # 4B. Transparent Transaction History
-        hist_card = VangapuvvuCard(orientation='vertical', size_hint_y=None, height='160dp', padding=[12, 8, 12, 8], spacing=4)
-        hist_card.add_widget(Label(text="TRANSACTION & REWARD AUDIT LOG", font_size='11.5sp', bold=True, color=(0.85, 0.65, 1, 1), size_hint_y=0.20))
+        hist_card = AmberCard(orientation='vertical', size_hint_y=None, height='160dp', padding=[12, 8, 12, 8], spacing=4)
+        hist_card.add_widget(Label(text="TRANSACTION & REWARD AUDIT LOG", font_size='11.5sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=0.20))
         
         logs = data.get("transactions_log", [])
         if not logs:
-            hist_card.add_widget(Label(text="No transactions recorded yet.\nStart your first session to write to the ledger.", font_size='10.5sp', color=(0.6, 0.55, 0.7, 1), size_hint_y=0.80))
+            hist_card.add_widget(Label(text="No transactions recorded yet.\nStart your first session to write to the ledger.", font_size='10.5sp', color=(0.7, 0.7, 0.7, 1), size_hint_y=0.80))
         else:
             log_container = BoxLayout(orientation='vertical', size_hint_y=0.80, spacing=2)
             for entry in logs[:3]:
@@ -1190,12 +1216,27 @@ class MainHubScreen(Screen):
             hist_card.add_widget(log_container)
         box.add_widget(hist_card)
 
-        logout_btn = Button(text="LOGOUT / SWITCH NODE", size_hint_y=None, height='42dp', background_normal='', background_color=(0.35, 0.12, 0.18, 1), color=(1, 0.6, 0.7, 1), bold=True)
+        logout_btn = Button(text="LOGOUT / SWITCH NODE", size_hint_y=None, height='42dp', background_normal='', background_color=(0.35, 0.12, 0.12, 1), color=(1, 0.6, 0.6, 1), bold=True)
         logout_btn.bind(on_press=self.do_logout)
         box.add_widget(logout_btn)
 
         scroll.add_widget(box)
         self.content_area.add_widget(scroll)
+
+    def open_whitepaper_popup(self, instance):
+        scroll = ScrollView(do_scroll_x=False)
+        lbl = Label(text=WHITEPAPER_ROADMAP, font_size='11sp', color=(0.90, 0.90, 0.90, 1), size_hint_y=None, padding=[10, 10])
+        lbl.bind(texture_size=lambda inst, val: setattr(lbl, 'height', val[1]))
+        scroll.add_widget(lbl)
+
+        box = BoxLayout(orientation='vertical', padding=[14, 10, 14, 10], spacing=8)
+        box.add_widget(scroll)
+        close_btn = Button(text="Close Roadmap", size_hint_y=0.14, background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), bold=True)
+        box.add_widget(close_btn)
+
+        popup = Popup(title="Barat Core Protocol Whitepaper", content=box, size_hint=(0.92, 0.78))
+        close_btn.bind(on_press=popup.dismiss)
+        popup.open()
 
     def claim_task_reward(self, task_id, reward_amount):
         data = load_data()
@@ -1260,7 +1301,7 @@ class MainHubScreen(Screen):
                     self.pill_timer.text = "24:00:00"
                 self.mine_btn.disabled = False
                 self.mine_btn.text = "START MINING SESSION"
-                self.mine_btn.background_color = (0.75, 0.50, 0.95, 1)
+                self.mine_btn.background_color = (0.90, 0.58, 0.08, 1)
             else:
                 rem = int(cooldown - elapsed)
                 hrs = rem // 3600
@@ -1272,7 +1313,7 @@ class MainHubScreen(Screen):
                     self.pill_timer.text = time_str
                 self.mine_btn.disabled = True
                 self.mine_btn.text = f"SESSION RUNNING ({time_str})"
-                self.mine_btn.background_color = (0.20, 0.14, 0.28, 1)
+                self.mine_btn.background_color = (0.18, 0.15, 0.12, 1)
 
     def start_mining(self, instance):
         now = get_server_time()
@@ -1292,7 +1333,6 @@ class MainHubScreen(Screen):
             data["is_mining_active"] = True
             data["block_height"] = data.get("block_height", 1) + 1
 
-            # Check and update 7-day streak
             last_streak = data.get("last_streak_time", 0)
             if (now - last_streak) <= (48 * 3600) and last_streak > 0:
                 streak = (data.get("mining_streak", 1) % 7) + 1
@@ -1316,7 +1356,7 @@ class MainHubScreen(Screen):
         cur_mined = get_current_live_mined(data)
 
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=12)
-        box.add_widget(Label(text="BARAT -> SOLANA MAIN BRIDGE", font_size='14sp', bold=True, color=(0.85, 0.65, 1, 1), size_hint_y=0.12))
+        box.add_widget(Label(text="BARAT -> SOLANA MAIN BRIDGE", font_size='14sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=0.12))
         
         addr_input = SeamlessInput(hint_text="Paste Solana Wallet Address", size_hint_y=0.18)
         amount_input = SeamlessInput(hint_text="BARAT Amount (Min 50)", input_filter='float', size_hint_y=0.18)
@@ -1324,8 +1364,8 @@ class MainHubScreen(Screen):
         box.add_widget(amount_input)
 
         btn_box = BoxLayout(spacing=10, size_hint_y=0.16)
-        submit_btn = Button(text="Confirm Bridge", background_normal='', background_color=(0.75, 0.50, 0.95, 1), color=(0.05, 0.05, 0.05, 1), bold=True)
-        cancel_btn = Button(text="Cancel", background_normal='', background_color=(0.20, 0.16, 0.24, 1))
+        submit_btn = Button(text="Confirm Bridge", background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), bold=True)
+        cancel_btn = Button(text="Cancel", background_normal='', background_color=(0.20, 0.16, 0.14, 1))
         btn_box.add_widget(submit_btn)
         btn_box.add_widget(cancel_btn)
         box.add_widget(btn_box)
@@ -1366,7 +1406,7 @@ class MainHubScreen(Screen):
 
 class BaratCoreApp(App):
     def build(self):
-        Window.clearcolor = (0.05, 0.04, 0.07, 1.0)
+        Window.clearcolor = (0.04, 0.04, 0.05, 1.0)
         try:
             if os.path.exists(LOGO_FILE):
                 self.icon = LOGO_FILE
