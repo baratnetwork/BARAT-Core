@@ -23,7 +23,11 @@ from kivy.graphics import Color, RoundedRectangle, Line
 from kivy.resources import resource_find, resource_add_path
 from kivy.utils import platform
 
-Window.softinput_mode = "pan"
+# కీబోర్డ్ పైకి ఎగిరిపోకుండా విండోను కరెక్ట్‌గా రీసైజ్ చేసే మోడ్
+try:
+    Window.softinput_mode = "resize"
+except Exception:
+    pass
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 resource_add_path(BASE_DIR)
@@ -251,8 +255,9 @@ class ModernCard(BoxLayout):
         self.rect_border.rounded_rectangle = (self.x, self.y, self.width, self.height, self.radius[0])
 
 class ModernInput(TextInput):
-    def __init__(self, **kwargs):
+    def __init__(self, scroll_parent=None, **kwargs):
         super().__init__(**kwargs)
+        self.scroll_parent = scroll_parent
         self.background_normal = ''
         self.background_active = ''
         self.background_color = (0.13, 0.18, 0.26, 1)
@@ -260,11 +265,16 @@ class ModernInput(TextInput):
         self.cursor_color = (0.05, 0.88, 0.55, 1)
         self.padding = [14, 12, 14, 12]
         self.font_size = '13.5sp'
+        self.bind(focus=self.on_focus)
+
+    def on_focus(self, instance, value):
+        if value and self.scroll_parent:
+            Clock.schedule_once(lambda dt: self.scroll_parent.scroll_to(self, padding=20), 0.1)
 
 class PasswordField(BoxLayout):
-    def __init__(self, hint_text="Password", **kwargs):
+    def __init__(self, hint_text="Password", scroll_parent=None, **kwargs):
         super().__init__(orientation='horizontal', spacing=6, **kwargs)
-        self.input = ModernInput(hint_text=hint_text, password=True, multiline=False, size_hint_x=0.78)
+        self.input = ModernInput(hint_text=hint_text, password=True, multiline=False, size_hint_x=0.78, scroll_parent=scroll_parent)
         self.add_widget(self.input)
 
         self.eye_btn = Button(
@@ -432,46 +442,45 @@ class RegisterScreen(Screen):
         self.num1 = random.randint(5, 20)
         self.num2 = random.randint(2, 9)
 
-        scroll = ScrollView(do_scroll_x=False, do_scroll_y=True)
-        root = BoxLayout(orientation='vertical', padding=[20, 15, 20, 30], spacing=12, size_hint_y=None)
+        self.scroll = ScrollView(do_scroll_x=False, do_scroll_y=True)
+        root = BoxLayout(orientation='vertical', padding=[20, 15, 20, 15], spacing=10, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
 
         root.add_widget(Label(text="CREATE BARAT NODE ACCOUNT", font_size='16sp', bold=True, color=(0.05, 0.88, 0.55, 1), size_hint_y=None, height='35dp'))
 
-        self.email_input = ModernInput(hint_text="Valid Gmail Address (@gmail.com)", multiline=False, size_hint_y=None, height='48dp')
+        self.email_input = ModernInput(hint_text="Valid Gmail Address (@gmail.com)", multiline=False, size_hint_y=None, height='46dp', scroll_parent=self.scroll)
         root.add_widget(self.email_input)
 
-        self.pass_field = PasswordField(hint_text="Strong Password (8+ chars)", size_hint_y=None, height='48dp')
+        self.pass_field = PasswordField(hint_text="Strong Password (8+ chars)", size_hint_y=None, height='46dp', scroll_parent=self.scroll)
         root.add_widget(self.pass_field)
 
-        self.confirm_pass_field = PasswordField(hint_text="Confirm Password", size_hint_y=None, height='48dp')
+        self.confirm_pass_field = PasswordField(hint_text="Confirm Password", size_hint_y=None, height='46dp', scroll_parent=self.scroll)
         root.add_widget(self.confirm_pass_field)
 
-        self.invite_input = ModernInput(hint_text="Invitation Code (Optional)", multiline=False, size_hint_y=None, height='48dp')
+        self.invite_input = ModernInput(hint_text="Invitation Code (Optional)", multiline=False, size_hint_y=None, height='46dp', scroll_parent=self.scroll)
         root.add_widget(self.invite_input)
 
-        captcha_card = ModernCard(size_hint_y=None, height='44dp', padding=[10, 4, 10, 4])
+        captcha_card = ModernCard(size_hint_y=None, height='42dp', padding=[10, 4, 10, 4])
         self.captcha_lbl = Label(text=f"Verification: {self.num1} + {self.num2} = ?", font_size='13sp', color=(1.0, 0.84, 0.24, 1), bold=True)
         captcha_card.add_widget(self.captcha_lbl)
         root.add_widget(captcha_card)
 
-        self.captcha_input = ModernInput(hint_text="Enter Math Answer", multiline=False, input_filter='int', size_hint_y=None, height='48dp')
+        self.captcha_input = ModernInput(hint_text="Enter Math Answer", multiline=False, input_filter='int', size_hint_y=None, height='46dp', scroll_parent=self.scroll)
         root.add_widget(self.captcha_input)
 
-        self.msg = Label(text="", font_size='11sp', color=(1, 0.38, 0.38, 1), size_hint_y=None, height='28dp')
+        self.msg = Label(text="", font_size='11sp', color=(1, 0.38, 0.38, 1), size_hint_y=None, height='26dp')
         root.add_widget(self.msg)
 
-        reg_btn = Button(text="Register & Start Mining", background_normal='', background_color=(0.05, 0.72, 0.42, 1), bold=True, size_hint_y=None, height='50dp')
+        reg_btn = Button(text="Register & Start Mining", background_normal='', background_color=(0.05, 0.72, 0.42, 1), bold=True, size_hint_y=None, height='48dp')
         reg_btn.bind(on_press=self.do_register)
         root.add_widget(reg_btn)
 
-        back_btn = Button(text="Back to Options", background_normal='', background_color=(0.28, 0.22, 0.26, 1), size_hint_y=None, height='42dp')
+        back_btn = Button(text="Back to Options", background_normal='', background_color=(0.28, 0.22, 0.26, 1), size_hint_y=None, height='40dp')
         back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'auth_choice'))
         root.add_widget(back_btn)
 
-        root.add_widget(Label(text="", size_hint_y=None, height='140dp'))
-        scroll.add_widget(root)
-        self.add_widget(scroll)
+        self.scroll.add_widget(root)
+        self.add_widget(self.scroll)
 
     def on_pre_enter(self):
         self.email_input.text = ""
@@ -481,6 +490,7 @@ class RegisterScreen(Screen):
         self.captcha_input.text = ""
         self.msg.text = ""
         self.refresh_captcha()
+        self.scroll.scroll_y = 1.0
 
     def refresh_captcha(self):
         self.num1 = random.randint(5, 20)
@@ -542,34 +552,34 @@ class LoginScreen(Screen):
         self.num2 = random.randint(2, 9)
         self.generated_otp = None
 
-        scroll = ScrollView(do_scroll_x=False, do_scroll_y=True)
-        root = BoxLayout(orientation='vertical', padding=[20, 15, 20, 30], spacing=12, size_hint_y=None)
+        self.scroll = ScrollView(do_scroll_x=False, do_scroll_y=True)
+        root = BoxLayout(orientation='vertical', padding=[20, 15, 20, 15], spacing=10, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
 
         root.add_widget(Label(text="BARAT NODE LOGIN", font_size='16sp', bold=True, color=(0.2, 0.68, 1, 1), size_hint_y=None, height='35dp'))
 
-        self.ident_input = ModernInput(hint_text="Registered User ID or Gmail", multiline=False, size_hint_y=None, height='48dp')
+        self.ident_input = ModernInput(hint_text="Registered User ID or Gmail", multiline=False, size_hint_y=None, height='46dp', scroll_parent=self.scroll)
         root.add_widget(self.ident_input)
 
-        self.pass_field = PasswordField(hint_text="Password", size_hint_y=None, height='48dp')
+        self.pass_field = PasswordField(hint_text="Password", size_hint_y=None, height='46dp', scroll_parent=self.scroll)
         root.add_widget(self.pass_field)
 
-        captcha_card = ModernCard(size_hint_y=None, height='44dp', padding=[10, 4, 10, 4])
+        captcha_card = ModernCard(size_hint_y=None, height='42dp', padding=[10, 4, 10, 4])
         self.captcha_lbl = Label(text=f"Verification: {self.num1} + {self.num2} = ?", font_size='13sp', color=(1.0, 0.84, 0.24, 1), bold=True)
         captcha_card.add_widget(self.captcha_lbl)
         root.add_widget(captcha_card)
 
-        self.captcha_input = ModernInput(hint_text="Enter Math Answer", multiline=False, input_filter='int', size_hint_y=None, height='48dp')
+        self.captcha_input = ModernInput(hint_text="Enter Math Answer", multiline=False, input_filter='int', size_hint_y=None, height='46dp', scroll_parent=self.scroll)
         root.add_widget(self.captcha_input)
 
-        self.msg = Label(text="", font_size='11sp', color=(1, 0.38, 0.38, 1), size_hint_y=None, height='28dp')
+        self.msg = Label(text="", font_size='11sp', color=(1, 0.38, 0.38, 1), size_hint_y=None, height='26dp')
         root.add_widget(self.msg)
 
-        self.login_btn = Button(text="Secure Login", background_normal='', background_color=(0.16, 0.52, 0.88, 1), bold=True, size_hint_y=None, height='50dp')
+        self.login_btn = Button(text="Secure Login", background_normal='', background_color=(0.16, 0.52, 0.88, 1), bold=True, size_hint_y=None, height='48dp')
         self.login_btn.bind(on_press=self.do_login)
         root.add_widget(self.login_btn)
 
-        forgot_btn = Button(text="Forgot Password?", size_hint_y=None, height='38dp', background_normal='', background_color=(0.2, 0.26, 0.36, 1), font_size='11.5sp')
+        forgot_btn = Button(text="Forgot Password?", size_hint_y=None, height='36dp', background_normal='', background_color=(0.2, 0.26, 0.36, 1), font_size='11.5sp')
         forgot_btn.bind(on_press=self.open_forgot_password_popup)
         root.add_widget(forgot_btn)
 
@@ -577,9 +587,8 @@ class LoginScreen(Screen):
         back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'auth_choice'))
         root.add_widget(back_btn)
 
-        root.add_widget(Label(text="", size_hint_y=None, height='140dp'))
-        scroll.add_widget(root)
-        self.add_widget(scroll)
+        self.scroll.add_widget(root)
+        self.add_widget(self.scroll)
 
     def on_pre_enter(self):
         self.ident_input.text = ""
@@ -587,6 +596,7 @@ class LoginScreen(Screen):
         self.captcha_input.text = ""
         self.msg.text = ""
         self.refresh_captcha()
+        self.scroll.scroll_y = 1.0
 
     def refresh_captcha(self):
         self.num1 = random.randint(5, 20)
@@ -772,7 +782,6 @@ class MainHubScreen(Screen):
         root.add_widget(nav_bar)
         self.add_widget(root)
 
-        # 1 సెకనుకు ఒకసారి లైవ్ కౌంటర్ మరియు టైమర్ అప్‌డేట్
         Clock.schedule_interval(self.timer_tick, 1.0)
 
     def on_enter(self):
@@ -927,14 +936,12 @@ class MainHubScreen(Screen):
         cooldown = CYCLE_HOURS * 3600
         elapsed = now - last_cycle
 
-        # మైనింగ్ ఆన్‌లో ఉన్నప్పుడు లైవ్‌గా రన్ అయ్యే కాయిన్స్ కౌంటర్
         if hasattr(self, 'live_bal_lbl'):
             cur_bal = get_current_live_mined(data)
             self.live_bal_lbl.text = f"{cur_bal:.5f} $BARAT"
 
         if hasattr(self, 'timer_lbl') and hasattr(self, 'mine_btn'):
             if not is_active or elapsed >= cooldown:
-                # 24 గంటలు పూర్తయిన తర్వాత కాయిన్స్ సేవ్ చేయడం
                 if is_active and elapsed >= cooldown:
                     cur_bal = get_current_live_mined(data)
                     data["base_mined"] = cur_bal
