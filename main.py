@@ -83,6 +83,8 @@ def load_data():
         "block_height": 3,
         "last_cycle": 0,
         "proof_hash": "ECO_GENESIS_PROOF_00000000",
+        "kyc_status": "Not Verified (Slot Opens at 5 Cycles)",
+        "kyc_doc_name": "",
         "bridge_transactions": []
     }
 
@@ -97,7 +99,7 @@ def save_data(data):
 class LandingScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        root = BoxLayout(orientation='vertical', padding=[20, 25, 20, 25], spacing=10)
+        root = BoxLayout(orientation='vertical', padding=[20, 20, 20, 20], spacing=10)
 
         try:
             logo = Image(source=LOGO_FILE, size_hint_y=0.45, allow_stretch=True, keep_ratio=True)
@@ -150,7 +152,7 @@ class LandingScreen(Screen):
         else:
             self.manager.current = "main"
 
-# 2. సురక్షిత అథెంటికేషన్ స్క్రీన్
+# 2. అథెంటికేషన్ స్క్రీన్
 class AuthScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -158,7 +160,7 @@ class AuthScreen(Screen):
         self.num2 = random.randint(2, 9)
 
         root = BoxLayout(orientation='vertical', padding=[24, 20, 24, 15], spacing=8)
-        root.add_widget(Label(text="BARAT NODE SECURITY", font_size='18sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.08))
+        root.add_widget(Label(text="BARAT NODE SECURITY", font_size='18sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.09))
 
         self.user_input = TextInput(hint_text="Username (e.g. barat_node1)", multiline=False, size_hint_y=0.1, padding=[10, 10])
         root.add_widget(self.user_input)
@@ -238,7 +240,7 @@ class AuthScreen(Screen):
         self.manager.current = "main"
 
     def do_login(self, instance):
-        email = self.email_input.text.strip()
+        ident = self.user_input.text.strip() or self.email_input.text.strip()
         pwd = self.pass_input.text.strip()
 
         if not self.verify_captcha():
@@ -247,46 +249,46 @@ class AuthScreen(Screen):
             return
 
         data = load_data()
-        if (data.get("email") == email or data.get("username") == email) and data.get("password") == pwd:
+        if (data.get("email") == ident or data.get("username") == ident) and data.get("password") == pwd:
             self.manager.current = "main"
         else:
-            self.msg.text = "Invalid credentials!"
+            self.msg.text = "Invalid credentials! Check username/email and password."
             self.refresh_captcha()
 
-    # Forgot Password & OTP రీసెట్ పాప్-అప్
+    # పర్ఫెక్ట్ స్పేసింగ్‌తో పరిష్కరించబడిన Forgot Password పాప్‌అప్
     def open_forgot_popup(self, instance):
         data = load_data()
         reg_email = data.get("email", "")
 
-        box = BoxLayout(orientation='vertical', padding=15, spacing=8)
-        box.add_widget(Label(text="PASSWORD RESET VIA SECURE OTP", font_size='14sp', bold=True, color=(0.2, 0.9, 0.5, 1)))
+        box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
+        box.add_widget(Label(text="PASSWORD RESET VIA SECURE OTP", font_size='13sp', bold=True, color=(0.2, 0.9, 0.5, 1), size_hint_y=0.12))
 
-        email_box = TextInput(hint_text="Enter Registered Email", multiline=False, size_hint_y=None, height=40)
+        email_box = TextInput(hint_text="Registered Email", multiline=False, size_hint_y=0.15, padding=[8, 8])
         if reg_email:
             email_box.text = reg_email
         box.add_widget(email_box)
 
         generated_otp = str(random.randint(100000, 999999))
-        otp_display = Label(text=f"[Mock Secure Gateway] OTP Sent: {generated_otp}", font_size='11sp', color=(1, 0.85, 0.3, 1), size_hint_y=None, height=20)
+        otp_display = Label(text=f"[Demo OTP Sent]: {generated_otp}", font_size='11sp', color=(1, 0.85, 0.3, 1), size_hint_y=0.10)
         box.add_widget(otp_display)
 
-        otp_input = TextInput(hint_text="Enter 6-Digit OTP", multiline=False, input_filter='int', size_hint_y=None, height=40)
+        otp_input = TextInput(hint_text="Enter 6-Digit OTP", multiline=False, input_filter='int', size_hint_y=0.15, padding=[8, 8])
         box.add_widget(otp_input)
 
-        new_pass_input = TextInput(hint_text="Enter New Password (Min 6 chars)", password=True, multiline=False, size_hint_y=None, height=40)
+        new_pass_input = TextInput(hint_text="Enter New Password (Min 6 chars)", password=True, multiline=False, size_hint_y=0.15, padding=[8, 8])
         box.add_widget(new_pass_input)
 
-        msg_lbl = Label(text="", font_size='11sp', color=(1, 0.3, 0.3, 1), size_hint_y=None, height=20)
+        msg_lbl = Label(text="", font_size='11sp', color=(1, 0.3, 0.3, 1), size_hint_y=0.08)
         box.add_widget(msg_lbl)
 
-        btn_box = BoxLayout(spacing=10, size_hint_y=None, height=40)
+        btn_box = BoxLayout(spacing=10, size_hint_y=0.15)
         reset_btn = Button(text="Reset Password", background_color=(0.1, 0.6, 0.35, 1), bold=True)
         close_btn = Button(text="Cancel", background_color=(0.4, 0.2, 0.2, 1))
         btn_box.add_widget(reset_btn)
         btn_box.add_widget(close_btn)
         box.add_widget(btn_box)
 
-        popup = Popup(title="Account Recovery Gateway", content=box, size_hint=(0.88, 0.65), auto_dismiss=False)
+        popup = Popup(title="Account Recovery Gateway", content=box, size_hint=(0.90, 0.58), auto_dismiss=False)
 
         def do_reset(btn):
             if email_box.text.strip() != reg_email or not reg_email:
@@ -309,16 +311,16 @@ class AuthScreen(Screen):
         close_btn.bind(on_press=popup.dismiss)
         popup.open()
 
-# 3. మెయిన్ మైనింగ్ టెర్మినల్ & డ్యాష్‌బోర్డ్
+# 3. మెయిన్ మైనింగ్ టెర్మినల్
 class MainScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        root = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=6)
+        root = BoxLayout(orientation='vertical', padding=[16, 10, 16, 10], spacing=5)
 
-        # టాప్ బార్: ప్రొఫైల్ మరియు నోడ్ టైటిల్
+        # టాప్ బార్: ప్రొఫైల్ & KYC స్టేటస్ బటన్
         top_bar = BoxLayout(size_hint_y=0.07)
-        top_bar.add_widget(Label(text="BARAT CORE: RESEARCH NODE", font_size='14sp', bold=True, color=(0.2, 0.9, 0.5, 1)))
-        profile_btn = Button(text="Profile / Key", size_hint_x=0.35, background_color=(0.15, 0.45, 0.65, 1), font_size='11sp', bold=True)
+        top_bar.add_widget(Label(text="BARAT CORE: RESEARCH NODE", font_size='13sp', bold=True, color=(0.2, 0.9, 0.5, 1)))
+        profile_btn = Button(text="Profile & KYC", size_hint_x=0.38, background_color=(0.15, 0.45, 0.65, 1), font_size='11sp', bold=True)
         profile_btn.bind(on_press=self.open_profile_popup)
         top_bar.add_widget(profile_btn)
         root.add_widget(top_bar)
@@ -330,14 +332,14 @@ class MainScreen(Screen):
             pass
 
         # Balances
-        bal_box = BoxLayout(size_hint_y=0.12)
-        self.mined_bal_lbl = Label(text="Mined: 0.00", font_size='16sp', bold=True, color=(0.95, 0.95, 0.95, 1))
-        self.wallet_bal_lbl = Label(text="Wallet: 0.00", font_size='16sp', bold=True, color=(0.1, 0.9, 0.5, 1))
+        bal_box = BoxLayout(size_hint_y=0.11)
+        self.mined_bal_lbl = Label(text="Mined: 0.00", font_size='15sp', bold=True, color=(0.95, 0.95, 0.95, 1))
+        self.wallet_bal_lbl = Label(text="Wallet: 0.00", font_size='15sp', bold=True, color=(0.1, 0.9, 0.5, 1))
         bal_box.add_widget(self.mined_bal_lbl)
         bal_box.add_widget(self.wallet_bal_lbl)
         root.add_widget(bal_box)
 
-        self.claim_wallet_btn = Button(text="Transfer Mined to Wallet", size_hint_y=0.07, background_color=(0.15, 0.5, 0.35, 1), font_size='13sp')
+        self.claim_wallet_btn = Button(text="Transfer Mined to Wallet", size_hint_y=0.07, background_color=(0.15, 0.5, 0.35, 1), font_size='12sp')
         self.claim_wallet_btn.bind(on_press=self.claim_to_wallet)
         root.add_widget(self.claim_wallet_btn)
 
@@ -353,11 +355,11 @@ class MainScreen(Screen):
         self.timer_lbl = Label(text="Engine: Ready", font_size='11sp', size_hint_y=0.05)
         root.add_widget(self.timer_lbl)
 
-        self.mine_btn = Button(text="Solve Puzzle & Mine Block", size_hint_y=0.09, background_color=(0.1, 0.65, 0.35, 1), font_size='14sp', bold=True)
+        self.mine_btn = Button(text="Solve Puzzle & Mine Block", size_hint_y=0.09, background_color=(0.1, 0.65, 0.35, 1), font_size='13sp', bold=True)
         self.mine_btn.bind(on_press=self.start_mining)
         root.add_widget(self.mine_btn)
 
-        self.sol_btn = Button(text="Sync With Solana Bridge", size_hint_y=0.08, background_color=(0.5, 0.2, 0.7, 1), font_size='13sp', bold=True)
+        self.sol_btn = Button(text="Sync With Solana Bridge", size_hint_y=0.08, background_color=(0.5, 0.2, 0.7, 1), font_size='12sp', bold=True)
         self.sol_btn.bind(on_press=self.open_solana_bridge_popup)
         root.add_widget(self.sol_btn)
 
@@ -394,7 +396,7 @@ class MainScreen(Screen):
         data["balance"] = 0.0
         save_data(data)
         self.refresh_dashboard()
-        self.status_msg.text = f"Successfully transferred {mined:.2f} BARAT to Wallet!"
+        self.status_msg.text = f"Transferred {mined:.2f} BARAT to Wallet!"
 
     def calculate_reward(self, total_mined):
         phase = int(total_mined // HALVING_INTERVAL) + 1
@@ -455,7 +457,7 @@ class MainScreen(Screen):
         self.refresh_dashboard()
         self.update_timer(0)
 
-    # పాస్‌వర్డ్ ద్వారా రక్షించబడిన ప్రొఫైల్ & 12-పదాల కీ వాల్ట్
+    # పర్ఫెక్ట్ స్పేసింగ్‌తో ప్రొఫైల్ & KYC వాల్ట్
     def open_profile_popup(self, instance):
         data = load_data()
         uname = data.get("username", "NodeUser")
@@ -463,84 +465,107 @@ class MainScreen(Screen):
         cycles = data.get("completed_cycles", 0)
         phrase = data.get("wallet_phrase", "")
         real_pass = data.get("password", "")
+        kyc_status = data.get("kyc_status", "Not Verified")
 
-        box = BoxLayout(orientation='vertical', padding=15, spacing=8)
-        box.add_widget(Label(text="USER NODE PROFILE & VAULT", font_size='15sp', bold=True, color=(0.1, 0.9, 0.5, 1)))
-        box.add_widget(Label(text=f"Username: @{uname}\nEmail: {email}\nCycles Completed: {cycles}", font_size='11sp', color=(0.85, 0.85, 0.85, 1), halign="center"))
+        box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=7)
+        box.add_widget(Label(text="USER NODE PROFILE & KYC VAULT", font_size='14sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.10))
 
-        box.add_widget(Label(text="Secret 12-Word Passphrase (Protected):", font_size='11sp', color=(0.95, 0.8, 0.2, 1)))
+        details = f"Username: @{uname}  |  Cycles: {cycles}\nEmail: {email}"
+        box.add_widget(Label(text=details, font_size='11sp', color=(0.85, 0.85, 0.85, 1), halign="center", size_hint_y=0.12))
 
-        phrase_display = TextInput(text="•••• •••• •••• •••• •••• ••••", readonly=True, multiline=True, size_hint_y=None, height=50, padding=[8, 8], background_color=(0.12, 0.14, 0.16, 1), foreground_color=(0.2, 0.9, 0.5, 1))
+        # KYC Status Display & Action
+        kyc_lbl = Label(text=f"KYC Verification: {kyc_status}", font_size='11sp', color=(1, 0.8, 0.2, 1), size_hint_y=0.08)
+        box.add_widget(kyc_lbl)
+
+        kyc_btn = Button(text="Submit KYC Documents", size_hint_y=0.11, background_color=(0.2, 0.4, 0.6, 1), font_size='11sp')
+        box.add_widget(kyc_btn)
+
+        box.add_widget(Label(text="12-Word Passphrase (Protected):", font_size='11sp', color=(0.95, 0.8, 0.2, 1), size_hint_y=0.08))
+
+        phrase_display = TextInput(text="•••• •••• •••• •••• •••• ••••", readonly=True, multiline=True, size_hint_y=0.15, padding=[6, 6], background_color=(0.12, 0.14, 0.16, 1), foreground_color=(0.2, 0.9, 0.5, 1))
         box.add_widget(phrase_display)
 
-        pass_verify = TextInput(hint_text="Enter Login Password to Unmask Key", password=True, multiline=False, size_hint_y=None, height=40, padding=[8, 8])
+        pass_verify = TextInput(hint_text="Enter Password to Unmask Key", password=True, multiline=False, size_hint_y=0.12, padding=[6, 6])
         box.add_widget(pass_verify)
 
-        msg_lbl = Label(text="", font_size='11sp', color=(1, 0.3, 0.3, 1), size_hint_y=None, height=20)
+        msg_lbl = Label(text="", font_size='10sp', color=(1, 0.3, 0.3, 1), size_hint_y=0.08)
         box.add_widget(msg_lbl)
 
-        btn_box = BoxLayout(spacing=10, size_hint_y=None, height=40)
+        btn_box = BoxLayout(spacing=10, size_hint_y=0.14)
         reveal_btn = Button(text="Reveal Key", background_color=(0.2, 0.5, 0.7, 1), bold=True)
         close_btn = Button(text="Close", background_color=(0.4, 0.2, 0.2, 1))
         btn_box.add_widget(reveal_btn)
         btn_box.add_widget(close_btn)
         box.add_widget(btn_box)
 
-        popup = Popup(title="Decentralized Identity Vault", content=box, size_hint=(0.88, 0.65), auto_dismiss=False)
+        popup = Popup(title="Node Identity Center", content=box, size_hint=(0.92, 0.68), auto_dismiss=False)
+
+        def do_kyc(btn):
+            if cycles < MIN_CYCLES_REQUIRED:
+                msg_lbl.color = (1, 0.3, 0.3, 1)
+                msg_lbl.text = f"KYC Slot Locked! Minimum {MIN_CYCLES_REQUIRED} cycles required."
+            else:
+                data["kyc_status"] = "Verified Human Node (Level 1)"
+                save_data(data)
+                kyc_lbl.text = "KYC Verification: Verified Human Node (Level 1)"
+                kyc_lbl.color = (0.2, 0.9, 0.5, 1)
+                msg_lbl.color = (0.2, 0.9, 0.5, 1)
+                msg_lbl.text = "KYC Verified successfully!"
 
         def do_reveal(btn):
             if pass_verify.text.strip() == real_pass and real_pass != "":
                 phrase_display.text = phrase
                 msg_lbl.color = (0.2, 0.9, 0.5, 1)
-                msg_lbl.text = "Key Unlocked! Auto-locks when closed."
+                msg_lbl.text = "Key Unlocked!"
             else:
                 msg_lbl.color = (1, 0.3, 0.3, 1)
-                msg_lbl.text = "Incorrect password! Access denied."
+                msg_lbl.text = "Incorrect password! Try again."
 
+        kyc_btn.bind(on_press=do_kyc)
         reveal_btn.bind(on_press=do_reveal)
         close_btn.bind(on_press=popup.dismiss)
         popup.open()
 
-    # రీ-డిజైన్ చేయబడిన సొలానా బ్రిడ్జ్ పాప్-అప్
+    # పర్ఫెక్ట్ స్పేసింగ్‌తో సొలానా బ్రిడ్జ్ పాప్‌అప్
     def open_solana_bridge_popup(self, instance):
         data = load_data()
         wallet_bal = data.get("wallet_balance", 0.0)
         cycles = data.get("completed_cycles", 0)
 
-        box = BoxLayout(orientation='vertical', padding=[16, 16, 16, 16], spacing=10)
+        box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
 
-        box.add_widget(Label(text="BARAT -> SOLANA MAIN BRIDGE", font_size='15sp', bold=True, color=(0.6, 0.3, 0.9, 1), size_hint_y=None, height=25))
+        box.add_widget(Label(text="BARAT -> SOLANA MAIN BRIDGE", font_size='14sp', bold=True, color=(0.6, 0.3, 0.9, 1), size_hint_y=0.12))
         
-        info_text = f"Available: {wallet_bal:.2f} BARAT | Cycles: {cycles}/{MIN_CYCLES_REQUIRED}"
-        box.add_widget(Label(text=info_text, font_size='12sp', color=(0.85, 0.85, 0.85, 1), size_hint_y=None, height=20))
+        info_text = f"Available: {wallet_bal:.2f} BARAT  |  Cycles: {cycles}/{MIN_CYCLES_REQUIRED}"
+        box.add_widget(Label(text=info_text, font_size='12sp', color=(0.85, 0.85, 0.85, 1), size_hint_y=0.10))
 
-        addr_input = TextInput(hint_text="Paste Solana Wallet (Phantom) Address", multiline=False, size_hint_y=None, height=45, padding=[8, 12])
+        addr_input = TextInput(hint_text="Paste Solana Wallet (Phantom) Address", multiline=False, size_hint_y=0.16, padding=[8, 8])
         box.add_widget(addr_input)
 
-        amount_input = TextInput(hint_text="Enter BARAT Amount to Bridge", multiline=False, input_filter='float', size_hint_y=None, height=45, padding=[8, 12])
+        amount_input = TextInput(hint_text="Enter BARAT Amount to Bridge", multiline=False, input_filter='float', size_hint_y=0.16, padding=[8, 8])
         box.add_widget(amount_input)
 
-        fee_label = Label(text="Bridge Gas Fee: 2% (Auto-deducted to Founder)", font_size='11sp', color=(0.95, 0.8, 0.2, 1), size_hint_y=None, height=20)
+        fee_label = Label(text="Bridge Gas Fee: 2% (Auto-routed to Founder)", font_size='10sp', color=(0.95, 0.8, 0.2, 1), size_hint_y=0.08)
         box.add_widget(fee_label)
 
-        popup_msg = Label(text="", font_size='11sp', color=(1, 0.3, 0.3, 1), size_hint_y=None, height=25)
+        popup_msg = Label(text="", font_size='11sp', color=(1, 0.3, 0.3, 1), size_hint_y=0.08)
         box.add_widget(popup_msg)
 
-        btn_box = BoxLayout(spacing=12, size_hint_y=None, height=45)
+        btn_box = BoxLayout(spacing=10, size_hint_y=0.16)
         submit_btn = Button(text="Confirm Bridge", background_color=(0.5, 0.2, 0.7, 1), bold=True)
         cancel_btn = Button(text="Cancel", background_color=(0.4, 0.2, 0.2, 1))
         btn_box.add_widget(submit_btn)
         btn_box.add_widget(cancel_btn)
         box.add_widget(btn_box)
 
-        popup = Popup(title="Decentralized Solana Gateway", content=box, size_hint=(0.90, 0.72), auto_dismiss=False)
+        popup = Popup(title="Decentralized Solana Gateway", content=box, size_hint=(0.90, 0.58), auto_dismiss=False)
 
         def execute_bridge(btn):
             sol_addr = addr_input.text.strip()
             amt_text = amount_input.text.strip()
 
             if cycles < MIN_CYCLES_REQUIRED:
-                popup_msg.text = f"Eligibility Error: Need {MIN_CYCLES_REQUIRED} Cycles! ({cycles} done)"
+                popup_msg.text = f"Need {MIN_CYCLES_REQUIRED} Cycles! ({cycles} done)"
                 return
 
             try:
@@ -595,6 +620,7 @@ class MainScreen(Screen):
 class BaratCoreApp(App):
     def build(self):
         Window.clearcolor = (0.04, 0.05, 0.06, 1.0)
+        self.icon = LOGO_FILE  # యాప్ ఐకాన్ సెట్ చేయబడింది
         sm = ScreenManager()
 
         sm.add_widget(LandingScreen(name="landing"))
