@@ -64,19 +64,12 @@ CANCER_TARGETS = [
     "BRCA1-DNA-Repair-Fold-Alpha"
 ]
 
-WORD_DICTIONARY = [
-    "alpha", "bravo", "cancer", "decode", "energy", "future", 
-    "genome", "health", "immune", "jupiter", "kinase", "logic", 
-    "matrix", "neural", "oxygen", "protein", "quantum", "repair", 
-    "solana", "target", "ultra", "vector", "wallet", "xenon"
-]
-
 CONSOLE_LOGS = [
-    "[BARAT NETWORK] Executing oncological conformational docking...",
-    "[VALIDATOR] SHA-256 state matching target difficulty...",
-    "[CONSENSUS] Anti-cheat device node signature verified.",
+    "[BARAT NETWORK] Processing oncological conformational docking...",
+    "[VALIDATOR] Cryptographic hash matches target difficulty...",
+    "[CONSENSUS] Anti-cheat node signature verified.",
     "[SECURITY] Proof-of-Intelligence accepted into ledger.",
-    "[BARAT NETWORK] Zero thermal throttling throttle verified.",
+    "[BARAT NETWORK] Zero battery degradation verified.",
     "[LIFELONG] Perpetual computing yield cycle running."
 ]
 
@@ -301,7 +294,7 @@ def get_current_live_mined(data):
     return current_accrued
 
 class AmberCard(BoxLayout):
-    def __init__(self, bg_color=(0.06, 0.06, 0.08, 0.98), border_color=(0.95, 0.65, 0.12, 0.55), radius=[16], border_width=1.0, **kwargs):
+    def __init__(self, bg_color=(0.07, 0.07, 0.09, 0.98), border_color=(0.95, 0.65, 0.12, 0.55), radius=[18], border_width=1.2, **kwargs):
         super().__init__(**kwargs)
         self.bg_color = bg_color
         self.border_color = border_color
@@ -326,7 +319,7 @@ class SeamlessInput(BoxLayout):
         
         self.input = TextInput(
             hint_text=hint_text,
-            hint_text_color=(0.60, 0.55, 0.45, 0.8),
+            hint_text_color=(0.65, 0.60, 0.50, 0.8),
             password=password,
             input_filter=input_filter,
             multiline=False,
@@ -335,16 +328,16 @@ class SeamlessInput(BoxLayout):
             background_color=(0, 0, 0, 0),
             foreground_color=(1, 1, 1, 1),
             cursor_color=(0.95, 0.65, 0.12, 1),
-            padding=[6, 8, 6, 8],
-            font_size='14sp',
+            padding=[8, 10, 8, 10],
+            font_size='15sp',
             size_hint_y=0.88
         )
         self.input.bind(focus=self.on_input_focus)
         self.add_widget(self.input)
 
         with self.canvas.after:
-            self.line_color = Color(0.95, 0.65, 0.12, 0.35)
-            self.line = Line(points=[self.x + 4, self.y + 2, self.x + self.width - 4, self.y + 2], width=1.1)
+            self.line_color = Color(0.95, 0.65, 0.12, 0.4)
+            self.line = Line(points=[self.x + 4, self.y + 2, self.x + self.width - 4, self.y + 2], width=1.3)
         self.bind(pos=self._update_line, size=self._update_line)
 
     def _update_line(self, *args):
@@ -356,7 +349,7 @@ class SeamlessInput(BoxLayout):
             if self.scroll_parent:
                 Clock.schedule_once(lambda dt: self.scroll_parent.scroll_to(self, padding=25), 0.1)
         else:
-            self.line_color.rgba = (0.95, 0.65, 0.12, 0.35)
+            self.line_color.rgba = (0.95, 0.65, 0.12, 0.4)
 
     @property
     def text(self):
@@ -373,7 +366,7 @@ class SeamlessPasswordField(BoxLayout):
 
         self.input = TextInput(
             hint_text=hint_text,
-            hint_text_color=(0.60, 0.55, 0.45, 0.8),
+            hint_text_color=(0.65, 0.60, 0.50, 0.8),
             password=True,
             multiline=False,
             background_normal='',
@@ -381,28 +374,28 @@ class SeamlessPasswordField(BoxLayout):
             background_color=(0, 0, 0, 0),
             foreground_color=(1, 1, 1, 1),
             cursor_color=(0.95, 0.65, 0.12, 1),
-            padding=[6, 8, 6, 8],
-            font_size='14sp',
-            size_hint_x=0.78
+            padding=[8, 10, 8, 10],
+            font_size='15sp',
+            size_hint_x=0.76
         )
         self.input.bind(focus=self.on_input_focus)
         self.add_widget(self.input)
 
         self.eye_btn = Button(
             text="SHOW",
-            size_hint_x=0.22,
+            size_hint_x=0.24,
             background_normal='',
             background_color=(0, 0, 0, 0),
             color=(0.95, 0.70, 0.20, 0.9),
-            font_size='11sp',
+            font_size='12sp',
             bold=True
         )
         self.eye_btn.bind(on_press=self.toggle_visibility)
         self.add_widget(self.eye_btn)
 
         with self.canvas.after:
-            self.line_color = Color(0.95, 0.65, 0.12, 0.35)
-            self.line = Line(points=[self.x + 4, self.y + 2, self.x + self.width - 4, self.y + 2], width=1.1)
+            self.line_color = Color(0.95, 0.65, 0.12, 0.4)
+            self.line = Line(points=[self.x + 4, self.y + 2, self.x + self.width - 4, self.y + 2], width=1.3)
         self.bind(pos=self._update_line, size=self._update_line)
 
     def _update_line(self, *args):
@@ -414,7 +407,7 @@ class SeamlessPasswordField(BoxLayout):
             if self.scroll_parent:
                 Clock.schedule_once(lambda dt: self.scroll_parent.scroll_to(self, padding=25), 0.1)
         else:
-            self.line_color.rgba = (0.95, 0.65, 0.12, 0.35)
+            self.line_color.rgba = (0.95, 0.65, 0.12, 0.4)
 
     def toggle_visibility(self, instance):
         if self.input.password:
@@ -440,54 +433,103 @@ class GlowingCircleButton(Button):
         self.background_normal = ''
         self.background_color = (0, 0, 0, 0)
         with self.canvas.before:
-            self.glow_color = Color(0.95, 0.65, 0.12, 0.28)
-            self.glow_circle = Ellipse(pos=(self.x - 6, self.y - 6), size=(self.width + 12, self.height + 12))
+            self.glow_color = Color(0.95, 0.65, 0.12, 0.30)
+            self.glow_circle = Ellipse(pos=(self.x - 8, self.y - 8), size=(self.width + 16, self.height + 16))
             self.outer_ring = Color(0.95, 0.75, 0.25, 0.9)
-            self.outer_line = Line(ellipse=(self.x, self.y, self.width, self.height), width=2.4)
+            self.outer_line = Line(ellipse=(self.x, self.y, self.width, self.height), width=2.6)
             self.inner_color = Color(0.90, 0.58, 0.08, 1)
-            self.inner_circle = Ellipse(pos=(self.x + 3, self.y + 3), size=(self.width - 6, self.height - 6))
+            self.inner_circle = Ellipse(pos=(self.x + 4, self.y + 4), size=(self.width - 8, self.height - 8))
         self.bind(pos=self._update_canvas, size=self._update_canvas)
 
     def _update_canvas(self, *args):
-        self.glow_circle.pos = (self.x - 6, self.y - 6)
-        self.glow_circle.size = (self.width + 12, self.height + 12)
+        self.glow_circle.pos = (self.x - 8, self.y - 8)
+        self.glow_circle.size = (self.width + 16, self.height + 16)
         self.outer_line.ellipse = (self.x, self.y, self.width, self.height)
-        self.inner_circle.pos = (self.x + 3, self.y + 3)
-        self.inner_circle.size = (self.width - 6, self.height - 6)
+        self.inner_circle.pos = (self.x + 4, self.y + 4)
+        self.inner_circle.size = (self.width - 8, self.height - 8)
+
+# Grand Circular Mining Button with Barat Logo & Amber Glow Dial
+class GrandMiningDial(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(orientation='vertical', **kwargs)
+        self.size_hint = (None, None)
+        self.size = ('165dp', '165dp')
+        self.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
+
+        with self.canvas.before:
+            self.pulse_color = Color(0.95, 0.65, 0.12, 0.22)
+            self.pulse_circle = Ellipse(pos=(self.x - 10, self.y - 10), size=(self.width + 20, self.height + 20))
+            self.ring_color = Color(0.95, 0.75, 0.25, 0.85)
+            self.ring_line = Line(ellipse=(self.x, self.y, self.width, self.height), width=2.8)
+            self.bg_circle_color = Color(0.06, 0.05, 0.08, 0.95)
+            self.bg_circle = Ellipse(pos=(self.x + 3, self.y + 3), size=(self.width - 6, self.height - 6))
+
+        self.bind(pos=self._update_canvas, size=self._update_canvas)
+
+        # Internal Content Stack
+        inner = BoxLayout(orientation='vertical', padding=[8, 10, 8, 10], spacing=2)
+        
+        try:
+            if os.path.exists(LOGO_FILE):
+                self.logo_img = Image(source=LOGO_FILE, size_hint_y=0.48, allow_stretch=True, keep_ratio=True)
+                inner.add_widget(self.logo_img)
+            else:
+                inner.add_widget(Label(text="BARAT", font_size='18sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=0.45))
+        except Exception:
+            inner.add_widget(Label(text="BARAT", font_size='18sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=0.45))
+
+        self.action_btn = Button(
+            text="START MINING",
+            size_hint_y=0.52,
+            background_normal='',
+            background_color=(0.90, 0.58, 0.08, 1),
+            color=(0.05, 0.05, 0.05, 1),
+            font_size='13sp',
+            bold=True
+        )
+        inner.add_widget(self.action_btn)
+        self.add_widget(inner)
+
+    def _update_canvas(self, *args):
+        self.pulse_circle.pos = (self.x - 10, self.y - 10)
+        self.pulse_circle.size = (self.width + 20, self.height + 20)
+        self.ring_line.ellipse = (self.x, self.y, self.width, self.height)
+        self.bg_circle.pos = (self.x + 3, self.y + 3)
+        self.bg_circle.size = (self.width - 6, self.height - 6)
 
 class LandingScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        root = BoxLayout(orientation='vertical', padding=[20, 16, 20, 18], spacing=6)
+        root = BoxLayout(orientation='vertical', padding=[20, 16, 20, 18], spacing=8)
 
         try:
             if os.path.exists(LOGO_FILE):
-                logo = Image(source=LOGO_FILE, size_hint_y=0.28, allow_stretch=True, keep_ratio=True)
+                logo = Image(source=LOGO_FILE, size_hint_y=0.30, allow_stretch=True, keep_ratio=True)
                 root.add_widget(logo)
             else:
-                root.add_widget(Label(text="BARAT NETWORK", font_size='24sp', bold=True, color=(0.95, 0.65, 0.12, 1), size_hint_y=0.25))
+                root.add_widget(Label(text="BARAT NETWORK", font_size='26sp', bold=True, color=(0.95, 0.65, 0.12, 1), size_hint_y=0.28))
         except Exception:
-            root.add_widget(Label(text="BARAT NETWORK", font_size='24sp', bold=True, color=(0.95, 0.65, 0.12, 1), size_hint_y=0.25))
+            root.add_widget(Label(text="BARAT NETWORK", font_size='26sp', bold=True, color=(0.95, 0.65, 0.12, 1), size_hint_y=0.28))
 
         root.add_widget(Label(
             text="BARAT NETWORK PROTOCOL",
-            font_size='18sp',
+            font_size='20sp',
             bold=True,
             halign="center",
             color=(1, 1, 1, 1),
-            size_hint_y=0.06
+            size_hint_y=0.07
         ))
 
         root.add_widget(Label(
             text="Decentralized Proof-of-Intelligence Network",
-            font_size='11.5sp',
+            font_size='13sp',
             bold=True,
             halign="center",
             color=(0.95, 0.68, 0.15, 1),
-            size_hint_y=0.04
+            size_hint_y=0.05
         ))
 
-        narrative_box = BoxLayout(orientation='vertical', size_hint_y=0.32, spacing=4)
+        narrative_box = BoxLayout(orientation='vertical', size_hint_y=0.30, spacing=4)
         desc = (
             "A verified and transparent decentralized consensus architecture.\n"
             "Your node processes real molecular cancer research models\n"
@@ -498,23 +540,23 @@ class LandingScreen(Screen):
         )
         narrative_lbl = Label(
             text=desc,
-            font_size='11sp',
+            font_size='12sp',
             halign="center",
-            color=(0.85, 0.85, 0.85, 1),
+            color=(0.90, 0.90, 0.90, 1),
             size_hint_y=1.0
         )
         narrative_lbl.bind(size=narrative_lbl.setter('text_size'))
         narrative_box.add_widget(narrative_lbl)
         root.add_widget(narrative_box)
 
-        btn_box = BoxLayout(orientation='vertical', size_hint_y=0.30, padding=[0, 8, 0, 4])
+        btn_box = BoxLayout(orientation='vertical', size_hint_y=0.28, padding=[0, 6, 0, 4])
         self.start_btn = GlowingCircleButton(
             text="START",
-            font_size='18sp',
+            font_size='20sp',
             bold=True,
             color=(0.08, 0.05, 0.02, 1),
             size_hint=(None, None),
-            size=('115dp', '115dp'),
+            size=('120dp', '120dp'),
             pos_hint={'center_x': 0.5, 'center_y': 0.5}
         )
         self.start_btn.bind(on_press=self.go_next)
@@ -536,38 +578,38 @@ class LandingScreen(Screen):
 class AuthChoiceScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        root = BoxLayout(orientation='vertical', padding=[24, 28, 24, 28], spacing=16)
+        root = BoxLayout(orientation='vertical', padding=[24, 28, 24, 28], spacing=18)
 
         try:
             if os.path.exists(LOGO_FILE):
-                root.add_widget(Image(source=LOGO_FILE, size_hint_y=0.35, allow_stretch=True, keep_ratio=True))
+                root.add_widget(Image(source=LOGO_FILE, size_hint_y=0.36, allow_stretch=True, keep_ratio=True))
             else:
-                root.add_widget(Label(text="BARAT NETWORK", font_size='20sp', bold=True, color=(0.95, 0.65, 0.12, 1), size_hint_y=0.25))
+                root.add_widget(Label(text="BARAT NETWORK", font_size='24sp', bold=True, color=(0.95, 0.65, 0.12, 1), size_hint_y=0.28))
         except Exception:
             pass
 
-        info_card = AmberCard(orientation='vertical', size_hint_y=0.22, padding=[12, 10, 12, 10], spacing=4)
+        info_card = AmberCard(orientation='vertical', size_hint_y=0.24, padding=[14, 12, 14, 12], spacing=5)
         info_card.add_widget(Label(
             text="WELCOME TO BARAT NETWORK",
-            font_size='15sp',
+            font_size='17sp',
             bold=True,
             color=(0.95, 0.75, 0.20, 1)
         ))
         info_card.add_widget(Label(
             text="Decentralized Quantum Intelligence Node.\nSelect an access option to continue:",
-            font_size='11.5sp',
+            font_size='13sp',
             halign='center',
-            color=(0.80, 0.80, 0.80, 1)
+            color=(0.85, 0.85, 0.85, 1)
         ))
         root.add_widget(info_card)
 
         reg_btn = Button(
             text="CREATE NEW ACCOUNT",
-            size_hint_y=0.13,
+            size_hint_y=0.14,
             background_normal='',
             background_color=(0.90, 0.58, 0.08, 1),
             color=(0.05, 0.05, 0.05, 1),
-            font_size='13sp',
+            font_size='14.5sp',
             bold=True
         )
         reg_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'register'))
@@ -575,17 +617,17 @@ class AuthChoiceScreen(Screen):
 
         login_btn = Button(
             text="EXISTING ACCOUNT LOGIN",
-            size_hint_y=0.13,
+            size_hint_y=0.14,
             background_normal='',
             background_color=(0.18, 0.15, 0.12, 1),
             color=(0.95, 0.75, 0.25, 1),
-            font_size='13sp',
+            font_size='14.5sp',
             bold=True
         )
         login_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'login'))
         root.add_widget(login_btn)
 
-        root.add_widget(Label(text="", size_hint_y=0.12))
+        root.add_widget(Label(text="", size_hint_y=0.10))
         self.add_widget(root)
 
 class RegisterScreen(Screen):
@@ -598,36 +640,36 @@ class RegisterScreen(Screen):
         root = BoxLayout(orientation='vertical', padding=[24, 20, 24, 25], spacing=16, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
 
-        root.add_widget(Label(text="CREATE NODE ACCOUNT", font_size='16sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=None, height='35dp'))
+        root.add_widget(Label(text="CREATE NODE ACCOUNT", font_size='18sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=None, height='40dp'))
 
-        self.email_input = SeamlessInput(hint_text="Gmail Address (@gmail.com)", size_hint_y=None, height='45dp', scroll_parent=self.scroll)
+        self.email_input = SeamlessInput(hint_text="Gmail Address (@gmail.com)", size_hint_y=None, height='48dp', scroll_parent=self.scroll)
         root.add_widget(self.email_input)
 
-        self.pass_field = SeamlessPasswordField(hint_text="Strong Password (8+ chars)", size_hint_y=None, height='45dp', scroll_parent=self.scroll)
+        self.pass_field = SeamlessPasswordField(hint_text="Strong Password (8+ chars)", size_hint_y=None, height='48dp', scroll_parent=self.scroll)
         root.add_widget(self.pass_field)
 
-        self.confirm_pass_field = SeamlessPasswordField(hint_text="Confirm Password", size_hint_y=None, height='45dp', scroll_parent=self.scroll)
+        self.confirm_pass_field = SeamlessPasswordField(hint_text="Confirm Password", size_hint_y=None, height='48dp', scroll_parent=self.scroll)
         root.add_widget(self.confirm_pass_field)
 
-        self.invite_input = SeamlessInput(hint_text="Invitation Code (Optional)", size_hint_y=None, height='45dp', scroll_parent=self.scroll)
+        self.invite_input = SeamlessInput(hint_text="Invitation Code (Optional)", size_hint_y=None, height='48dp', scroll_parent=self.scroll)
         root.add_widget(self.invite_input)
 
-        captcha_card = AmberCard(size_hint_y=None, height='40dp', padding=[12, 4, 12, 4], radius=[12])
-        self.captcha_lbl = Label(text=f"Human Verification: {self.num1} + {self.num2} = ?", font_size='12.5sp', color=(0.95, 0.75, 0.25, 1), bold=True)
+        captcha_card = AmberCard(size_hint_y=None, height='44dp', padding=[12, 4, 12, 4], radius=[12])
+        self.captcha_lbl = Label(text=f"Human Verification: {self.num1} + {self.num2} = ?", font_size='13.5sp', color=(0.95, 0.75, 0.25, 1), bold=True)
         captcha_card.add_widget(self.captcha_lbl)
         root.add_widget(captcha_card)
 
-        self.captcha_input = SeamlessInput(hint_text="Enter Math Answer", input_filter='int', size_hint_y=None, height='45dp', scroll_parent=self.scroll)
+        self.captcha_input = SeamlessInput(hint_text="Enter Math Answer", input_filter='int', size_hint_y=None, height='48dp', scroll_parent=self.scroll)
         root.add_widget(self.captcha_input)
 
-        self.msg = Label(text="", font_size='11sp', color=(1, 0.38, 0.38, 1), size_hint_y=None, height='24dp')
+        self.msg = Label(text="", font_size='12sp', color=(1, 0.38, 0.38, 1), size_hint_y=None, height='26dp')
         root.add_widget(self.msg)
 
-        reg_btn = Button(text="Register & Start Mining", background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), bold=True, size_hint_y=None, height='48dp')
+        reg_btn = Button(text="Register & Start Mining", background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), bold=True, font_size='14sp', size_hint_y=None, height='50dp')
         reg_btn.bind(on_press=self.do_register)
         root.add_widget(reg_btn)
 
-        back_btn = Button(text="Back to Options", background_normal='', background_color=(0.20, 0.16, 0.14, 1), color=(0.9, 0.8, 0.7, 1), size_hint_y=None, height='40dp')
+        back_btn = Button(text="Back to Options", background_normal='', background_color=(0.20, 0.16, 0.14, 1), color=(0.9, 0.8, 0.7, 1), font_size='13sp', size_hint_y=None, height='42dp')
         back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'auth_choice'))
         root.add_widget(back_btn)
 
@@ -704,34 +746,34 @@ class LoginScreen(Screen):
         root = BoxLayout(orientation='vertical', padding=[24, 20, 24, 25], spacing=16, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
 
-        root.add_widget(Label(text="BARAT NETWORK LOGIN", font_size='16sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=None, height='35dp'))
+        root.add_widget(Label(text="BARAT NETWORK LOGIN", font_size='18sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=None, height='40dp'))
 
-        self.ident_input = SeamlessInput(hint_text="Registered User ID or Gmail", size_hint_y=None, height='45dp', scroll_parent=self.scroll)
+        self.ident_input = SeamlessInput(hint_text="Registered User ID or Gmail", size_hint_y=None, height='48dp', scroll_parent=self.scroll)
         root.add_widget(self.ident_input)
 
-        self.pass_field = SeamlessPasswordField(hint_text="Password", size_hint_y=None, height='45dp', scroll_parent=self.scroll)
+        self.pass_field = SeamlessPasswordField(hint_text="Password", size_hint_y=None, height='48dp', scroll_parent=self.scroll)
         root.add_widget(self.pass_field)
 
-        captcha_card = AmberCard(size_hint_y=None, height='40dp', padding=[12, 4, 12, 4], radius=[12])
-        self.captcha_lbl = Label(text=f"Human Verification: {self.num1} + {self.num2} = ?", font_size='12.5sp', color=(0.95, 0.75, 0.25, 1), bold=True)
+        captcha_card = AmberCard(size_hint_y=None, height='44dp', padding=[12, 4, 12, 4], radius=[12])
+        self.captcha_lbl = Label(text=f"Human Verification: {self.num1} + {self.num2} = ?", font_size='13.5sp', color=(0.95, 0.75, 0.25, 1), bold=True)
         captcha_card.add_widget(self.captcha_lbl)
         root.add_widget(captcha_card)
 
-        self.captcha_input = SeamlessInput(hint_text="Enter Math Answer", input_filter='int', size_hint_y=None, height='45dp', scroll_parent=self.scroll)
+        self.captcha_input = SeamlessInput(hint_text="Enter Math Answer", input_filter='int', size_hint_y=None, height='48dp', scroll_parent=self.scroll)
         root.add_widget(self.captcha_input)
 
-        self.msg = Label(text="", font_size='11sp', color=(1, 0.38, 0.38, 1), size_hint_y=None, height='24dp')
+        self.msg = Label(text="", font_size='12sp', color=(1, 0.38, 0.38, 1), size_hint_y=None, height='26dp')
         root.add_widget(self.msg)
 
-        self.login_btn = Button(text="Secure Login", background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), bold=True, size_hint_y=None, height='48dp')
+        self.login_btn = Button(text="Secure Login", background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), bold=True, font_size='14sp', size_hint_y=None, height='50dp')
         self.login_btn.bind(on_press=self.do_login)
         root.add_widget(self.login_btn)
 
-        forgot_btn = Button(text="Forgot Password?", size_hint_y=None, height='36dp', background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='11.5sp')
+        forgot_btn = Button(text="Forgot Password?", size_hint_y=None, height='38dp', background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='12.5sp')
         forgot_btn.bind(on_press=self.open_forgot_password_popup)
         root.add_widget(forgot_btn)
 
-        back_btn = Button(text="Back to Options", background_normal='', background_color=(0.20, 0.16, 0.14, 1), color=(0.9, 0.8, 0.7, 1), size_hint_y=None, height='40dp')
+        back_btn = Button(text="Back to Options", background_normal='', background_color=(0.20, 0.16, 0.14, 1), color=(0.9, 0.8, 0.7, 1), font_size='13sp', size_hint_y=None, height='42dp')
         back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'auth_choice'))
         root.add_widget(back_btn)
 
@@ -833,7 +875,7 @@ class LoginScreen(Screen):
 
     def open_forgot_password_popup(self, instance):
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=12)
-        box.add_widget(Label(text="PASSWORD RECOVERY", font_size='14sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=0.15))
+        box.add_widget(Label(text="PASSWORD RECOVERY", font_size='15sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=0.15))
 
         email_in = SeamlessInput(hint_text="Registered Gmail ID", size_hint_y=0.18)
         box.add_widget(email_in)
@@ -844,13 +886,13 @@ class LoginScreen(Screen):
         new_pwd_field = SeamlessPasswordField(hint_text="New Strong Password (8+ chars)", size_hint_y=0.18)
         box.add_widget(new_pwd_field)
 
-        status_lbl = Label(text="", font_size='11sp', color=(1, 0.4, 0.4, 1), size_hint_y=0.1)
+        status_lbl = Label(text="", font_size='12sp', color=(1, 0.4, 0.4, 1), size_hint_y=0.1)
         box.add_widget(status_lbl)
 
         btn_box = BoxLayout(spacing=8, size_hint_y=0.21)
-        send_otp_btn = Button(text="Send OTP", background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='11sp')
-        reset_btn = Button(text="Reset", background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), font_size='11sp', bold=True)
-        close_btn = Button(text="Close", background_normal='', background_color=(0.20, 0.16, 0.14, 1), font_size='11sp')
+        send_otp_btn = Button(text="Send OTP", background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='12sp')
+        reset_btn = Button(text="Reset", background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), font_size='12sp', bold=True)
+        close_btn = Button(text="Close", background_normal='', background_color=(0.20, 0.16, 0.14, 1), font_size='12sp')
         btn_box.add_widget(send_otp_btn)
         btn_box.add_widget(reset_btn)
         btn_box.add_widget(close_btn)
@@ -902,31 +944,31 @@ class MainHubScreen(Screen):
 
         root = BoxLayout(orientation='vertical')
 
-        top_header = AmberCard(size_hint_y=0.075, padding=[12, 6, 12, 6])
-        top_header.add_widget(Label(text="BaratNetwork", font_size='15sp', bold=True, color=(1, 1, 1, 1)))
-        badge = AmberCard(size_hint_x=0.45, padding=[6, 2, 6, 2], bg_color=(0.14, 0.12, 0.08, 1), border_color=(0.95, 0.65, 0.12, 0.6), radius=[12])
-        badge.add_widget(Label(text="Node Verified", font_size='11sp', color=(0.95, 0.75, 0.25, 1), bold=True))
+        top_header = AmberCard(size_hint_y=0.08, padding=[14, 6, 14, 6])
+        top_header.add_widget(Label(text="BaratNetwork", font_size='17sp', bold=True, color=(1, 1, 1, 1), halign='left'))
+        badge = AmberCard(size_hint_x=0.42, padding=[8, 2, 8, 2], bg_color=(0.14, 0.12, 0.08, 1), border_color=(0.95, 0.65, 0.12, 0.6), radius=[12])
+        badge.add_widget(Label(text="Node Verified", font_size='12sp', color=(0.95, 0.75, 0.25, 1), bold=True))
         top_header.add_widget(badge)
         root.add_widget(top_header)
 
-        self.content_area = BoxLayout(orientation='vertical', padding=[14, 6, 14, 6], spacing=6, size_hint_y=0.835)
+        self.content_area = BoxLayout(orientation='vertical', padding=[12, 4, 12, 4], spacing=6, size_hint_y=0.83)
         root.add_widget(self.content_area)
 
         nav_bar = AmberCard(size_hint_y=0.09, padding=[4, 4, 4, 4], spacing=4)
 
-        self.tab_home_btn = Button(text="Home", background_normal='', background_color=(0.18, 0.14, 0.08, 1), color=(0.95, 0.75, 0.25, 1), font_size='11.5sp', bold=True)
+        self.tab_home_btn = Button(text="Home", background_normal='', background_color=(0.18, 0.14, 0.08, 1), color=(0.95, 0.75, 0.25, 1), font_size='12.5sp', bold=True)
         self.tab_home_btn.bind(on_press=lambda x: self.switch_tab("home"))
         nav_bar.add_widget(self.tab_home_btn)
 
-        self.tab_team_btn = Button(text="Team", background_normal='', background_color=(0.08, 0.08, 0.10, 1), color=(0.65, 0.65, 0.65, 1), font_size='11.5sp')
+        self.tab_team_btn = Button(text="Team", background_normal='', background_color=(0.08, 0.08, 0.10, 1), color=(0.65, 0.65, 0.65, 1), font_size='12.5sp')
         self.tab_team_btn.bind(on_press=lambda x: self.switch_tab("team"))
         nav_bar.add_widget(self.tab_team_btn)
 
-        self.tab_task_btn = Button(text="Task", background_normal='', background_color=(0.08, 0.08, 0.10, 1), color=(0.65, 0.65, 0.65, 1), font_size='11.5sp')
+        self.tab_task_btn = Button(text="Task", background_normal='', background_color=(0.08, 0.08, 0.10, 1), color=(0.65, 0.65, 0.65, 1), font_size='12.5sp')
         self.tab_task_btn.bind(on_press=lambda x: self.switch_tab("task"))
         nav_bar.add_widget(self.tab_task_btn)
 
-        self.tab_me_btn = Button(text="Me", background_normal='', background_color=(0.08, 0.08, 0.10, 1), color=(0.65, 0.65, 0.65, 1), font_size='11.5sp')
+        self.tab_me_btn = Button(text="Me", background_normal='', background_color=(0.08, 0.08, 0.10, 1), color=(0.65, 0.65, 0.65, 1), font_size='12.5sp')
         self.tab_me_btn.bind(on_press=lambda x: self.switch_tab("me"))
         nav_bar.add_widget(self.tab_me_btn)
 
@@ -995,6 +1037,7 @@ class MainHubScreen(Screen):
         elif self.active_tab == "me":
             self.render_me_tab(data)
 
+    # 1. HOME TAB (Features Logo-Centric Grand Mining Dial & Bold Fit)
     def render_home_tab(self, data):
         scroll = ScrollView(do_scroll_x=False)
         box = BoxLayout(orientation='vertical', spacing=8, size_hint_y=None)
@@ -1002,29 +1045,31 @@ class MainHubScreen(Screen):
 
         cur_mined = get_current_live_mined(data)
 
+        # 1A. Streak Card
         streak = data.get("mining_streak", 1)
-        streak_card = AmberCard(size_hint_y=None, height='42dp', padding=[12, 4, 12, 4], radius=[12])
-        streak_card.add_widget(Label(text=f"🔥 7-Day Mining Streak: Day {streak}/7", font_size='11.5sp', bold=True, color=(1.0, 0.85, 0.4, 1), halign='left'))
-        streak_card.add_widget(Label(text=f"+{(streak*0.02):.2f}x Streak Bonus", font_size='11sp', color=(0.95, 0.75, 0.25, 1), halign='right'))
+        streak_card = AmberCard(size_hint_y=None, height='44dp', padding=[14, 4, 14, 4], radius=[12])
+        streak_card.add_widget(Label(text=f"🔥 7-Day Mining Streak: Day {streak}/7", font_size='13sp', bold=True, color=(1.0, 0.85, 0.4, 1), halign='left'))
+        streak_card.add_widget(Label(text=f"+{(streak*0.02):.2f}x Streak Bonus", font_size='12sp', color=(0.95, 0.75, 0.25, 1), halign='right'))
         box.add_widget(streak_card)
 
-        user_card = AmberCard(orientation='vertical', size_hint_y=None, height='120dp', padding=[14, 10, 14, 10], spacing=4)
-        user_card.add_widget(Label(text="TOTAL ACCRUED BALANCE", font_size='11sp', color=(0.75, 0.75, 0.75, 1)))
-        self.live_bal_lbl = Label(text=f"{cur_mined:.4f} BARAT", font_size='26sp', bold=True, color=(1, 1, 1, 1))
+        # 1B. Total Balance Hero Card (Bold & Big)
+        user_card = AmberCard(orientation='vertical', size_hint_y=None, height='125dp', padding=[14, 8, 14, 8], spacing=4)
+        user_card.add_widget(Label(text="TOTAL ACCRUED BALANCE", font_size='13sp', bold=True, color=(0.80, 0.80, 0.80, 1)))
+        self.live_bal_lbl = Label(text=f"{cur_mined:.4f} BARAT", font_size='30sp', bold=True, color=(1, 1, 1, 1))
         user_card.add_widget(self.live_bal_lbl)
 
         mult = data.get("mining_speed_multiplier", 1.0)
         team_count = len(data.get("team_members", []))
-        badge_row = BoxLayout(spacing=6, size_hint_y=0.35)
+        badge_row = BoxLayout(spacing=6, size_hint_y=0.34)
         
         b1 = AmberCard(bg_color=(0.14, 0.12, 0.08, 1), border_color=(0.85, 0.55, 0.08, 0.5), radius=[10])
-        b1.add_widget(Label(text=f"Boost: {mult:.2f}x", font_size='10.5sp', color=(0.95, 0.75, 0.25, 1), bold=True))
+        b1.add_widget(Label(text=f"Boost: {mult:.2f}x", font_size='12sp', color=(0.95, 0.75, 0.25, 1), bold=True))
         
         b2 = AmberCard(bg_color=(0.14, 0.12, 0.08, 1), border_color=(0.85, 0.55, 0.08, 0.5), radius=[10])
-        b2.add_widget(Label(text=f"Team: {team_count}", font_size='10.5sp', color=(0.95, 0.75, 0.25, 1), bold=True))
+        b2.add_widget(Label(text=f"Team: {team_count}", font_size='12sp', color=(0.95, 0.75, 0.25, 1), bold=True))
         
         b3 = AmberCard(bg_color=(0.14, 0.12, 0.08, 1), border_color=(0.85, 0.55, 0.08, 0.5), radius=[10])
-        self.pill_timer = Label(text="24:00:00", font_size='10.5sp', color=(0.95, 0.75, 0.25, 1), bold=True)
+        self.pill_timer = Label(text="24:00:00", font_size='12sp', color=(0.95, 0.75, 0.25, 1), bold=True)
         b3.add_widget(self.pill_timer)
 
         badge_row.add_widget(b1)
@@ -1033,30 +1078,26 @@ class MainHubScreen(Screen):
         user_card.add_widget(badge_row)
         box.add_widget(user_card)
 
-        center_box = AmberCard(orientation='vertical', size_hint_y=None, height='125dp', padding=[14, 8, 14, 8], spacing=4)
-        center_box.add_widget(Label(text="Consensus Session Remaining", font_size='11sp', color=(0.70, 0.70, 0.70, 1)))
-        self.big_timer_lbl = Label(text="24:00:00", font_size='22sp', bold=True, color=(1, 1, 1, 1))
+        # 1C. HERO CENTERPIECE: Grand Circular Mining Dial with Barat Logo
+        center_box = AmberCard(orientation='vertical', size_hint_y=None, height='230dp', padding=[14, 8, 14, 8], spacing=6)
+        center_box.add_widget(Label(text="Consensus Computing Cycle", font_size='13sp', bold=True, color=(0.80, 0.80, 0.80, 1), size_hint_y=0.12))
+        
+        self.big_timer_lbl = Label(text="24:00:00", font_size='22sp', bold=True, color=(1, 1, 1, 1), size_hint_y=0.14)
         center_box.add_widget(self.big_timer_lbl)
 
-        self.mine_btn = Button(
-            text="START MINING SESSION",
-            size_hint_y=0.44,
-            background_normal='',
-            background_color=(0.90, 0.58, 0.08, 1),
-            color=(0.05, 0.05, 0.05, 1),
-            font_size='13sp',
-            bold=True
-        )
-        self.mine_btn.bind(on_press=self.start_mining)
-        center_box.add_widget(self.mine_btn)
+        # Large Circular Logo Dial
+        self.mining_dial = GrandMiningDial()
+        self.mining_dial.action_btn.bind(on_press=self.start_mining)
+        center_box.add_widget(self.mining_dial)
 
-        self.session_sub = Label(text="Compute State: Ready", font_size='10.5sp', color=(0.95, 0.75, 0.25, 1))
+        self.session_sub = Label(text="Compute State: Ready", font_size='12.5sp', color=(0.95, 0.75, 0.25, 1), size_hint_y=0.12)
         center_box.add_widget(self.session_sub)
         box.add_widget(center_box)
 
+        # 1D. Real Compute Terminal
         console_box = AmberCard(orientation='vertical', size_hint_y=None, height='85dp', padding=[12, 6, 12, 6], spacing=2)
-        console_box.add_widget(Label(text="BARAT NETWORK COMPUTING TERMINAL", font_size='11sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
-        self.console_lbl = Label(text=CONSOLE_LOGS[0], font_size='10sp', color=(0.80, 0.80, 0.80, 1), halign='center')
+        console_box.add_widget(Label(text="BARAT NETWORK COMPUTING TERMINAL", font_size='12sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
+        self.console_lbl = Label(text=CONSOLE_LOGS[0], font_size='11.5sp', color=(0.85, 0.85, 0.85, 1), halign='center')
         console_box.add_widget(self.console_lbl)
         box.add_widget(console_box)
 
@@ -1077,18 +1118,18 @@ class MainHubScreen(Screen):
             f"Activate +25% permanent mining speed boost!"
         )
 
-        invite_card = AmberCard(orientation='vertical', size_hint_y=None, height='210dp', padding=[14, 10, 14, 10], spacing=6)
-        invite_card.add_widget(Label(text="INVITE TEAM & EARN BOOST", font_size='13sp', bold=True, color=(1, 1, 1, 1)))
-        invite_card.add_widget(Label(text=f"Your Referral Code: {code}\nAPK Link & Network Details are embedded into share button.", font_size='11sp', color=(0.80, 0.80, 0.80, 1), halign='center'))
+        invite_card = AmberCard(orientation='vertical', size_hint_y=None, height='215dp', padding=[14, 10, 14, 10], spacing=8)
+        invite_card.add_widget(Label(text="INVITE TEAM & EARN BOOST", font_size='15sp', bold=True, color=(1, 1, 1, 1)))
+        invite_card.add_widget(Label(text=f"Your Referral Code: {code}\nAPK Link & Network Details are embedded into share button.", font_size='12sp', color=(0.85, 0.85, 0.85, 1), halign='center'))
 
         btn_row = BoxLayout(spacing=6, size_hint_y=0.34)
-        wa_btn = Button(text="WhatsApp", background_normal='', background_color=(0.12, 0.38, 0.22, 1), color=(0.4, 1, 0.6, 1), font_size='11sp', bold=True)
+        wa_btn = Button(text="WhatsApp", background_normal='', background_color=(0.12, 0.38, 0.22, 1), color=(0.4, 1, 0.6, 1), font_size='12sp', bold=True)
         wa_btn.bind(on_press=lambda x: share_to_social_apps(share_msg))
         
-        x_btn = Button(text="Post on X", background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='11sp')
+        x_btn = Button(text="Post on X", background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='12sp')
         x_btn.bind(on_press=lambda x: share_to_social_apps(share_msg))
         
-        tg_btn = Button(text="Telegram", background_normal='', background_color=(0.12, 0.24, 0.42, 1), color=(0.4, 0.8, 1, 1), font_size='11sp')
+        tg_btn = Button(text="Telegram", background_normal='', background_color=(0.12, 0.24, 0.42, 1), color=(0.4, 0.8, 1, 1), font_size='12sp')
         tg_btn.bind(on_press=lambda x: share_to_social_apps(share_msg))
 
         btn_row.add_widget(wa_btn)
@@ -1096,32 +1137,32 @@ class MainHubScreen(Screen):
         btn_row.add_widget(tg_btn)
         invite_card.add_widget(btn_row)
 
-        copy_invite_btn = Button(text="Copy Official Invite Link", size_hint_y=0.30, background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), font_size='11.5sp', bold=True)
+        copy_invite_btn = Button(text="Copy Official Invite Link", size_hint_y=0.30, background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), font_size='12.5sp', bold=True)
         copy_invite_btn.bind(on_press=lambda x: Clipboard.copy(share_msg))
         invite_card.add_widget(copy_invite_btn)
         box.add_widget(invite_card)
 
-        calc_card = AmberCard(orientation='vertical', size_hint_y=None, height='85dp', padding=[12, 6, 12, 6], spacing=2)
-        calc_card.add_widget(Label(text="MINING SPEED CALCULATOR", font_size='11sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
-        calc_card.add_widget(Label(text="Base Reward: 10.0 BARAT/day\n1 Node Active = +2.50 BARAT/day  |  4 Nodes Active = +10.0 BARAT/day", font_size='10.5sp', color=(0.85, 0.85, 0.85, 1), halign='center'))
+        calc_card = AmberCard(orientation='vertical', size_hint_y=None, height='90dp', padding=[12, 6, 12, 6], spacing=2)
+        calc_card.add_widget(Label(text="MINING SPEED CALCULATOR", font_size='13sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
+        calc_card.add_widget(Label(text="Base Reward: 10.0 BARAT/day\n1 Node Active = +2.50 BARAT/day  |  4 Nodes Active = +10.0 BARAT/day", font_size='12sp', color=(0.85, 0.85, 0.85, 1), halign='center'))
         box.add_widget(calc_card)
 
         members = data.get("team_members", [])
-        team_hdr = AmberCard(size_hint_y=None, height='45dp', padding=[12, 6, 12, 6])
-        team_hdr.add_widget(Label(text=f"Your Active Network ({len(members)} Verified Nodes)", font_size='12sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
+        team_hdr = AmberCard(size_hint_y=None, height='48dp', padding=[12, 6, 12, 6])
+        team_hdr.add_widget(Label(text=f"Your Active Network ({len(members)} Verified Nodes)", font_size='13.5sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
         box.add_widget(team_hdr)
 
         if not members:
             empty_card = AmberCard(size_hint_y=None, height='95dp', padding=[12, 8, 12, 8], orientation='vertical', spacing=4)
-            empty_card.add_widget(Label(text="No direct downstream nodes bound.\nShare your code to build your decentralized consensus cluster.", font_size='10.5sp', color=(0.70, 0.70, 0.70, 1), halign='center'))
-            ping_btn = Button(text="Ping Offline Members", size_hint_y=0.42, background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.85, 0.75, 0.25, 1), font_size='11sp')
+            empty_card.add_widget(Label(text="No direct downstream nodes bound.\nShare your code to build your decentralized consensus cluster.", font_size='12sp', color=(0.75, 0.75, 0.75, 1), halign='center'))
+            ping_btn = Button(text="Ping Offline Members", size_hint_y=0.42, background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.85, 0.75, 0.25, 1), font_size='12sp')
             empty_card.add_widget(ping_btn)
             box.add_widget(empty_card)
         else:
             for mem in members:
                 m_card = AmberCard(size_hint_y=None, height='48dp', padding=[10, 4, 10, 4])
-                m_card.add_widget(Label(text=f"{mem.get('email', 'node')} (Active)", font_size='11sp', color=(1, 1, 1, 1), halign='left'))
-                m_card.add_widget(Label(text="+25% Speed", font_size='11sp', color=(0.4, 0.9, 0.6, 1), halign='right'))
+                m_card.add_widget(Label(text=f"{mem.get('email', 'node')} (Active)", font_size='12sp', color=(1, 1, 1, 1), halign='left'))
+                m_card.add_widget(Label(text="+25% Speed", font_size='12sp', color=(0.4, 0.9, 0.6, 1), halign='right'))
                 box.add_widget(m_card)
 
         scroll.add_widget(box)
@@ -1134,9 +1175,9 @@ class MainHubScreen(Screen):
 
         completed_tasks = data.get("completed_tasks", [])
 
-        quiz_card = AmberCard(orientation='vertical', size_hint_y=None, height='140dp', padding=[12, 8, 12, 8], spacing=4)
-        quiz_card.add_widget(Label(text="DAILY ONCOLOGY PROTOCOL QUIZ (+0.50 BARAT)", font_size='11.5sp', bold=True, color=(1.0, 0.85, 0.4, 1)))
-        quiz_card.add_widget(Label(text="Q: What computing goal does Barat Network solve?\nA) Real Cancer Model Docking    B) Random Guessing", font_size='10.5sp', color=(0.85, 0.85, 0.85, 1), halign='center'))
+        quiz_card = AmberCard(orientation='vertical', size_hint_y=None, height='145dp', padding=[12, 8, 12, 8], spacing=5)
+        quiz_card.add_widget(Label(text="DAILY ONCOLOGY PROTOCOL QUIZ (+0.50 BARAT)", font_size='13sp', bold=True, color=(1.0, 0.85, 0.4, 1)))
+        quiz_card.add_widget(Label(text="Q: What computing goal does Barat Network solve?\nA) Real Cancer Model Docking    B) Random Guessing", font_size='12sp', color=(0.88, 0.88, 0.88, 1), halign='center'))
 
         today_str = time.strftime("%Y-%m-%d")
         quiz_btn = Button(
@@ -1145,7 +1186,7 @@ class MainHubScreen(Screen):
             background_normal='',
             background_color=(0.18, 0.15, 0.12, 1) if data.get("last_quiz_date") == today_str else (0.90, 0.58, 0.08, 1),
             color=(0.6, 0.6, 0.6, 1) if data.get("last_quiz_date") == today_str else (0.05, 0.05, 0.05, 1),
-            font_size='11.5sp',
+            font_size='12.5sp',
             bold=True
         )
         if data.get("last_quiz_date") != today_str:
@@ -1160,8 +1201,8 @@ class MainHubScreen(Screen):
         ]
 
         for tid, title, reward in bounties:
-            t_card = AmberCard(size_hint_y=None, height='50dp', padding=[12, 4, 12, 4])
-            t_card.add_widget(Label(text=f"{title}\nReward: +{reward:.1f} BARAT", font_size='10.5sp', color=(0.9, 0.9, 0.9, 1), halign='left'))
+            t_card = AmberCard(size_hint_y=None, height='52dp', padding=[12, 4, 12, 4])
+            t_card.add_widget(Label(text=f"{title}\nReward: +{reward:.1f} BARAT", font_size='12sp', color=(0.92, 0.92, 0.92, 1), halign='left'))
             
             is_done = tid in completed_tasks
             b_btn = Button(
@@ -1170,7 +1211,7 @@ class MainHubScreen(Screen):
                 background_normal='',
                 background_color=(0.18, 0.15, 0.12, 1) if is_done else (0.90, 0.58, 0.08, 1),
                 color=(0.6, 0.6, 0.6, 1) if is_done else (0.05, 0.05, 0.05, 1),
-                font_size='11sp',
+                font_size='12sp',
                 bold=True
             )
             if not is_done:
@@ -1179,8 +1220,8 @@ class MainHubScreen(Screen):
             box.add_widget(t_card)
 
         bridge_card = AmberCard(orientation='vertical', size_hint_y=None, height='95dp', padding=[12, 8, 12, 8], spacing=4)
-        bridge_card.add_widget(Label(text="SOLANA MAIN BRIDGE GATEWAY", font_size='12sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
-        bridge_btn = Button(text="Open Solana Bridge", size_hint_y=0.55, background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='11.5sp', bold=True)
+        bridge_card.add_widget(Label(text="SOLANA MAIN BRIDGE GATEWAY", font_size='13sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
+        bridge_btn = Button(text="Open Solana Bridge", size_hint_y=0.55, background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='12.5sp', bold=True)
         bridge_btn.bind(on_press=self.open_solana_bridge_popup)
         bridge_card.add_widget(bridge_btn)
         box.add_widget(bridge_card)
@@ -1196,52 +1237,52 @@ class MainHubScreen(Screen):
         user_mail = data.get("email", "node_miner@gmail.com")
         uid = data.get("user_id", "BARAT-NODE-000000")
         
-        u_card = AmberCard(size_hint_y=None, height='58dp', padding=[12, 6, 12, 6])
-        u_card.add_widget(Label(text=f"Node ID: {uid}\nEmail: {user_mail}", font_size='11sp', color=(0.95, 0.75, 0.25, 1), halign='left'))
-        copy_uid_btn = Button(text="Copy ID", size_hint_x=0.28, background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='11sp')
+        u_card = AmberCard(size_hint_y=None, height='60dp', padding=[12, 6, 12, 6])
+        u_card.add_widget(Label(text=f"Node ID: {uid}\nEmail: {user_mail}", font_size='12.5sp', color=(0.95, 0.75, 0.25, 1), halign='left'))
+        copy_uid_btn = Button(text="Copy ID", size_hint_x=0.28, background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='12sp')
         copy_uid_btn.bind(on_press=lambda x: Clipboard.copy(uid))
         u_card.add_widget(copy_uid_btn)
         box.add_widget(u_card)
 
         cur_mined = get_current_live_mined(data)
-        bal_hero = AmberCard(orientation='vertical', size_hint_y=None, height='90dp', padding=[12, 6, 12, 6], spacing=2)
-        bal_hero.add_widget(Label(text="Total Available Mined Assets", font_size='10.5sp', color=(0.75, 0.75, 0.75, 1)))
-        bal_hero.add_widget(Label(text=f"{cur_mined:.4f} BARAT", font_size='24sp', bold=True, color=(1, 1, 1, 1)))
-        bal_hero.add_widget(Label(text="SPL-Standard Compatible Token Balance", font_size='9.5sp', color=(0.65, 0.65, 0.65, 1)))
+        bal_hero = AmberCard(orientation='vertical', size_hint_y=None, height='95dp', padding=[12, 6, 12, 6], spacing=2)
+        bal_hero.add_widget(Label(text="Total Available Mined Assets", font_size='12sp', color=(0.80, 0.80, 0.80, 1)))
+        bal_hero.add_widget(Label(text=f"{cur_mined:.4f} BARAT", font_size='26sp', bold=True, color=(1, 1, 1, 1)))
+        bal_hero.add_widget(Label(text="SPL-Standard Compatible Token Balance", font_size='11sp', color=(0.70, 0.70, 0.70, 1)))
         box.add_widget(bal_hero)
 
-        action_row = BoxLayout(spacing=6, size_hint_y=None, height='42dp')
-        whitepaper_btn = Button(text="Whitepaper Roadmap", background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), font_size='11sp', bold=True)
+        action_row = BoxLayout(spacing=6, size_hint_y=None, height='45dp')
+        whitepaper_btn = Button(text="Whitepaper Roadmap", background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), font_size='12.5sp', bold=True)
         whitepaper_btn.bind(on_press=self.open_whitepaper_popup)
-        send_btn = Button(text="Solana Bridge", background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='11sp')
+        send_btn = Button(text="Solana Bridge", background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='12.5sp')
         send_btn.bind(on_press=self.open_solana_bridge_popup)
         action_row.add_widget(whitepaper_btn)
         action_row.add_widget(send_btn)
         box.add_widget(action_row)
 
-        sec_card = AmberCard(orientation='vertical', size_hint_y=None, height='65dp', padding=[12, 6, 12, 6], spacing=2)
-        sec_card.add_widget(Label(text="BARAT NETWORK SECURITY STATUS", font_size='11sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
+        sec_card = AmberCard(orientation='vertical', size_hint_y=None, height='68dp', padding=[12, 6, 12, 6], spacing=2)
+        sec_card.add_widget(Label(text="BARAT NETWORK SECURITY STATUS", font_size='12.5sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
         dev_id = data.get("device_hardware_id", "DEV-LOCK")[:12]
-        sec_card.add_widget(Label(text=f"Anti-Cheat: HW-ID {dev_id} Bound  |  Launch: 2027", font_size='10sp', color=(0.4, 0.9, 0.6, 1)))
+        sec_card.add_widget(Label(text=f"Anti-Cheat: HW-ID {dev_id} Bound  |  Launch: 2027", font_size='11.5sp', color=(0.4, 0.9, 0.6, 1)))
         box.add_widget(sec_card)
 
         hist_card = AmberCard(orientation='vertical', size_hint_y=None, height='160dp', padding=[12, 8, 12, 8], spacing=4)
-        hist_card.add_widget(Label(text="TRANSACTION & REWARD AUDIT LOG", font_size='11.5sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=0.20))
+        hist_card.add_widget(Label(text="TRANSACTION & REWARD AUDIT LOG", font_size='13sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=0.20))
         
         logs = data.get("transactions_log", [])
         if not logs:
-            hist_card.add_widget(Label(text="No transactions recorded yet.\nStart your first session to write to the ledger.", font_size='10.5sp', color=(0.7, 0.7, 0.7, 1), size_hint_y=0.80))
+            hist_card.add_widget(Label(text="No transactions recorded yet.\nStart your first session to write to the ledger.", font_size='11.5sp', color=(0.7, 0.7, 0.7, 1), size_hint_y=0.80))
         else:
             log_container = BoxLayout(orientation='vertical', size_hint_y=0.80, spacing=2)
             for entry in logs[:3]:
                 log_row = BoxLayout()
-                log_row.add_widget(Label(text=f"{entry.get('title')} ({entry.get('time')})", font_size='9.5sp', color=(0.85, 0.85, 0.85, 1), halign='left'))
-                log_row.add_widget(Label(text=entry.get('amount', ''), font_size='10sp', bold=True, color=(0.4, 0.9, 0.6, 1), halign='right'))
+                log_row.add_widget(Label(text=f"{entry.get('title')} ({entry.get('time')})", font_size='11sp', color=(0.85, 0.85, 0.85, 1), halign='left'))
+                log_row.add_widget(Label(text=entry.get('amount', ''), font_size='11.5sp', bold=True, color=(0.4, 0.9, 0.6, 1), halign='right'))
                 log_container.add_widget(log_row)
             hist_card.add_widget(log_container)
         box.add_widget(hist_card)
 
-        logout_btn = Button(text="LOGOUT / SWITCH NODE", size_hint_y=None, height='42dp', background_normal='', background_color=(0.35, 0.12, 0.12, 1), color=(1, 0.6, 0.6, 1), bold=True)
+        logout_btn = Button(text="LOGOUT / SWITCH NODE", size_hint_y=None, height='45dp', background_normal='', background_color=(0.35, 0.12, 0.12, 1), color=(1, 0.6, 0.6, 1), bold=True, font_size='13sp')
         logout_btn.bind(on_press=self.do_logout)
         box.add_widget(logout_btn)
 
@@ -1250,13 +1291,13 @@ class MainHubScreen(Screen):
 
     def open_whitepaper_popup(self, instance):
         scroll = ScrollView(do_scroll_x=False)
-        lbl = Label(text=WHITEPAPER_ROADMAP, font_size='11sp', color=(0.90, 0.90, 0.90, 1), size_hint_y=None, padding=[10, 10])
+        lbl = Label(text=WHITEPAPER_ROADMAP, font_size='12sp', color=(0.92, 0.92, 0.92, 1), size_hint_y=None, padding=[10, 10])
         lbl.bind(texture_size=lambda inst, val: setattr(lbl, 'height', val[1]))
         scroll.add_widget(lbl)
 
         box = BoxLayout(orientation='vertical', padding=[14, 10, 14, 10], spacing=8)
         box.add_widget(scroll)
-        close_btn = Button(text="Close Roadmap", size_hint_y=0.14, background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), bold=True)
+        close_btn = Button(text="Close Roadmap", size_hint_y=0.14, background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), bold=True, font_size='13sp')
         box.add_widget(close_btn)
 
         popup = Popup(title="Barat Network Protocol Whitepaper", content=box, size_hint=(0.92, 0.78))
@@ -1309,7 +1350,8 @@ class MainHubScreen(Screen):
                 session_earned = max(0.0, cur_bal - data.get("base_mined", cur_bal))
                 self.session_sub.text = f"This session +{session_earned:.4f} BARAT"
 
-        if hasattr(self, 'big_timer_lbl') and hasattr(self, 'mine_btn') and self.active_tab == "home":
+        if hasattr(self, 'big_timer_lbl') and hasattr(self, 'mining_dial') and self.active_tab == "home":
+            btn = self.mining_dial.action_btn
             if not is_active or elapsed >= cooldown:
                 if is_active and elapsed >= cooldown:
                     cur_bal = get_current_live_mined(data)
@@ -1324,9 +1366,10 @@ class MainHubScreen(Screen):
                 self.big_timer_lbl.text = "24:00:00"
                 if hasattr(self, 'pill_timer'):
                     self.pill_timer.text = "24:00:00"
-                self.mine_btn.disabled = False
-                self.mine_btn.text = "START MINING SESSION"
-                self.mine_btn.background_color = (0.90, 0.58, 0.08, 1)
+                btn.disabled = False
+                btn.text = "START MINING"
+                btn.background_color = (0.90, 0.58, 0.08, 1)
+                self.mining_dial.ring_color.rgba = (0.95, 0.75, 0.25, 0.85)
             else:
                 rem = int(cooldown - elapsed)
                 hrs = rem // 3600
@@ -1336,9 +1379,10 @@ class MainHubScreen(Screen):
                 self.big_timer_lbl.text = time_str
                 if hasattr(self, 'pill_timer'):
                     self.pill_timer.text = time_str
-                self.mine_btn.disabled = True
-                self.mine_btn.text = f"SESSION RUNNING ({time_str})"
-                self.mine_btn.background_color = (0.18, 0.15, 0.12, 1)
+                btn.disabled = True
+                btn.text = "MINING ACTIVE"
+                btn.background_color = (0.22, 0.16, 0.10, 1)
+                self.mining_dial.ring_color.rgba = (0.4, 0.9, 0.6, 0.95)
 
     def start_mining(self, instance):
         now = get_server_time()
@@ -1347,8 +1391,9 @@ class MainHubScreen(Screen):
         if data.get("is_mining_active", False) and (now - data.get("last_cycle", 0)) < cooldown:
             return
 
-        self.mine_btn.disabled = True
-        self.mine_btn.text = "Initializing Node..."
+        if hasattr(self, 'mining_dial'):
+            self.mining_dial.action_btn.disabled = True
+            self.mining_dial.action_btn.text = "Connecting..."
 
         def finish_start(dt):
             cur = get_current_live_mined(data)
@@ -1381,7 +1426,7 @@ class MainHubScreen(Screen):
         cur_mined = get_current_live_mined(data)
 
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=12)
-        box.add_widget(Label(text="BARAT -> SOLANA MAIN BRIDGE", font_size='14sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=0.12))
+        box.add_widget(Label(text="BARAT -> SOLANA MAIN BRIDGE", font_size='15sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=0.12))
         
         addr_input = SeamlessInput(hint_text="Paste Solana Wallet Address", size_hint_y=0.18)
         amount_input = SeamlessInput(hint_text="BARAT Amount (Min 50)", input_filter='float', size_hint_y=0.18)
@@ -1389,8 +1434,8 @@ class MainHubScreen(Screen):
         box.add_widget(amount_input)
 
         btn_box = BoxLayout(spacing=10, size_hint_y=0.16)
-        submit_btn = Button(text="Confirm Bridge", background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), bold=True)
-        cancel_btn = Button(text="Cancel", background_normal='', background_color=(0.20, 0.16, 0.14, 1))
+        submit_btn = Button(text="Confirm Bridge", background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), bold=True, font_size='13sp')
+        cancel_btn = Button(text="Cancel", background_normal='', background_color=(0.20, 0.16, 0.14, 1), font_size='13sp')
         btn_box.add_widget(submit_btn)
         btn_box.add_widget(cancel_btn)
         box.add_widget(btn_box)
