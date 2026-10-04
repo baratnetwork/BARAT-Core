@@ -19,7 +19,6 @@ from kivy.resources import resource_find, resource_add_path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 resource_add_path(BASE_DIR)
 
-# లోగో ఫైల్ సేఫ్ డిటెక్షన్
 if os.path.exists(os.path.join(BASE_DIR, "icon.png")):
     LOGO_FILE = os.path.join(BASE_DIR, "icon.png")
 elif os.path.exists(os.path.join(BASE_DIR, "icon.png.png")):
@@ -32,7 +31,6 @@ HALVING_INTERVAL = 5250000.0
 BLOCK_REWARD_INITIAL = 10.0
 CYCLE_HOURS = 24
 
-# ఎలిజిబిలిటీ & ఫౌండర్ ట్రెజరీ సెట్టింగ్స్
 MIN_CYCLES_REQUIRED = 5
 MIN_WITHDRAW_AMOUNT = 50.0
 GAS_FEE_PERCENTAGE = 0.02
@@ -75,16 +73,15 @@ def load_data():
         "username": "",
         "email": "",
         "password": "",
-        "wallet_phrase": "",
+        "wallets": [],
+        "active_wallet_index": 0,
         "balance": 0.0,
-        "wallet_balance": 0.0,
         "total_mined": 0.0,
         "completed_cycles": 0,
         "block_height": 3,
         "last_cycle": 0,
         "proof_hash": "ECO_GENESIS_PROOF_00000000",
-        "kyc_status": "Not Verified (Slot Opens at 5 Cycles)",
-        "kyc_doc_name": "",
+        "kyc_status": "Not Verified (Unlocks at 5 Cycles)",
         "bridge_transactions": []
     }
 
@@ -95,7 +92,7 @@ def save_data(data):
     except Exception:
         pass
 
-# 1. ల్యాండింగ్ స్క్రీన్
+# 1. Landing Screen
 class LandingScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -142,8 +139,11 @@ class LandingScreen(Screen):
 
     def on_enter(self):
         data = load_data()
-        bal = data.get("balance", 0.0) + data.get("wallet_balance", 0.0)
-        self.mined_preview.text = f"Tokens Mined\n{bal:.2f} $BARAT"
+        tot = data.get("balance", 0.0)
+        wallets = data.get("wallets", [])
+        for w in wallets:
+            tot += w.get("balance", 0.0)
+        self.mined_preview.text = f"Tokens Mined\n{tot:.2f} $BARAT"
 
     def go_next(self, instance):
         data = load_data()
@@ -152,7 +152,7 @@ class LandingScreen(Screen):
         else:
             self.manager.current = "main"
 
-# 2. అథెంటికేషన్ స్క్రీన్
+# 2. Authentication Screen
 class AuthScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -226,15 +226,11 @@ class AuthScreen(Screen):
             self.refresh_captcha()
             return
 
-        words = random.sample(WORD_DICTIONARY, 12)
-        phrase = " ".join(words)
-
         data = load_data()
         data["registered"] = True
         data["username"] = uname
         data["email"] = email
         data["password"] = pwd
-        data["wallet_phrase"] = phrase
         save_data(data)
 
         self.manager.current = "main"
@@ -255,7 +251,6 @@ class AuthScreen(Screen):
             self.msg.text = "Invalid credentials! Check username/email and password."
             self.refresh_captcha()
 
-    # పర్ఫెక్ట్ స్పేసింగ్‌తో పరిష్కరించబడిన Forgot Password పాప్‌అప్
     def open_forgot_popup(self, instance):
         data = load_data()
         reg_email = data.get("email", "")
@@ -311,36 +306,41 @@ class AuthScreen(Screen):
         close_btn.bind(on_press=popup.dismiss)
         popup.open()
 
-# 3. మెయిన్ మైనింగ్ టెర్మినల్
+# 3. Main Dashboard & Multi-Wallet Manager
 class MainScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         root = BoxLayout(orientation='vertical', padding=[16, 10, 16, 10], spacing=5)
 
-        # టాప్ బార్: ప్రొఫైల్ & KYC స్టేటస్ బటన్
-        top_bar = BoxLayout(size_hint_y=0.07)
-        top_bar.add_widget(Label(text="BARAT CORE: RESEARCH NODE", font_size='13sp', bold=True, color=(0.2, 0.9, 0.5, 1)))
-        profile_btn = Button(text="Profile & KYC", size_hint_x=0.38, background_color=(0.15, 0.45, 0.65, 1), font_size='11sp', bold=True)
+        # Top Bar: Profile & Multi-Wallet Manager Buttons
+        top_bar = BoxLayout(size_hint_y=0.07, spacing=6)
+        top_bar.add_widget(Label(text="BARAT CORE NODE", font_size='13sp', bold=True, color=(0.2, 0.9, 0.5, 1)))
+        
+        wallet_mgr_btn = Button(text="Wallets", size_hint_x=0.28, background_color=(0.2, 0.5, 0.7, 1), font_size='11sp', bold=True)
+        wallet_mgr_btn.bind(on_press=self.open_wallet_manager_popup)
+        top_bar.add_widget(wallet_mgr_btn)
+
+        profile_btn = Button(text="Profile", size_hint_x=0.28, background_color=(0.15, 0.45, 0.65, 1), font_size='11sp', bold=True)
         profile_btn.bind(on_press=self.open_profile_popup)
         top_bar.add_widget(profile_btn)
         root.add_widget(top_bar)
 
         try:
-            self.logo_img = Image(source=LOGO_FILE, size_hint_y=0.18, allow_stretch=True, keep_ratio=True)
+            self.logo_img = Image(source=LOGO_FILE, size_hint_y=0.17, allow_stretch=True, keep_ratio=True)
             root.add_widget(self.logo_img)
         except Exception:
             pass
 
         # Balances
         bal_box = BoxLayout(size_hint_y=0.11)
-        self.mined_bal_lbl = Label(text="Mined: 0.00", font_size='15sp', bold=True, color=(0.95, 0.95, 0.95, 1))
-        self.wallet_bal_lbl = Label(text="Wallet: 0.00", font_size='15sp', bold=True, color=(0.1, 0.9, 0.5, 1))
+        self.mined_bal_lbl = Label(text="Mined: 0.00", font_size='14sp', bold=True, color=(0.95, 0.95, 0.95, 1))
+        self.active_wallet_lbl = Label(text="Active: None\nBal: 0.00", font_size='13sp', bold=True, color=(0.1, 0.9, 0.5, 1), halign="center")
         bal_box.add_widget(self.mined_bal_lbl)
-        bal_box.add_widget(self.wallet_bal_lbl)
+        bal_box.add_widget(self.active_wallet_lbl)
         root.add_widget(bal_box)
 
-        self.claim_wallet_btn = Button(text="Transfer Mined to Wallet", size_hint_y=0.07, background_color=(0.15, 0.5, 0.35, 1), font_size='12sp')
-        self.claim_wallet_btn.bind(on_press=self.claim_to_wallet)
+        self.claim_wallet_btn = Button(text="Claim Mined to Active Wallet", size_hint_y=0.07, background_color=(0.15, 0.5, 0.35, 1), font_size='12sp')
+        self.claim_wallet_btn.bind(on_press=self.claim_to_active_wallet)
         root.add_widget(self.claim_wallet_btn)
 
         self.phase_lbl = Label(text="Phase: Initializing...", font_size='11sp', color=(0.95, 0.8, 0.2, 1), size_hint_y=0.04)
@@ -367,7 +367,7 @@ class MainScreen(Screen):
         self.logout_btn.bind(on_press=self.do_logout)
         root.add_widget(self.logout_btn)
 
-        self.status_msg = Label(text="Node Verified: Oncology Research Proof active.", font_size='10sp', color=(1, 0.85, 0.3, 1), size_hint_y=0.04)
+        self.status_msg = Label(text="Oncology Research PoI active.", font_size='10sp', color=(1, 0.85, 0.3, 1), size_hint_y=0.04)
         root.add_widget(self.status_msg)
 
         self.add_widget(root)
@@ -376,27 +376,48 @@ class MainScreen(Screen):
     def on_enter(self):
         self.refresh_dashboard()
 
+    def get_active_wallet(self, data):
+        wallets = data.get("wallets", [])
+        idx = data.get("active_wallet_index", 0)
+        if wallets and 0 <= idx < len(wallets):
+            return wallets[idx]
+        return None
+
     def refresh_dashboard(self):
         data = load_data()
         mined = data.get("balance", 0.0)
-        wallet = data.get("wallet_balance", 0.0)
         self.mined_bal_lbl.text = f"Mined:\n{mined:.2f} BARAT"
-        self.wallet_bal_lbl.text = f"Wallet:\n{wallet:.2f} BARAT"
+
+        active = self.get_active_wallet(data)
+        if active:
+            w_name = active.get("name", "Wallet")
+            w_bal = active.get("balance", 0.0)
+            self.active_wallet_lbl.text = f"Active: {w_name}\nBal: {w_bal:.2f} BARAT"
+        else:
+            self.active_wallet_lbl.text = "Active: None\n(Create in Wallets)"
+
         self.phase_lbl.text = self.calculate_reward(data.get("total_mined", mined))
         self.update_block_display()
 
-    def claim_to_wallet(self, instance):
+    def claim_to_active_wallet(self, instance):
         data = load_data()
         mined = data.get("balance", 0.0)
         if mined <= 0:
-            self.status_msg.text = "No mined balance available to transfer."
+            self.status_msg.text = "No mined balance available to claim."
             return
 
-        data["wallet_balance"] = data.get("wallet_balance", 0.0) + mined
+        wallets = data.get("wallets", [])
+        idx = data.get("active_wallet_index", 0)
+        if not wallets or idx >= len(wallets):
+            self.status_msg.text = "Error: Please create or confirm an active wallet first!"
+            return
+
+        wallets[idx]["balance"] = wallets[idx].get("balance", 0.0) + mined
         data["balance"] = 0.0
+        data["wallets"] = wallets
         save_data(data)
         self.refresh_dashboard()
-        self.status_msg.text = f"Transferred {mined:.2f} BARAT to Wallet!"
+        self.status_msg.text = f"Transferred {mined:.2f} BARAT to {wallets[idx]['name']}!"
 
     def calculate_reward(self, total_mined):
         phase = int(total_mined // HALVING_INTERVAL) + 1
@@ -450,93 +471,227 @@ class MainScreen(Screen):
         data["last_cycle"] = now
 
         target = CANCER_TARGETS[data["block_height"] % len(CANCER_TARGETS)]
-        proof_src = f"{data['block_height']}_{target}_{now}_{data.get('wallet_phrase', '')}"
+        proof_src = f"{data['block_height']}_{target}_{now}"
         data["proof_hash"] = hashlib.sha256(proof_src.encode()).hexdigest()
 
         save_data(data)
         self.refresh_dashboard()
         self.update_timer(0)
 
-    # పర్ఫెక్ట్ స్పేసింగ్‌తో ప్రొఫైల్ & KYC వాల్ట్
+    # Multi-Wallet Management Center Popup
+    def open_wallet_manager_popup(self, instance):
+        data = load_data()
+        wallets = data.get("wallets", [])
+        idx = data.get("active_wallet_index", 0)
+
+        box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
+        box.add_widget(Label(text="MULTI-WALLET CONTROL CENTER", font_size='14sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.11))
+
+        active_info = "No active wallet. Create or import below."
+        if wallets and 0 <= idx < len(wallets):
+            active_info = f"Current Active: {wallets[idx]['name']} (Bal: {wallets[idx].get('balance',0.0):.2f})"
+        box.add_widget(Label(text=active_info, font_size='11sp', color=(0.85, 0.85, 0.85, 1), size_hint_y=0.09))
+
+        # Wallet List Summary
+        w_summary = "Wallets: " + (", ".join([f"{w['name']}" for w in wallets]) if wallets else "Empty")
+        box.add_widget(Label(text=w_summary, font_size='10sp', color=(0.7, 0.7, 0.7, 1), size_hint_y=0.08))
+
+        create_btn = Button(text="+ Create New Wallet (Auto-Phrase)", size_hint_y=0.14, background_color=(0.1, 0.6, 0.35, 1), font_size='11sp', bold=True)
+        box.add_widget(create_btn)
+
+        import_btn = Button(text="⬇ Import Wallet via 12-Word Key", size_hint_y=0.14, background_color=(0.2, 0.45, 0.7, 1), font_size='11sp', bold=True)
+        box.add_widget(import_btn)
+
+        switch_btn = Button(text="🔄 Switch Active Wallet", size_hint_y=0.14, background_color=(0.5, 0.35, 0.2, 1), font_size='11sp')
+        box.add_widget(switch_btn)
+
+        status_lbl = Label(text="", font_size='10sp', color=(1, 0.85, 0.3, 1), size_hint_y=0.08)
+        box.add_widget(status_lbl)
+
+        close_btn = Button(text="Done / Close", size_hint_y=0.14, background_color=(0.35, 0.15, 0.15, 1))
+        box.add_widget(close_btn)
+
+        popup = Popup(title="Decentralized Multi-Wallet Manager", content=box, size_hint=(0.92, 0.65), auto_dismiss=False)
+
+        def do_create(btn):
+            popup.dismiss()
+            self.open_create_wallet_popup()
+
+        def do_import(btn):
+            popup.dismiss()
+            self.open_import_wallet_popup()
+
+        def do_switch(btn):
+            if not wallets:
+                status_lbl.text = "No wallets exist yet!"
+                return
+            new_idx = (idx + 1) % len(wallets)
+            data["active_wallet_index"] = new_idx
+            save_data(data)
+            popup.dismiss()
+            self.refresh_dashboard()
+            self.status_msg.text = f"Switched to {wallets[new_idx]['name']}!"
+
+        create_btn.bind(on_press=do_create)
+        import_btn.bind(on_press=do_import)
+        switch_btn.bind(on_press=do_switch)
+        close_btn.bind(on_press=popup.dismiss)
+        popup.open()
+
+    # Create Wallet Popup
+    def open_create_wallet_popup(self):
+        data = load_data()
+        wallets = data.get("wallets", [])
+        w_num = len(wallets) + 1
+        new_name = f"Wallet {w_num}"
+        phrase = " ".join(random.sample(WORD_DICTIONARY, 12))
+
+        box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
+        box.add_widget(Label(text=f"CREATING: {new_name}", font_size='14sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.12))
+        box.add_widget(Label(text="Copy & safely note your 12-Word Passphrase:", font_size='10sp', color=(0.95, 0.8, 0.2, 1), size_hint_y=0.08))
+
+        phrase_box = TextInput(text=phrase, readonly=True, multiline=True, size_hint_y=0.25, padding=[6, 6], background_color=(0.12, 0.14, 0.16, 1), foreground_color=(0.2, 0.9, 0.5, 1))
+        box.add_widget(phrase_box)
+
+        confirm_btn = Button(text="I Wrote It Down - Activate Wallet", size_hint_y=0.16, background_color=(0.1, 0.6, 0.35, 1), bold=True)
+        cancel_btn = Button(text="Cancel", size_hint_y=0.14, background_color=(0.4, 0.2, 0.2, 1))
+        box.add_widget(confirm_btn)
+        box.add_widget(cancel_btn)
+
+        popup = Popup(title="New Key Vault Generated", content=box, size_hint=(0.90, 0.58), auto_dismiss=False)
+
+        def save_new_wallet(btn):
+            new_wallet = {
+                "name": new_name,
+                "phrase": phrase,
+                "balance": 0.0,
+                "created_at": time.time()
+            }
+            wallets.append(new_wallet)
+            data["wallets"] = wallets
+            data["active_wallet_index"] = len(wallets) - 1
+            save_data(data)
+            popup.dismiss()
+            self.refresh_dashboard()
+            self.status_msg.text = f"{new_name} created & confirmed as Active!"
+
+        confirm_btn.bind(on_press=save_new_wallet)
+        cancel_btn.bind(on_press=popup.dismiss)
+        popup.open()
+
+    # Import Wallet Popup
+    def open_import_wallet_popup(self):
+        data = load_data()
+        wallets = data.get("wallets", [])
+
+        box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
+        box.add_widget(Label(text="IMPORT EXISTING WALLET", font_size='14sp', bold=True, color=(0.2, 0.6, 0.9, 1), size_hint_y=0.12))
+
+        input_phrase = TextInput(hint_text="Type all 12 words separated by spaces", multiline=True, size_hint_y=0.25, padding=[6, 6])
+        box.add_widget(input_phrase)
+
+        msg_lbl = Label(text="", font_size='10sp', color=(1, 0.3, 0.3, 1), size_hint_y=0.08)
+        box.add_widget(msg_lbl)
+
+        btn_box = BoxLayout(spacing=10, size_hint_y=0.16)
+        import_btn = Button(text="Import & Confirm", background_color=(0.15, 0.5, 0.7, 1), bold=True)
+        cancel_btn = Button(text="Cancel", background_color=(0.4, 0.2, 0.2, 1))
+        btn_box.add_widget(import_btn)
+        btn_box.add_widget(cancel_btn)
+        box.add_widget(btn_box)
+
+        popup = Popup(title="Import Seed Vault", content=box, size_hint=(0.90, 0.56), auto_dismiss=False)
+
+        def do_import(btn):
+            words = input_phrase.text.strip().split()
+            if len(words) != 12:
+                msg_lbl.text = "Error: Must enter exactly 12 words!"
+                return
+
+            entered_phrase = " ".join(words)
+            # Check if wallet already exists
+            for idx, w in enumerate(wallets):
+                if w.get("phrase") == entered_phrase:
+                    data["active_wallet_index"] = idx
+                    save_data(data)
+                    popup.dismiss()
+                    self.refresh_dashboard()
+                    self.status_msg.text = f"Restored & Activated {w['name']}!"
+                    return
+
+            w_name = f"Wallet {len(wallets) + 1} (Imported)"
+            wallets.append({
+                "name": w_name,
+                "phrase": entered_phrase,
+                "balance": 0.0,
+                "created_at": time.time()
+            })
+            data["wallets"] = wallets
+            data["active_wallet_index"] = len(wallets) - 1
+            save_data(data)
+            popup.dismiss()
+            self.refresh_dashboard()
+            self.status_msg.text = f"{w_name} imported & set to Active!"
+
+        import_btn.bind(on_press=do_import)
+        cancel_btn.bind(on_press=popup.dismiss)
+        popup.open()
+
+    # Profile & KYC Popup
     def open_profile_popup(self, instance):
         data = load_data()
         uname = data.get("username", "NodeUser")
         email = data.get("email", "Not Set")
         cycles = data.get("completed_cycles", 0)
-        phrase = data.get("wallet_phrase", "")
-        real_pass = data.get("password", "")
         kyc_status = data.get("kyc_status", "Not Verified")
 
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=7)
-        box.add_widget(Label(text="USER NODE PROFILE & KYC VAULT", font_size='14sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.10))
+        box.add_widget(Label(text="USER NODE PROFILE & KYC", font_size='14sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.12))
 
         details = f"Username: @{uname}  |  Cycles: {cycles}\nEmail: {email}"
-        box.add_widget(Label(text=details, font_size='11sp', color=(0.85, 0.85, 0.85, 1), halign="center", size_hint_y=0.12))
+        box.add_widget(Label(text=details, font_size='11sp', color=(0.85, 0.85, 0.85, 1), halign="center", size_hint_y=0.15))
 
-        # KYC Status Display & Action
-        kyc_lbl = Label(text=f"KYC Verification: {kyc_status}", font_size='11sp', color=(1, 0.8, 0.2, 1), size_hint_y=0.08)
+        kyc_lbl = Label(text=f"KYC Status: {kyc_status}", font_size='11sp', color=(1, 0.8, 0.2, 1), size_hint_y=0.10)
         box.add_widget(kyc_lbl)
 
-        kyc_btn = Button(text="Submit KYC Documents", size_hint_y=0.11, background_color=(0.2, 0.4, 0.6, 1), font_size='11sp')
+        kyc_btn = Button(text="Verify KYC Documents", size_hint_y=0.15, background_color=(0.2, 0.4, 0.6, 1), font_size='11sp')
         box.add_widget(kyc_btn)
-
-        box.add_widget(Label(text="12-Word Passphrase (Protected):", font_size='11sp', color=(0.95, 0.8, 0.2, 1), size_hint_y=0.08))
-
-        phrase_display = TextInput(text="•••• •••• •••• •••• •••• ••••", readonly=True, multiline=True, size_hint_y=0.15, padding=[6, 6], background_color=(0.12, 0.14, 0.16, 1), foreground_color=(0.2, 0.9, 0.5, 1))
-        box.add_widget(phrase_display)
-
-        pass_verify = TextInput(hint_text="Enter Password to Unmask Key", password=True, multiline=False, size_hint_y=0.12, padding=[6, 6])
-        box.add_widget(pass_verify)
 
         msg_lbl = Label(text="", font_size='10sp', color=(1, 0.3, 0.3, 1), size_hint_y=0.08)
         box.add_widget(msg_lbl)
 
-        btn_box = BoxLayout(spacing=10, size_hint_y=0.14)
-        reveal_btn = Button(text="Reveal Key", background_color=(0.2, 0.5, 0.7, 1), bold=True)
-        close_btn = Button(text="Close", background_color=(0.4, 0.2, 0.2, 1))
-        btn_box.add_widget(reveal_btn)
-        btn_box.add_widget(close_btn)
-        box.add_widget(btn_box)
+        close_btn = Button(text="Close", size_hint_y=0.14, background_color=(0.4, 0.2, 0.2, 1))
+        box.add_widget(close_btn)
 
-        popup = Popup(title="Node Identity Center", content=box, size_hint=(0.92, 0.68), auto_dismiss=False)
+        popup = Popup(title="Node Identity Center", content=box, size_hint=(0.90, 0.55), auto_dismiss=False)
 
         def do_kyc(btn):
             if cycles < MIN_CYCLES_REQUIRED:
                 msg_lbl.color = (1, 0.3, 0.3, 1)
-                msg_lbl.text = f"KYC Slot Locked! Minimum {MIN_CYCLES_REQUIRED} cycles required."
+                msg_lbl.text = f"KYC Locked! Need minimum {MIN_CYCLES_REQUIRED} cycles."
             else:
                 data["kyc_status"] = "Verified Human Node (Level 1)"
                 save_data(data)
-                kyc_lbl.text = "KYC Verification: Verified Human Node (Level 1)"
+                kyc_lbl.text = "KYC Status: Verified Human Node (Level 1)"
                 kyc_lbl.color = (0.2, 0.9, 0.5, 1)
                 msg_lbl.color = (0.2, 0.9, 0.5, 1)
                 msg_lbl.text = "KYC Verified successfully!"
 
-        def do_reveal(btn):
-            if pass_verify.text.strip() == real_pass and real_pass != "":
-                phrase_display.text = phrase
-                msg_lbl.color = (0.2, 0.9, 0.5, 1)
-                msg_lbl.text = "Key Unlocked!"
-            else:
-                msg_lbl.color = (1, 0.3, 0.3, 1)
-                msg_lbl.text = "Incorrect password! Try again."
-
         kyc_btn.bind(on_press=do_kyc)
-        reveal_btn.bind(on_press=do_reveal)
         close_btn.bind(on_press=popup.dismiss)
         popup.open()
 
-    # పర్ఫెక్ట్ స్పేసింగ్‌తో సొలానా బ్రిడ్జ్ పాప్‌అప్
+    # Solana Bridge Gateway Popup
     def open_solana_bridge_popup(self, instance):
         data = load_data()
-        wallet_bal = data.get("wallet_balance", 0.0)
+        active = self.get_active_wallet(data)
+        wallet_bal = active.get("balance", 0.0) if active else 0.0
         cycles = data.get("completed_cycles", 0)
 
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
-
         box.add_widget(Label(text="BARAT -> SOLANA MAIN BRIDGE", font_size='14sp', bold=True, color=(0.6, 0.3, 0.9, 1), size_hint_y=0.12))
         
-        info_text = f"Available: {wallet_bal:.2f} BARAT  |  Cycles: {cycles}/{MIN_CYCLES_REQUIRED}"
+        info_text = f"Active Bal: {wallet_bal:.2f} BARAT  |  Cycles: {cycles}/{MIN_CYCLES_REQUIRED}"
         box.add_widget(Label(text=info_text, font_size='12sp', color=(0.85, 0.85, 0.85, 1), size_hint_y=0.10))
 
         addr_input = TextInput(hint_text="Paste Solana Wallet (Phantom) Address", multiline=False, size_hint_y=0.16, padding=[8, 8])
@@ -561,6 +716,10 @@ class MainScreen(Screen):
         popup = Popup(title="Decentralized Solana Gateway", content=box, size_hint=(0.90, 0.58), auto_dismiss=False)
 
         def execute_bridge(btn):
+            if not active:
+                popup_msg.text = "Error: Please create an active wallet first!"
+                return
+
             sol_addr = addr_input.text.strip()
             amt_text = amount_input.text.strip()
 
@@ -589,7 +748,8 @@ class MainScreen(Screen):
             gas_fee = amt * GAS_FEE_PERCENTAGE
             user_receives = amt - gas_fee
 
-            data["wallet_balance"] = wallet_bal - amt
+            # Deduct from active wallet
+            active["balance"] = wallet_bal - amt
             
             tx_record = {
                 "timestamp": time.time(),
@@ -620,7 +780,7 @@ class MainScreen(Screen):
 class BaratCoreApp(App):
     def build(self):
         Window.clearcolor = (0.04, 0.05, 0.06, 1.0)
-        self.icon = LOGO_FILE  # యాప్ ఐకాన్ సెట్ చేయబడింది
+        self.icon = LOGO_FILE
         sm = ScreenManager()
 
         sm.add_widget(LandingScreen(name="landing"))
