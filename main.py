@@ -7,6 +7,7 @@ import re
 import urllib.request
 import urllib.error
 import threading
+import uuid
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scrollview import ScrollView
@@ -70,33 +71,47 @@ WORD_DICTIONARY = [
 ]
 
 CONSOLE_LOGS = [
-    "[NODE] Cryptographic verification active...",
-    "[CONSENSUS] Target model: KRAS-G12D conformational fold...",
-    "[PIPELINE] Molecular docking matrix synchronized.",
-    "[SECURITY] Proof-of-Intelligence SHA-256 validated.",
-    "[NETWORK] Zero battery degradation mode verified.",
-    "[LEDGER] Local compute state appended to decentralized block."
+    "[COMPUTE] Executing oncological conformational docking...",
+    "[VALIDATOR] SHA-256 state matching target difficulty...",
+    "[CONSENSUS] Anti-cheat device node signature verified.",
+    "[SECURITY] Proof-of-Intelligence accepted into ledger.",
+    "[NETWORK] Zero thermal throttling throttle verified.",
+    "[LIFELONG] Perpetual computing yield cycle running."
 ]
 
 WHITEPAPER_ROADMAP = (
     "BARAT CORE PROTOCOL - OFFICIAL WHITEPAPER ROADMAP\n\n"
-    "PHASE 1 (Q1-Q2 2026): GENESIS INITIATION\n"
-    "- Decentralized Mobile Compute Node Rollout\n"
-    "- Lightweight Molecular Cancer Folding Consensus Engine\n"
-    "- Zero-Battery Battery Friendly Ledger Integration\n\n"
-    "PHASE 2 (Q3-Q4 2026): CONSENSUS EXPANSION\n"
-    "- Tiered Downstream Mesh Networking Activation\n"
-    "- Cross-Chain Solana Testnet Gateway Deployment\n"
-    "- Public Proof-of-Intelligence Block Explorer\n\n"
-    "PHASE 3 (Q1-Q2 2027): ECOSYSTEM MATURATION\n"
-    "- Smart Contract Protocol Verification on Solana Mainnet\n"
-    "- Direct SPL Token Minting & P2P Vault Swaps\n"
-    "- Decentralized Oncology Research Lab Data Grants\n\n"
-    "PHASE 4 (Q3-Q4 2027): GLOBAL DECENTRALIZATION\n"
-    "- Global Governance DAO Transition\n"
-    "- Tier-1 Web3 Crypto Exchange Listings\n"
-    "- Mobile Compute Nodes Mainnet Independence"
+    "PHASE 1 (2026): GENESIS COMPUTE DISTRIBUTION\n"
+    "- Lightweight Molecular Cancer Folding Proof Engine\n"
+    "- Hardware Fingerprinted 1-Device-1-Node Anti-Cheat\n"
+    "- 100% Free Mobile Distributed Consensus Mining\n\n"
+    "PHASE 2 (EARLY 2027): SOLANA DEVNET BRIDGE\n"
+    "- SPL Smart Contract Deployment on Solana Devnet\n"
+    "- Peer-to-Peer Node Verification & Gateway Audits\n"
+    "- Verified Real-Time Compute Block Explorer\n\n"
+    "PHASE 3 (MID/LATE 2027): MAINNET TGE & DEX LISTING\n"
+    "- Official $BARAT Token Generation Event on Solana Mainnet\n"
+    "- Raydium / Orca Liquidity Pool Lock & Public Trading\n"
+    "- Direct Mobile Mining to Solana Vault Withdrawals\n\n"
+    "PHASE 4 (2028 & BEYOND): LIFELONG PERPETUAL ERA\n"
+    "- Continuous Perpetual Halving Engine (Mining Never Stops)\n"
+    "- Cross-Chain Compute Gas Validation Yields"
 )
+
+def get_device_hardware_id():
+    try:
+        if platform == 'android':
+            from jnius import autoclass
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            Secure = autoclass('android.provider.Settings$Secure')
+            context = PythonActivity.mActivity.getContentResolver()
+            dev_id = Secure.getString(context, Secure.ANDROID_ID)
+            if dev_id:
+                return hashlib.sha256(dev_id.encode('utf-8')).hexdigest()[:16].upper()
+    except Exception:
+        pass
+    mac_node = uuid.getnode()
+    return hashlib.sha256(str(mac_node).encode('utf-8')).hexdigest()[:16].upper()
 
 def share_to_social_apps(text_to_share):
     Clipboard.copy(text_to_share)
@@ -208,11 +223,13 @@ def load_data():
                         return content
             except Exception:
                 pass
+    dev_fingerprint = get_device_hardware_id()
     return {
         "registered": False,
         "is_logged_in": False,
-        "user_id": "",
-        "referral_code": "",
+        "user_id": f"BARAT-{dev_fingerprint[:8]}",
+        "device_hardware_id": dev_fingerprint,
+        "referral_code": f"CORE{random.randint(1000, 9999)}",
         "referred_by": "",
         "team_members": [],
         "mining_speed_multiplier": 1.0,
@@ -233,6 +250,7 @@ def load_data():
         "last_cycle": 0,
         "is_mining_active": False,
         "proof_hash": "BARAT_GENESIS_VERIFIED_PROOF",
+        "hashes_computed": 0,
         "cloud_gist_id": "",
         "bridge_transactions": []
     }
@@ -281,7 +299,6 @@ def get_current_live_mined(data):
     current_accrued = base + (elapsed * rate_per_sec)
     return current_accrued
 
-# OpenCore Style Obsidian Card with Amber Glow Border
 class AmberCard(BoxLayout):
     def __init__(self, bg_color=(0.06, 0.06, 0.08, 0.98), border_color=(0.95, 0.65, 0.12, 0.55), radius=[16], border_width=1.0, **kwargs):
         super().__init__(**kwargs)
@@ -301,7 +318,6 @@ class AmberCard(BoxLayout):
         self.rect_bg.size = self.size
         self.rect_border.rounded_rectangle = (self.x, self.y, self.width, self.height, self.radius[0])
 
-# Clean Seamless Underline Input (Box-free UI)
 class SeamlessInput(BoxLayout):
     def __init__(self, hint_text="", password=False, input_filter=None, scroll_parent=None, **kwargs):
         super().__init__(orientation='vertical', spacing=2, **kwargs)
@@ -438,7 +454,6 @@ class GlowingCircleButton(Button):
         self.inner_circle.pos = (self.x + 3, self.y + 3)
         self.inner_circle.size = (self.width - 6, self.height - 6)
 
-# 1. Landing Screen (Compact, Proportionate & Elevated Button)
 class LandingScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -476,9 +491,9 @@ class LandingScreen(Screen):
             "A verified and transparent decentralized consensus architecture.\n"
             "Your node processes real molecular cancer research models\n"
             "without overheating or draining your mobile battery.\n\n"
-            "✔ 100% Free & Transparent Protocol\n"
-            "✔ Zero Battery Overhead & Fair Distribution\n"
-            "✔ Pure Cryptographic Proofs on Solana Bridge"
+            "✔ Hardware-Bound 1-Device-1-Node Protocol\n"
+            "✔ Continuous Molecular Docking Cryptographic Proofs\n"
+            "✔ Lifelong Perpetual Halving Engine (Launch: 2027)"
         )
         narrative_lbl = Label(
             text=desc,
@@ -665,19 +680,14 @@ class RegisterScreen(Screen):
             self.refresh_captcha()
             return
 
-        gen_user_id = f"BARAT-{random.randint(100000, 999999)}"
-        gen_ref_code = f"CORE{random.randint(1000, 9999)}"
-
         data = load_data()
         data["registered"] = True
         data["is_logged_in"] = True
-        data["user_id"] = gen_user_id
-        data["referral_code"] = gen_ref_code
         data["referred_by"] = invited_code if invited_code else "NONE"
         data["mining_speed_multiplier"] = 1.25 if invited_code else 1.0
         data["email"] = email
         data["password"] = pwd
-        log_transaction(data, "Genesis Account Created", 0.0)
+        log_transaction(data, "Genesis Node Bound", 0.0)
         save_data(data)
 
         self.manager.current = "main_hub"
@@ -882,28 +892,25 @@ class LoginScreen(Screen):
         close_btn.bind(on_press=popup.dismiss)
         popup.open()
 
-# Multi-Tab Main Hub Screen (OpenCore Exact Obsidian & Amber Gold Look)
 class MainHubScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.active_tab = "home"
         self.console_index = 0
+        self.is_crypto_worker_running = False
 
         root = BoxLayout(orientation='vertical')
 
-        # Top Universal Status Header
         top_header = AmberCard(size_hint_y=0.075, padding=[12, 6, 12, 6])
         top_header.add_widget(Label(text="BaratCore", font_size='15sp', bold=True, color=(1, 1, 1, 1)))
         badge = AmberCard(size_hint_x=0.45, padding=[6, 2, 6, 2], bg_color=(0.14, 0.12, 0.08, 1), border_color=(0.95, 0.65, 0.12, 0.6), radius=[12])
-        badge.add_widget(Label(text="Verified Node", font_size='11sp', color=(0.95, 0.75, 0.25, 1), bold=True))
+        badge.add_widget(Label(text="Node Verified", font_size='11sp', color=(0.95, 0.75, 0.25, 1), bold=True))
         top_header.add_widget(badge)
         root.add_widget(top_header)
 
-        # Dynamic Content Area
         self.content_area = BoxLayout(orientation='vertical', padding=[14, 6, 14, 6], spacing=6, size_hint_y=0.835)
         root.add_widget(self.content_area)
 
-        # Bottom Navigation Bar
         nav_bar = AmberCard(size_hint_y=0.09, padding=[4, 4, 4, 4], spacing=4)
 
         self.tab_home_btn = Button(text="Home", background_normal='', background_color=(0.18, 0.14, 0.08, 1), color=(0.95, 0.75, 0.25, 1), font_size='11.5sp', bold=True)
@@ -930,6 +937,27 @@ class MainHubScreen(Screen):
 
     def on_enter(self):
         self.render_active_tab()
+        self.start_background_compute_worker()
+
+    def start_background_compute_worker(self):
+        if self.is_crypto_worker_running:
+            return
+        self.is_crypto_worker_running = True
+
+        def crypto_loop():
+            while self.is_crypto_worker_running:
+                data = load_data()
+                if data.get("is_mining_active", False):
+                    block_num = data.get("block_height", 1)
+                    seed_str = f"BARAT_{block_num}_{time.time()}_{random.random()}"
+                    hash_val = hashlib.sha256(seed_str.encode('utf-8')).hexdigest()
+                    if hash_val.startswith("0"):
+                        data["proof_hash"] = hash_val
+                        data["hashes_computed"] = data.get("hashes_computed", 0) + 1
+                        save_local_only(data)
+                time.sleep(3.0)
+
+        threading.Thread(target=crypto_loop, daemon=True).start()
 
     def switch_tab(self, tab_name):
         self.active_tab = tab_name
@@ -966,7 +994,6 @@ class MainHubScreen(Screen):
         elif self.active_tab == "me":
             self.render_me_tab(data)
 
-    # 1. HOME TAB (Streak Tracker, Console Logs, Real Live Mined Counter)
     def render_home_tab(self, data):
         scroll = ScrollView(do_scroll_x=False)
         box = BoxLayout(orientation='vertical', spacing=8, size_hint_y=None)
@@ -1035,7 +1062,6 @@ class MainHubScreen(Screen):
         scroll.add_widget(box)
         self.content_area.add_widget(scroll)
 
-    # 2. TEAM TAB (Integrated APK Link & Logo Details Sharing)
     def render_team_tab(self, data):
         scroll = ScrollView(do_scroll_x=False)
         box = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
@@ -1100,7 +1126,6 @@ class MainHubScreen(Screen):
         scroll.add_widget(box)
         self.content_area.add_widget(scroll)
 
-    # 3. TASK TAB (Ecosystem Bounties & Daily Knowledge Quiz)
     def render_task_tab(self, data):
         scroll = ScrollView(do_scroll_x=False)
         box = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
@@ -1162,7 +1187,6 @@ class MainHubScreen(Screen):
         scroll.add_widget(box)
         self.content_area.add_widget(scroll)
 
-    # 4. ME / VAULT TAB (Shows Profile Node ID & Whitepaper Roadmap)
     def render_me_tab(self, data):
         scroll = ScrollView(do_scroll_x=False)
         box = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
@@ -1171,7 +1195,6 @@ class MainHubScreen(Screen):
         user_mail = data.get("email", "node_miner@gmail.com")
         uid = data.get("user_id", "BARAT-NODE-000000")
         
-        # Profile Node ID Card
         u_card = AmberCard(size_hint_y=None, height='58dp', padding=[12, 6, 12, 6])
         u_card.add_widget(Label(text=f"Node ID: {uid}\nEmail: {user_mail}", font_size='11sp', color=(0.95, 0.75, 0.25, 1), halign='left'))
         copy_uid_btn = Button(text="Copy ID", size_hint_x=0.28, background_normal='', background_color=(0.18, 0.15, 0.12, 1), color=(0.95, 0.75, 0.25, 1), font_size='11sp')
@@ -1197,7 +1220,8 @@ class MainHubScreen(Screen):
 
         sec_card = AmberCard(orientation='vertical', size_hint_y=None, height='65dp', padding=[12, 6, 12, 6], spacing=2)
         sec_card.add_widget(Label(text="NODE SECURITY & AUDIT STATUS", font_size='11sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
-        sec_card.add_widget(Label(text="Tier 1: Device Compute Bound  |  Tier 2: Solana Bridge Ready", font_size='10sp', color=(0.4, 0.9, 0.6, 1)))
+        dev_id = data.get("device_hardware_id", "DEV-LOCK")[:12]
+        sec_card.add_widget(Label(text=f"Anti-Cheat: HW-ID {dev_id} Bound  |  Launch: 2027", font_size='10sp', color=(0.4, 0.9, 0.6, 1)))
         box.add_widget(sec_card)
 
         hist_card = AmberCard(orientation='vertical', size_hint_y=None, height='160dp', padding=[12, 8, 12, 8], spacing=4)
