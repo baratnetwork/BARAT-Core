@@ -48,12 +48,13 @@ MIN_WITHDRAW_AMOUNT = 50.0
 GAS_FEE_PERCENTAGE = 0.02
 FOUNDER_SOLANA_WALLET = "9zYbQMJ9VD2NjXRhd83s4LSUcu9AnLTeetXLd5URWk2z"
 
-GITHUB_USER = "sudheerkirandora"
+NETWORK_ORGANIZATION = "baratnetwork"
+GITHUB_USER = "baratnetwork"
 _part_a = "ghp_Omn4yMV2SJqc"
 _part_b = "Vmc8AcXXe0rIyuY8Tc18EzMX"
 GITHUB_TOKEN = _part_a + _part_b
-GIST_DESCRIPTION = "BARAT_CORE_NETWORK_CLOUD_LEDGER"
-APK_DOWNLOAD_URL = "https://github.com/sudheerkirandora/barat-core-network/releases/latest"
+GIST_DESCRIPTION = "BARAT_NETWORK_CLOUD_LEDGER"
+APK_DOWNLOAD_URL = "https://github.com/baratnetwork/barat-core-network/releases/latest"
 
 CANCER_TARGETS = [
     "KRAS-G12D-Target-Model-X7",
@@ -71,16 +72,16 @@ WORD_DICTIONARY = [
 ]
 
 CONSOLE_LOGS = [
-    "[COMPUTE] Executing oncological conformational docking...",
+    "[BARAT NETWORK] Executing oncological conformational docking...",
     "[VALIDATOR] SHA-256 state matching target difficulty...",
     "[CONSENSUS] Anti-cheat device node signature verified.",
     "[SECURITY] Proof-of-Intelligence accepted into ledger.",
-    "[NETWORK] Zero thermal throttling throttle verified.",
+    "[BARAT NETWORK] Zero thermal throttling throttle verified.",
     "[LIFELONG] Perpetual computing yield cycle running."
 ]
 
 WHITEPAPER_ROADMAP = (
-    "BARAT CORE PROTOCOL - OFFICIAL WHITEPAPER ROADMAP\n\n"
+    "BARAT NETWORK PROTOCOL - OFFICIAL WHITEPAPER ROADMAP\n\n"
     "PHASE 1 (2026): GENESIS COMPUTE DISTRIBUTION\n"
     "- Lightweight Molecular Cancer Folding Proof Engine\n"
     "- Hardware Fingerprinted 1-Device-1-Node Anti-Cheat\n"
@@ -127,7 +128,7 @@ def share_to_social_apps(text_to_share):
             sendIntent.putExtra(Intent.EXTRA_TEXT, String(text_to_share))
             sendIntent.setType('text/plain')
 
-            chooser = Intent.createChooser(sendIntent, String('Share Barat Core Node via'))
+            chooser = Intent.createChooser(sendIntent, String('Share Barat Network Node via'))
             currentActivity = PythonActivity.mActivity
             currentActivity.startActivity(chooser)
         except Exception:
@@ -144,7 +145,7 @@ def get_data_filepath():
 
 def get_server_time():
     try:
-        req = urllib.request.Request("https://api.github.com", headers={"User-Agent": "BaratCoreApp"})
+        req = urllib.request.Request("https://api.github.com", headers={"User-Agent": "BaratNetworkNodeProtocol"})
         with urllib.request.urlopen(req, timeout=3) as resp:
             date_str = resp.headers.get('Date')
             if date_str:
@@ -160,10 +161,10 @@ def sync_to_github_cloud(data):
             headers = {
                 "Authorization": f"token {GITHUB_TOKEN}",
                 "Accept": "application/vnd.github.v3+json",
-                "User-Agent": "BaratCoreApp"
+                "User-Agent": "BaratNetworkNodeProtocol"
             }
             gist_id = data.get("cloud_gist_id", "")
-            identifier = data.get("user_id", "node_miner")
+            identifier = data.get("user_id", "barat_network_miner")
             payload = {
                 "description": GIST_DESCRIPTION,
                 "public": False,
@@ -249,7 +250,7 @@ def load_data():
         "block_height": 1,
         "last_cycle": 0,
         "is_mining_active": False,
-        "proof_hash": "BARAT_GENESIS_VERIFIED_PROOF",
+        "proof_hash": "BARAT_NETWORK_GENESIS_PROOF",
         "hashes_computed": 0,
         "cloud_gist_id": "",
         "bridge_transactions": []
@@ -464,12 +465,12 @@ class LandingScreen(Screen):
                 logo = Image(source=LOGO_FILE, size_hint_y=0.28, allow_stretch=True, keep_ratio=True)
                 root.add_widget(logo)
             else:
-                root.add_widget(Label(text="BARAT CORE", font_size='24sp', bold=True, color=(0.95, 0.65, 0.12, 1), size_hint_y=0.25))
+                root.add_widget(Label(text="BARAT NETWORK", font_size='24sp', bold=True, color=(0.95, 0.65, 0.12, 1), size_hint_y=0.25))
         except Exception:
-            root.add_widget(Label(text="BARAT CORE", font_size='24sp', bold=True, color=(0.95, 0.65, 0.12, 1), size_hint_y=0.25))
+            root.add_widget(Label(text="BARAT NETWORK", font_size='24sp', bold=True, color=(0.95, 0.65, 0.12, 1), size_hint_y=0.25))
 
         root.add_widget(Label(
-            text="BARAT CORE PROTOCOL",
+            text="BARAT NETWORK PROTOCOL",
             font_size='18sp',
             bold=True,
             halign="center",
@@ -541,7 +542,7 @@ class AuthChoiceScreen(Screen):
             if os.path.exists(LOGO_FILE):
                 root.add_widget(Image(source=LOGO_FILE, size_hint_y=0.35, allow_stretch=True, keep_ratio=True))
             else:
-                root.add_widget(Label(text="BARAT CORE", font_size='20sp', bold=True, color=(0.95, 0.65, 0.12, 1), size_hint_y=0.25))
+                root.add_widget(Label(text="BARAT NETWORK", font_size='20sp', bold=True, color=(0.95, 0.65, 0.12, 1), size_hint_y=0.25))
         except Exception:
             pass
 
@@ -703,7 +704,7 @@ class LoginScreen(Screen):
         root = BoxLayout(orientation='vertical', padding=[24, 20, 24, 25], spacing=16, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
 
-        root.add_widget(Label(text="BARAT NODE LOGIN", font_size='16sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=None, height='35dp'))
+        root.add_widget(Label(text="BARAT NETWORK LOGIN", font_size='16sp', bold=True, color=(0.95, 0.75, 0.25, 1), size_hint_y=None, height='35dp'))
 
         self.ident_input = SeamlessInput(hint_text="Registered User ID or Gmail", size_hint_y=None, height='45dp', scroll_parent=self.scroll)
         root.add_widget(self.ident_input)
@@ -789,7 +790,7 @@ class LoginScreen(Screen):
                     headers = {
                         "Authorization": f"token {GITHUB_TOKEN}",
                         "Accept": "application/vnd.github.v3+json",
-                        "User-Agent": "BaratCoreApp"
+                        "User-Agent": "BaratNetworkNodeProtocol"
                     }
                     req = urllib.request.Request(url, headers=headers)
                     with urllib.request.urlopen(req, timeout=4) as response:
@@ -902,7 +903,7 @@ class MainHubScreen(Screen):
         root = BoxLayout(orientation='vertical')
 
         top_header = AmberCard(size_hint_y=0.075, padding=[12, 6, 12, 6])
-        top_header.add_widget(Label(text="BaratCore", font_size='15sp', bold=True, color=(1, 1, 1, 1)))
+        top_header.add_widget(Label(text="BaratNetwork", font_size='15sp', bold=True, color=(1, 1, 1, 1)))
         badge = AmberCard(size_hint_x=0.45, padding=[6, 2, 6, 2], bg_color=(0.14, 0.12, 0.08, 1), border_color=(0.95, 0.65, 0.12, 0.6), radius=[12])
         badge.add_widget(Label(text="Node Verified", font_size='11sp', color=(0.95, 0.75, 0.25, 1), bold=True))
         top_header.add_widget(badge)
@@ -949,7 +950,7 @@ class MainHubScreen(Screen):
                 data = load_data()
                 if data.get("is_mining_active", False):
                     block_num = data.get("block_height", 1)
-                    seed_str = f"BARAT_{block_num}_{time.time()}_{random.random()}"
+                    seed_str = f"BARAT_NETWORK_{block_num}_{time.time()}_{random.random()}"
                     hash_val = hashlib.sha256(seed_str.encode('utf-8')).hexdigest()
                     if hash_val.startswith("0"):
                         data["proof_hash"] = hash_val
@@ -1054,7 +1055,7 @@ class MainHubScreen(Screen):
         box.add_widget(center_box)
 
         console_box = AmberCard(orientation='vertical', size_hint_y=None, height='85dp', padding=[12, 6, 12, 6], spacing=2)
-        console_box.add_widget(Label(text="LIVE NODE COMPUTING TERMINAL", font_size='11sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
+        console_box.add_widget(Label(text="BARAT NETWORK COMPUTING TERMINAL", font_size='11sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
         self.console_lbl = Label(text=CONSOLE_LOGS[0], font_size='10sp', color=(0.80, 0.80, 0.80, 1), halign='center')
         console_box.add_widget(self.console_lbl)
         box.add_widget(console_box)
@@ -1069,16 +1070,16 @@ class MainHubScreen(Screen):
 
         code = data.get("referral_code", "CORE2026")
         share_msg = (
-            f"⚡ BARAT CORE NETWORK ⚡\n"
-            f"Join my decentralized cancer research mobile computing node.\n"
+            f"⚡ BARAT NETWORK OFFICIAL PROTOCOL ⚡\n"
+            f"Join the decentralized oncological computing network.\n"
             f"Download APK: {APK_DOWNLOAD_URL}\n"
-            f"Use My Referral Code: {code}\n"
-            f"Get +25% permanent mining speed boost!"
+            f"Use Referral Code: {code}\n"
+            f"Activate +25% permanent mining speed boost!"
         )
 
         invite_card = AmberCard(orientation='vertical', size_hint_y=None, height='210dp', padding=[14, 10, 14, 10], spacing=6)
         invite_card.add_widget(Label(text="INVITE TEAM & EARN BOOST", font_size='13sp', bold=True, color=(1, 1, 1, 1)))
-        invite_card.add_widget(Label(text=f"Your Referral Code: {code}\nAPK Link & Node Details are embedded into share button.", font_size='11sp', color=(0.80, 0.80, 0.80, 1), halign='center'))
+        invite_card.add_widget(Label(text=f"Your Referral Code: {code}\nAPK Link & Network Details are embedded into share button.", font_size='11sp', color=(0.80, 0.80, 0.80, 1), halign='center'))
 
         btn_row = BoxLayout(spacing=6, size_hint_y=0.34)
         wa_btn = Button(text="WhatsApp", background_normal='', background_color=(0.12, 0.38, 0.22, 1), color=(0.4, 1, 0.6, 1), font_size='11sp', bold=True)
@@ -1095,7 +1096,7 @@ class MainHubScreen(Screen):
         btn_row.add_widget(tg_btn)
         invite_card.add_widget(btn_row)
 
-        copy_invite_btn = Button(text="Copy Invite Link & Message", size_hint_y=0.30, background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), font_size='11.5sp', bold=True)
+        copy_invite_btn = Button(text="Copy Official Invite Link", size_hint_y=0.30, background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), font_size='11.5sp', bold=True)
         copy_invite_btn.bind(on_press=lambda x: Clipboard.copy(share_msg))
         invite_card.add_widget(copy_invite_btn)
         box.add_widget(invite_card)
@@ -1135,7 +1136,7 @@ class MainHubScreen(Screen):
 
         quiz_card = AmberCard(orientation='vertical', size_hint_y=None, height='140dp', padding=[12, 8, 12, 8], spacing=4)
         quiz_card.add_widget(Label(text="DAILY ONCOLOGY PROTOCOL QUIZ (+0.50 BARAT)", font_size='11.5sp', bold=True, color=(1.0, 0.85, 0.4, 1)))
-        quiz_card.add_widget(Label(text="Q: What computing goal does Barat Core solve?\nA) Real Cancer Model Docking    B) Random Guessing", font_size='10.5sp', color=(0.85, 0.85, 0.85, 1), halign='center'))
+        quiz_card.add_widget(Label(text="Q: What computing goal does Barat Network solve?\nA) Real Cancer Model Docking    B) Random Guessing", font_size='10.5sp', color=(0.85, 0.85, 0.85, 1), halign='center'))
 
         today_str = time.strftime("%Y-%m-%d")
         quiz_btn = Button(
@@ -1219,7 +1220,7 @@ class MainHubScreen(Screen):
         box.add_widget(action_row)
 
         sec_card = AmberCard(orientation='vertical', size_hint_y=None, height='65dp', padding=[12, 6, 12, 6], spacing=2)
-        sec_card.add_widget(Label(text="NODE SECURITY & AUDIT STATUS", font_size='11sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
+        sec_card.add_widget(Label(text="BARAT NETWORK SECURITY STATUS", font_size='11sp', bold=True, color=(0.95, 0.75, 0.25, 1)))
         dev_id = data.get("device_hardware_id", "DEV-LOCK")[:12]
         sec_card.add_widget(Label(text=f"Anti-Cheat: HW-ID {dev_id} Bound  |  Launch: 2027", font_size='10sp', color=(0.4, 0.9, 0.6, 1)))
         box.add_widget(sec_card)
@@ -1258,7 +1259,7 @@ class MainHubScreen(Screen):
         close_btn = Button(text="Close Roadmap", size_hint_y=0.14, background_normal='', background_color=(0.90, 0.58, 0.08, 1), color=(0.05, 0.05, 0.05, 1), bold=True)
         box.add_widget(close_btn)
 
-        popup = Popup(title="Barat Core Protocol Whitepaper", content=box, size_hint=(0.92, 0.78))
+        popup = Popup(title="Barat Network Protocol Whitepaper", content=box, size_hint=(0.92, 0.78))
         close_btn.bind(on_press=popup.dismiss)
         popup.open()
 
