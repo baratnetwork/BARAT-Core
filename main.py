@@ -21,7 +21,7 @@ from kivy.core.window import Window
 from kivy.core.clipboard import Clipboard
 from kivy.resources import resource_find, resource_add_path
 
-# కీబోర్డ్ అడ్డురాకుండా స్క్రీన్ ఆటోమేటిక్‌గా పైకి లేచే సెట్టింగ్
+# Keyboard overlay fix
 Window.softinput_mode = "below_target"
 Window.keyboard_anim_args = {'t': 'in_out_quart', 'd': 0.25}
 
@@ -344,7 +344,6 @@ class RegisterScreen(Screen):
         back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'auth_choice'))
         root.add_widget(back_btn)
 
-        # కీబోర్డ్ ఓపెన్ అయినా క్రింది బటన్ కనిపించేలా అదనపు ఖాళీ
         root.add_widget(Label(text="", size_hint_y=None, height='50dp'))
 
         scroll.add_widget(root)
@@ -450,7 +449,6 @@ class LoginScreen(Screen):
         back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'auth_choice'))
         root.add_widget(back_btn)
 
-        # కీబోర్డ్ ఓపెన్ అయినా క్రింది బటన్ కనిపించేలా అదనపు ఖాళీ
         root.add_widget(Label(text="", size_hint_y=None, height='50dp'))
 
         scroll.add_widget(root)
@@ -878,21 +876,60 @@ class MainScreen(Screen):
 
     def open_profile_popup(self, instance):
         data = load_data()
-        box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=7)
-        box.add_widget(Label(text="NODE PROFILE & STATUS", font_size='14sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.14))
+        box = BoxLayout(orientation='vertical', padding=[16, 14, 16, 14], spacing=9)
+        
+        box.add_widget(Label(
+            text="NODE IDENTITY & PROFILE", 
+            font_size='15sp', 
+            bold=True, 
+            color=(0.1, 0.9, 0.5, 1), 
+            size_hint_y=0.15
+        ))
         
         info_txt = (
             f"User ID: {data.get('user_id', 'Unassigned')}\n"
-            f"Gmail: {data.get('email')}\n"
+            f"Gmail: {data.get('email', 'N/A')}\n"
             f"Mobile: {data.get('country_code','')}{data.get('phone','')}\n"
-            f"Node Proof: {data.get('proof_hash')[:14]}..."
+            f"Cycles: {data.get('completed_cycles', 0)} | Block: #{data.get('block_height', 3)}\n"
+            f"Node Proof: {data.get('proof_hash', '')[:16]}..."
         )
-        box.add_widget(Label(text=info_txt, font_size='11sp', size_hint_y=0.30))
+        box.add_widget(Label(
+            text=info_txt, 
+            font_size='11sp', 
+            color=(0.9, 0.9, 0.9, 1),
+            halign='left',
+            size_hint_y=0.45
+        ))
         
-        close_btn = Button(text="Close", size_hint_y=0.14, background_color=(0.4, 0.2, 0.2, 1))
-        box.add_widget(close_btn)
+        btn_box = BoxLayout(spacing=10, size_hint_y=0.22)
+        logout_profile_btn = Button(
+            text="Logout", 
+            background_color=(0.75, 0.2, 0.2, 1), 
+            font_size='12sp', 
+            bold=True
+        )
+        close_btn = Button(
+            text="Close", 
+            size_hint_x=0.45,
+            background_color=(0.3, 0.35, 0.4, 1), 
+            font_size='12sp'
+        )
+        btn_box.add_widget(logout_profile_btn)
+        btn_box.add_widget(close_btn)
+        box.add_widget(btn_box)
 
-        popup = Popup(title="Node Identity Center", content=box, size_hint=(0.90, 0.55), auto_dismiss=False)
+        popup = Popup(
+            title="Node Identity Center", 
+            content=box, 
+            size_hint=(0.90, 0.58), 
+            auto_dismiss=False
+        )
+
+        def do_profile_logout(btn):
+            popup.dismiss()
+            self.manager.current = "landing"
+
+        logout_profile_btn.bind(on_press=do_profile_logout)
         close_btn.bind(on_press=popup.dismiss)
         popup.open()
 
