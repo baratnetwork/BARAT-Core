@@ -22,9 +22,7 @@ from kivy.core.clipboard import Clipboard
 from kivy.animation import Animation
 from kivy.resources import resource_find, resource_add_path
 
-# Keyboard overlay auto-slide
 Window.softinput_mode = "below_target"
-Window.keyboard_anim_args = {'t': 'in_out_quart', 'd': 0.25}
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 resource_add_path(BASE_DIR)
@@ -36,7 +34,6 @@ elif os.path.exists(os.path.join(BASE_DIR, "icon.png.png")):
 else:
     LOGO_FILE = resource_find("icon.png") or "icon.png"
 
-DATA_FILE = "barat_data.json"
 HALVING_INTERVAL = 5250000.0
 BLOCK_REWARD_INITIAL = 10.0
 CYCLE_HOURS = 24
@@ -46,7 +43,6 @@ MIN_WITHDRAW_AMOUNT = 50.0
 GAS_FEE_PERCENTAGE = 0.02
 FOUNDER_SOLANA_WALLET = "9zYbQMJ9VD2NjXRhd83s4LSUcu9AnLTeetXLd5URWk2z"
 
-# GitHub Cloud Sync Credentials
 GITHUB_USER = "sudheerkirandora"
 _part_a = "ghp_Omn4yMV2SJqc"
 _part_b = "Vmc8AcXXe0rIyuY8Tc18EzMX"
@@ -67,6 +63,12 @@ WORD_DICTIONARY = [
     "matrix", "neural", "oxygen", "protein", "quantum", "repair", 
     "solana", "target", "ultra", "vector", "wallet", "xenon"
 ]
+
+def get_data_filepath():
+    app = App.get_running_app()
+    if app and hasattr(app, 'user_data_dir') and app.user_data_dir:
+        return os.path.join(app.user_data_dir, "barat_data.json")
+    return os.path.join(BASE_DIR, "barat_data.json")
 
 def get_server_time():
     try:
@@ -139,9 +141,10 @@ def is_valid_solana_address(addr):
     return bool(re.match(base58_pattern, addr))
 
 def load_data():
-    if os.path.exists(DATA_FILE):
+    filepath = get_data_filepath()
+    if os.path.exists(filepath):
         try:
-            with open(DATA_FILE, "r") as f:
+            with open(filepath, "r") as f:
                 return json.load(f)
         except Exception:
             pass
@@ -165,7 +168,11 @@ def load_data():
 
 def save_local_only(data):
     try:
-        with open(DATA_FILE, "w") as f:
+        filepath = get_data_filepath()
+        folder = os.path.dirname(filepath)
+        if folder and not os.path.exists(folder):
+            os.makedirs(folder, exist_ok=True)
+        with open(filepath, "w") as f:
             json.dump(data, f)
     except Exception:
         pass
@@ -214,7 +221,6 @@ class LandingScreen(Screen):
         )
         root.add_widget(self.mined_preview)
 
-        # Round Animated Circle Button
         self.start_btn = Button(
             text="START",
             size_hint=(None, None),
@@ -231,21 +237,22 @@ class LandingScreen(Screen):
         root.add_widget(Label(text="", size_hint_y=0.06))
         self.add_widget(root)
 
-        # Pulse animation on Start Button
-        self.start_pulse_animation()
-
-    def start_pulse_animation(self):
-        anim = Animation(size=('138dp', '138dp'), duration=0.8, t='in_out_quad') + \
-               Animation(size=('130dp', '130dp'), duration=0.8, t='in_out_quad')
-        anim.repeat = True
-        anim.start(self.start_btn)
-
     def on_enter(self):
         data = load_data()
         tot = data.get("balance", 0.0)
         for w in data.get("wallets", []):
             tot += w.get("balance", 0.0)
         self.mined_preview.text = f"Tokens Mined\n{tot:.2f} $BARAT"
+        Clock.schedule_once(self.safe_start_pulse, 0.2)
+
+    def safe_start_pulse(self, dt):
+        try:
+            anim = Animation(size=('138dp', '138dp'), duration=0.8, t='in_out_quad') + \
+                   Animation(size=('130dp', '130dp'), duration=0.8, t='in_out_quad')
+            anim.repeat = True
+            anim.start(self.start_btn)
+        except Exception:
+            pass
 
     def go_next(self, instance):
         data = load_data()
@@ -703,7 +710,6 @@ class MainScreen(Screen):
         if (now - data.get("last_cycle", 0)) < cooldown:
             return
 
-        # Show Live Mining Animation
         self.mine_btn.disabled = True
         self.mine_btn.text = "⚡ Mining Block in Progress..."
         self.status_msg.color = (0.95, 0.85, 0.2, 1)
@@ -872,7 +878,6 @@ class MainScreen(Screen):
                 return
 
             phrase = " ".join(words)
-            # Check if wallet already exists
             existing_idx = next((i for i, w in enumerate(wallets) if w.get("phrase") == phrase), None)
             if existing_idx is not None:
                 data["active_wallet_index"] = existing_idx
