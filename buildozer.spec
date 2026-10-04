@@ -12,8 +12,11 @@ package.domain = org.barat
 # (str) Source code where the main.py lives
 source.dir = .
 
-# (list) Source files to include (let empty to include all the files)
+# (list) Source files to include
 source.include_exts = py,png,jpg,kv,atlas,json
+
+# (str) Icon of the application
+icon.filename = %(source.dir)s/icon.png
 
 # (list) Application requirements
 requirements = python3==3.11.9,hostpython3==3.11.9,kivy==2.3.0,pillow
@@ -40,9 +43,9 @@ android.accept_sdk_license = True
 android.archs = arm64-v8a
 
 # (list) Permissions
-android.permissions = INTERNET
+android.permissions = INTERNET,ACCESS_NETWORK_STATE
 
-# (int) Target Android orientation
+# (str) Supported orientation
 orientation = portrait
 
 # (bool) Fullscreen mode
