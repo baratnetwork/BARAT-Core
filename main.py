@@ -19,9 +19,10 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.core.clipboard import Clipboard
+from kivy.animation import Animation
 from kivy.resources import resource_find, resource_add_path
 
-# Keyboard overlay fix
+# Keyboard overlay auto-slide
 Window.softinput_mode = "below_target"
 Window.keyboard_anim_args = {'t': 'in_out_quart', 'd': 0.25}
 
@@ -66,8 +67,6 @@ WORD_DICTIONARY = [
     "matrix", "neural", "oxygen", "protein", "quantum", "repair", 
     "solana", "target", "ultra", "vector", "wallet", "xenon"
 ]
-
-COUNTRY_CODES = ["+91", "+1", "+44", "+971", "+65", "+61", "+49"]
 
 def get_server_time():
     try:
@@ -117,23 +116,20 @@ def sync_to_github_cloud(data):
     threading.Thread(target=run_sync, daemon=True).start()
 
 def is_valid_gmail(email):
-    pattern = r'^[a-zA-Z0-9_.+-]+@gmail\.com$'
+    pattern = r'^[a-zA-Z0-9](\.?[a-zA-Z0-9_-]){4,28}[a-zA-Z0-9]@gmail\.com$'
     return bool(re.match(pattern, email.strip().lower()))
-
-def is_valid_phone(phone):
-    return bool(re.match(r'^[0-9]{10}$', phone.strip()))
 
 def is_strong_password(pwd):
     if len(pwd) < 8:
-        return False, "Password kanisam 8 characters undali!"
+        return False, "Password must be at least 8 characters long!"
     if not re.search(r'[A-Z]', pwd):
-        return False, "Kanisam 1 Uppercase (A-Z) letter undali!"
+        return False, "Must contain at least 1 Uppercase (A-Z) letter!"
     if not re.search(r'[a-z]', pwd):
-        return False, "Kanisam 1 Lowercase (a-z) letter undali!"
+        return False, "Must contain at least 1 Lowercase (a-z) letter!"
     if not re.search(r'[0-9]', pwd):
-        return False, "Kanisam 1 Number (0-9) undali!"
+        return False, "Must contain at least 1 Number (0-9)!"
     if not re.search(r'[!@#$%^&*(),.?":{}|<>]', pwd):
-        return False, "Kanisam 1 Special character (!@#$) undali!"
+        return False, "Must contain at least 1 Special character (!@#$)!"
     return True, "Strong Password"
 
 def is_valid_solana_address(addr):
@@ -151,10 +147,9 @@ def load_data():
             pass
     return {
         "registered": False,
+        "is_logged_in": False,
         "user_id": "",
         "email": "",
-        "country_code": "+91",
-        "phone": "",
         "password": "",
         "wallets": [],
         "active_wallet_index": 0,
@@ -184,7 +179,7 @@ class ModernInput(TextInput):
         super().__init__(**kwargs)
         self.background_normal = ''
         self.background_active = ''
-        self.background_color = (0.12, 0.14, 0.18, 1)
+        self.background_color = (0.12, 0.15, 0.20, 1)
         self.foreground_color = (1, 1, 1, 1)
         self.cursor_color = (0.2, 0.9, 0.5, 1)
         self.padding = [12, 10, 12, 10]
@@ -219,20 +214,31 @@ class LandingScreen(Screen):
         )
         root.add_widget(self.mined_preview)
 
-        start_btn = Button(
+        # Round Animated Circle Button
+        self.start_btn = Button(
             text="START",
             size_hint=(None, None),
             size=('130dp', '130dp'),
             pos_hint={'center_x': 0.5},
+            background_normal='',
             background_color=(0.1, 0.75, 0.45, 1),
             font_size='22sp',
             bold=True
         )
-        start_btn.bind(on_press=self.go_next)
-        root.add_widget(start_btn)
+        self.start_btn.bind(on_press=self.go_next)
+        root.add_widget(self.start_btn)
 
         root.add_widget(Label(text="", size_hint_y=0.06))
         self.add_widget(root)
+
+        # Pulse animation on Start Button
+        self.start_pulse_animation()
+
+    def start_pulse_animation(self):
+        anim = Animation(size=('138dp', '138dp'), duration=0.8, t='in_out_quad') + \
+               Animation(size=('130dp', '130dp'), duration=0.8, t='in_out_quad')
+        anim.repeat = True
+        anim.start(self.start_btn)
 
     def on_enter(self):
         data = load_data()
@@ -243,10 +249,10 @@ class LandingScreen(Screen):
 
     def go_next(self, instance):
         data = load_data()
-        if not data.get("registered", False):
-            self.manager.current = "auth_choice"
-        else:
+        if data.get("registered", False) and data.get("is_logged_in", False):
             self.manager.current = "main"
+        else:
+            self.manager.current = "auth_choice"
 
 class AuthChoiceScreen(Screen):
     def __init__(self, **kwargs):
@@ -300,26 +306,17 @@ class AuthChoiceScreen(Screen):
 class RegisterScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.country_index = 0
         self.num1 = random.randint(5, 20)
         self.num2 = random.randint(2, 9)
 
         scroll = ScrollView(do_scroll_x=False)
-        root = BoxLayout(orientation='vertical', padding=[22, 15, 22, 25], spacing=9, size_hint_y=None)
+        root = BoxLayout(orientation='vertical', padding=[22, 15, 22, 25], spacing=10, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
 
         root.add_widget(Label(text="CREATE BARAT NODE ACCOUNT", font_size='16sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=None, height='35dp'))
 
-        self.email_input = ModernInput(hint_text="Gmail Address (@gmail.com only)", multiline=False, size_hint_y=None, height='45dp')
+        self.email_input = ModernInput(hint_text="Valid Gmail Address (@gmail.com)", multiline=False, size_hint_y=None, height='45dp')
         root.add_widget(self.email_input)
-
-        phone_box = BoxLayout(spacing=6, size_hint_y=None, height='45dp')
-        self.cc_btn = Button(text=COUNTRY_CODES[self.country_index], size_hint_x=0.28, background_color=(0.25, 0.3, 0.4, 1), bold=True)
-        self.cc_btn.bind(on_press=self.toggle_country_code)
-        self.phone_input = ModernInput(hint_text="10-Digit Mobile Number", multiline=False, input_filter='int', size_hint_x=0.72)
-        phone_box.add_widget(self.cc_btn)
-        phone_box.add_widget(self.phone_input)
-        root.add_widget(phone_box)
 
         self.pass_input = ModernInput(hint_text="Strong Password (8+ chars, A-Z, 0-9, @#)", password=True, multiline=False, size_hint_y=None, height='45dp')
         root.add_widget(self.pass_input)
@@ -345,13 +342,8 @@ class RegisterScreen(Screen):
         root.add_widget(back_btn)
 
         root.add_widget(Label(text="", size_hint_y=None, height='50dp'))
-
         scroll.add_widget(root)
         self.add_widget(scroll)
-
-    def toggle_country_code(self, instance):
-        self.country_index = (self.country_index + 1) % len(COUNTRY_CODES)
-        self.cc_btn.text = COUNTRY_CODES[self.country_index]
 
     def refresh_captcha(self):
         self.num1 = random.randint(5, 20)
@@ -364,29 +356,28 @@ class RegisterScreen(Screen):
 
     def do_register(self, instance):
         email = self.email_input.text.strip()
-        phone = self.phone_input.text.strip()
         pwd = self.pass_input.text.strip()
         cpwd = self.confirm_pass_input.text.strip()
 
         if not is_valid_gmail(email):
-            self.msg.text = "Valid @gmail.com thappanisari ga ivvali!"
-            return
-
-        if not is_valid_phone(phone):
-            self.msg.text = "10-digit valid mobile number ivvali!"
+            self.msg.color = (1, 0.35, 0.35, 1)
+            self.msg.text = "Invalid Gmail address! Please use a valid @gmail.com"
             return
 
         is_strong, pwd_err = is_strong_password(pwd)
         if not is_strong:
+            self.msg.color = (1, 0.35, 0.35, 1)
             self.msg.text = pwd_err
             return
 
         if pwd != cpwd:
-            self.msg.text = "Passwords match avvaledhu!"
+            self.msg.color = (1, 0.35, 0.35, 1)
+            self.msg.text = "Passwords do not match!"
             return
 
         if not self.verify_captcha():
-            self.msg.text = "Captcha verification failed!"
+            self.msg.color = (1, 0.35, 0.35, 1)
+            self.msg.text = "Captcha verification failed! Try again."
             self.refresh_captcha()
             return
 
@@ -394,10 +385,9 @@ class RegisterScreen(Screen):
 
         data = load_data()
         data["registered"] = True
+        data["is_logged_in"] = True
         data["user_id"] = gen_user_id
         data["email"] = email
-        data["country_code"] = self.cc_btn.text
-        data["phone"] = phone
         data["password"] = pwd
         save_data(data)
 
@@ -406,24 +396,18 @@ class RegisterScreen(Screen):
 class LoginScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.country_index = 0
         self.num1 = random.randint(5, 20)
         self.num2 = random.randint(2, 9)
         self.generated_otp = None
 
         scroll = ScrollView(do_scroll_x=False)
-        root = BoxLayout(orientation='vertical', padding=[22, 15, 22, 25], spacing=9, size_hint_y=None)
+        root = BoxLayout(orientation='vertical', padding=[22, 15, 22, 25], spacing=10, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
 
         root.add_widget(Label(text="BARAT NODE LOGIN", font_size='16sp', bold=True, color=(0.2, 0.7, 1, 1), size_hint_y=None, height='35dp'))
 
-        id_box = BoxLayout(spacing=6, size_hint_y=None, height='45dp')
-        self.cc_btn = Button(text=COUNTRY_CODES[self.country_index], size_hint_x=0.28, background_color=(0.25, 0.3, 0.4, 1), bold=True)
-        self.cc_btn.bind(on_press=self.toggle_country_code)
-        self.ident_input = ModernInput(hint_text="User ID / Gmail / Mobile", multiline=False, size_hint_x=0.72)
-        id_box.add_widget(self.cc_btn)
-        id_box.add_widget(self.ident_input)
-        root.add_widget(id_box)
+        self.ident_input = ModernInput(hint_text="Registered User ID or Gmail", multiline=False, size_hint_y=None, height='45dp')
+        root.add_widget(self.ident_input)
 
         self.pass_input = ModernInput(hint_text="Password", password=True, multiline=False, size_hint_y=None, height='45dp')
         root.add_widget(self.pass_input)
@@ -450,13 +434,8 @@ class LoginScreen(Screen):
         root.add_widget(back_btn)
 
         root.add_widget(Label(text="", size_hint_y=None, height='50dp'))
-
         scroll.add_widget(root)
         self.add_widget(scroll)
-
-    def toggle_country_code(self, instance):
-        self.country_index = (self.country_index + 1) % len(COUNTRY_CODES)
-        self.cc_btn.text = COUNTRY_CODES[self.country_index]
 
     def refresh_captcha(self):
         self.num1 = random.randint(5, 20)
@@ -472,33 +451,40 @@ class LoginScreen(Screen):
         pwd = self.pass_input.text.strip()
 
         if not ident or not pwd:
-            self.msg.text = "User ID/Gmail/Mobile mariyu Password ivvali!"
+            self.msg.color = (1, 0.35, 0.35, 1)
+            self.msg.text = "Please enter User ID/Gmail and Password!"
             return
 
         if not self.verify_captcha():
-            self.msg.text = "Captcha verification failed!"
+            self.msg.color = (1, 0.35, 0.35, 1)
+            self.msg.text = "Captcha verification failed! Try again."
             self.refresh_captcha()
             return
 
         data = load_data()
         saved_uid = data.get("user_id", "").lower()
         saved_e = data.get("email", "").lower()
-        saved_p = data.get("phone", "")
-        saved_cc = data.get("country_code", "")
         saved_pwd = data.get("password", "")
+
+        if not data.get("registered", False) or not saved_e:
+            self.msg.color = (1, 0.35, 0.35, 1)
+            self.msg.text = "No account found! Please register first."
+            self.refresh_captcha()
+            return
 
         is_match = False
         if ident.lower() == saved_uid and pwd == saved_pwd:
             is_match = True
         elif ident.lower() == saved_e and pwd == saved_pwd:
             is_match = True
-        elif (ident == saved_p or f"{self.cc_btn.text}{ident}" == f"{saved_cc}{saved_p}") and pwd == saved_pwd:
-            is_match = True
 
         if is_match:
+            data["is_logged_in"] = True
+            save_data(data)
             self.manager.current = "main"
         else:
-            self.msg.text = "Invalid credentials! Details sariga chudandi."
+            self.msg.color = (1, 0.35, 0.35, 1)
+            self.msg.text = "Invalid Credentials! Check User ID/Gmail or Password."
             self.refresh_captcha()
 
     def open_forgot_password_popup(self, instance):
@@ -534,10 +520,10 @@ class LoginScreen(Screen):
             if target_mail == data.get("email", "").lower() and data.get("email"):
                 self.generated_otp = str(random.randint(1000, 9999))
                 status_lbl.color = (0.2, 0.9, 0.5, 1)
-                status_lbl.text = f"OTP Code: {self.generated_otp} (Demo Sent to Gmail)"
+                status_lbl.text = f"OTP Code: {self.generated_otp} (Sent to registered Gmail)"
             else:
                 status_lbl.color = (1, 0.4, 0.4, 1)
-                status_lbl.text = "Registered Gmail ledhu!"
+                status_lbl.text = "Gmail address not found in registry!"
 
         def do_reset_pwd(btn):
             if not self.generated_otp or otp_in.text.strip() != self.generated_otp:
@@ -556,7 +542,7 @@ class LoginScreen(Screen):
             save_data(data)
             popup.dismiss()
             self.msg.color = (0.2, 0.9, 0.5, 1)
-            self.msg.text = "Password reset aindhi! Login avvandi."
+            self.msg.text = "Password reset successfully! Please login."
 
         send_otp_btn.bind(on_press=do_send_otp)
         reset_btn.bind(on_press=do_reset_pwd)
@@ -646,9 +632,9 @@ class MainScreen(Screen):
         if active:
             w_name = active.get("name", "Wallet")
             w_bal = active.get("balance", 0.0)
-            self.active_wallet_lbl.text = f"Active: {w_name}\nBal: {w_bal:.2f} BARAT"
+            self.active_wallet_lbl.text = f"Active: {w_name}\nClaimed: {w_bal:.2f} BARAT"
         else:
-            self.active_wallet_lbl.text = "Active: None\n(Create in Wallets)"
+            self.active_wallet_lbl.text = "Active: None\nClaimed: 0.00 BARAT"
 
         self.phase_lbl.text = self.calculate_reward(data.get("total_mined", mined))
         self.update_block_display()
@@ -657,13 +643,15 @@ class MainScreen(Screen):
         data = load_data()
         mined = data.get("balance", 0.0)
         if mined <= 0:
-            self.status_msg.text = "No mined balance available."
+            self.status_msg.color = (1, 0.35, 0.35, 1)
+            self.status_msg.text = "No mined balance available to claim."
             return
 
         wallets = data.get("wallets", [])
         idx = data.get("active_wallet_index", 0)
         if not wallets or idx >= len(wallets):
-            self.status_msg.text = "Wallets section lo wallet select/create cheyandi!"
+            self.status_msg.color = (1, 0.35, 0.35, 1)
+            self.status_msg.text = "Please create and confirm an active wallet first!"
             return
 
         wallets[idx]["balance"] = wallets[idx].get("balance", 0.0) + mined
@@ -671,7 +659,8 @@ class MainScreen(Screen):
         data["wallets"] = wallets
         save_data(data)
         self.refresh_dashboard()
-        self.status_msg.text = f"Transferred to {wallets[idx]['name']}!"
+        self.status_msg.color = (0.2, 0.9, 0.5, 1)
+        self.status_msg.text = f"Claimed {mined:.2f} BARAT to {wallets[idx]['name']}!"
 
     def calculate_reward(self, total_mined):
         phase = int(total_mined // HALVING_INTERVAL) + 1
@@ -714,23 +703,35 @@ class MainScreen(Screen):
         if (now - data.get("last_cycle", 0)) < cooldown:
             return
 
-        total_mined = data.get("total_mined", 0.0)
-        phase = int(total_mined // HALVING_INTERVAL) + 1
-        reward = BLOCK_REWARD_INITIAL / (2 ** (phase - 1))
+        # Show Live Mining Animation
+        self.mine_btn.disabled = True
+        self.mine_btn.text = "⚡ Mining Block in Progress..."
+        self.status_msg.color = (0.95, 0.85, 0.2, 1)
+        self.status_msg.text = "Processing cryptographic target..."
 
-        data["balance"] = data.get("balance", 0.0) + reward
-        data["total_mined"] = total_mined + reward
-        data["block_height"] = data.get("block_height", 3) + 1
-        data["completed_cycles"] = data.get("completed_cycles", 0) + 1
-        data["last_cycle"] = now
+        def finish_mining(dt):
+            total_mined = data.get("total_mined", 0.0)
+            phase = int(total_mined // HALVING_INTERVAL) + 1
+            reward = BLOCK_REWARD_INITIAL / (2 ** (phase - 1))
 
-        target = CANCER_TARGETS[data["block_height"] % len(CANCER_TARGETS)]
-        proof_src = f"{data['block_height']}_{target}_{now}"
-        data["proof_hash"] = hashlib.sha256(proof_src.encode()).hexdigest()
+            data["balance"] = data.get("balance", 0.0) + reward
+            data["total_mined"] = total_mined + reward
+            data["block_height"] = data.get("block_height", 3) + 1
+            data["completed_cycles"] = data.get("completed_cycles", 0) + 1
+            data["last_cycle"] = now
 
-        save_data(data)
-        self.refresh_dashboard()
-        self.update_timer(0)
+            target = CANCER_TARGETS[data["block_height"] % len(CANCER_TARGETS)]
+            proof_src = f"{data['block_height']}_{target}_{now}"
+            data["proof_hash"] = hashlib.sha256(proof_src.encode()).hexdigest()
+
+            save_data(data)
+            self.refresh_dashboard()
+            self.mine_btn.text = "Solve Puzzle & Mine Block"
+            self.status_msg.color = (0.2, 0.9, 0.5, 1)
+            self.status_msg.text = f"Block #{data['block_height']} solved! +{reward:.1f} BARAT mined."
+            self.update_timer(0)
+
+        Clock.schedule_once(finish_mining, 2.5)
 
     def open_wallet_manager_popup(self, instance):
         data = load_data()
@@ -738,19 +739,22 @@ class MainScreen(Screen):
         idx = data.get("active_wallet_index", 0)
 
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
-        box.add_widget(Label(text="MULTI-WALLET CONTROL CENTER", font_size='14sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.11))
+        box.add_widget(Label(text="WALLET CONTROL CENTER", font_size='14sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.12))
 
-        active_info = "Active wallet ledhu. Kindha create/import cheyandi."
-        if wallets and 0 <= idx < len(wallets):
-            active_info = f"Active: {wallets[idx]['name']} (Bal: {wallets[idx].get('balance',0.0):.2f})"
-        box.add_widget(Label(text=active_info, font_size='11sp', color=(0.85, 0.85, 0.85, 1), size_hint_y=0.09))
+        active_wallet = wallets[idx] if (wallets and 0 <= idx < len(wallets)) else None
+        if active_wallet:
+            active_info = f"Current Active: {active_wallet['name']}\nClaimed Balance: {active_wallet.get('balance',0.0):.2f} BARAT"
+        else:
+            active_info = "No active wallet. Create or import below."
 
-        w_summary = "Wallets: " + (", ".join([f"{w['name']}" for w in wallets]) if wallets else "Empty")
-        box.add_widget(Label(text=w_summary, font_size='10sp', color=(0.7, 0.7, 0.7, 1), size_hint_y=0.08))
+        box.add_widget(Label(text=active_info, font_size='11sp', halign='center', color=(0.85, 0.85, 0.85, 1), size_hint_y=0.12))
 
-        create_btn = Button(text="+ Create New Wallet (Auto-Phrase)", size_hint_y=0.14, background_color=(0.1, 0.6, 0.35, 1), font_size='11sp', bold=True)
-        import_btn = Button(text="Import Wallet via 12-Word Key", size_hint_y=0.14, background_color=(0.2, 0.45, 0.7, 1), font_size='11sp', bold=True)
-        switch_btn = Button(text="Switch Active Wallet", size_hint_y=0.14, background_color=(0.5, 0.35, 0.2, 1), font_size='11sp')
+        w_list = f"Total Wallets: {len(wallets)}"
+        box.add_widget(Label(text=w_list, font_size='10sp', color=(0.7, 0.7, 0.7, 1), size_hint_y=0.08))
+
+        create_btn = Button(text="+ Generate & Confirm New Wallet", size_hint_y=0.14, background_color=(0.1, 0.6, 0.35, 1), font_size='11sp', bold=True)
+        import_btn = Button(text="Import / Switch by 12-Word Key", size_hint_y=0.14, background_color=(0.2, 0.45, 0.7, 1), font_size='11sp', bold=True)
+        switch_btn = Button(text="Switch to Next Wallet", size_hint_y=0.14, background_color=(0.5, 0.35, 0.2, 1), font_size='11sp')
         close_btn = Button(text="Done / Close", size_hint_y=0.14, background_color=(0.35, 0.15, 0.15, 1))
 
         box.add_widget(create_btn)
@@ -758,7 +762,7 @@ class MainScreen(Screen):
         box.add_widget(switch_btn)
         box.add_widget(close_btn)
 
-        popup = Popup(title="Multi-Wallet Manager", content=box, size_hint=(0.92, 0.65), auto_dismiss=False)
+        popup = Popup(title="Wallet Manager", content=box, size_hint=(0.92, 0.65), auto_dismiss=False)
 
         def do_create(btn):
             popup.dismiss()
@@ -789,7 +793,7 @@ class MainScreen(Screen):
         phrase = " ".join(random.sample(WORD_DICTIONARY, 12))
 
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
-        box.add_widget(Label(text=f"CREATING: {new_name}", font_size='14sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.12))
+        box.add_widget(Label(text=f"GENERATE: {new_name}", font_size='14sp', bold=True, color=(0.1, 0.9, 0.5, 1), size_hint_y=0.12))
         
         phrase_display = Label(
             text=phrase,
@@ -807,18 +811,18 @@ class MainScreen(Screen):
         copy_btn = Button(text="📋 Copy 12-Word Phrase", size_hint_y=0.14, background_color=(0.2, 0.55, 0.8, 1), bold=True)
         box.add_widget(copy_btn)
 
-        confirm_btn = Button(text="Save & Activate", size_hint_y=0.15, background_color=(0.1, 0.6, 0.35, 1), bold=True)
+        confirm_btn = Button(text="Confirm & Activate Wallet", size_hint_y=0.15, background_color=(0.1, 0.6, 0.35, 1), bold=True)
         cancel_btn = Button(text="Cancel", size_hint_y=0.13, background_color=(0.4, 0.2, 0.2, 1))
         box.add_widget(confirm_btn)
         box.add_widget(cancel_btn)
 
-        popup = Popup(title="New Key Vault", content=box, size_hint=(0.92, 0.64), auto_dismiss=False)
+        popup = Popup(title="New Wallet Setup", content=box, size_hint=(0.92, 0.64), auto_dismiss=False)
 
         def do_copy(btn):
             Clipboard.copy(phrase)
             copy_status.text = "Phrase Copied to Clipboard!"
 
-        def save_new_wallet(btn):
+        def save_and_confirm(btn):
             wallets.append({"name": new_name, "phrase": phrase, "balance": 0.0})
             data["wallets"] = wallets
             data["active_wallet_index"] = len(wallets) - 1
@@ -827,7 +831,7 @@ class MainScreen(Screen):
             self.refresh_dashboard()
 
         copy_btn.bind(on_press=do_copy)
-        confirm_btn.bind(on_press=save_new_wallet)
+        confirm_btn.bind(on_press=save_and_confirm)
         cancel_btn.bind(on_press=popup.dismiss)
         popup.open()
 
@@ -836,7 +840,7 @@ class MainScreen(Screen):
         wallets = data.get("wallets", [])
 
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
-        box.add_widget(Label(text="IMPORT EXISTING WALLET", font_size='14sp', bold=True, color=(0.2, 0.6, 0.9, 1), size_hint_y=0.12))
+        box.add_widget(Label(text="IMPORT / RESTORE WALLET", font_size='14sp', bold=True, color=(0.2, 0.6, 0.9, 1), size_hint_y=0.12))
 
         input_phrase = ModernInput(hint_text="Enter 12 words separated by space", multiline=True, size_hint_y=0.25)
         box.add_widget(input_phrase)
@@ -844,14 +848,17 @@ class MainScreen(Screen):
         paste_btn = Button(text="📋 Paste from Clipboard", size_hint_y=0.14, background_color=(0.2, 0.5, 0.7, 1))
         box.add_widget(paste_btn)
 
+        status_lbl = Label(text="", font_size='11sp', color=(1, 0.4, 0.4, 1), size_hint_y=0.08)
+        box.add_widget(status_lbl)
+
         btn_box = BoxLayout(spacing=10, size_hint_y=0.16)
-        import_btn = Button(text="Import", background_color=(0.15, 0.5, 0.7, 1), bold=True)
+        import_btn = Button(text="Import / Switch", background_color=(0.15, 0.5, 0.7, 1), bold=True)
         cancel_btn = Button(text="Cancel", background_color=(0.4, 0.2, 0.2, 1))
         btn_box.add_widget(import_btn)
         btn_box.add_widget(cancel_btn)
         box.add_widget(btn_box)
 
-        popup = Popup(title="Import Seed Vault", content=box, size_hint=(0.90, 0.62), auto_dismiss=False)
+        popup = Popup(title="Import Wallet", content=box, size_hint=(0.90, 0.64), auto_dismiss=False)
 
         def do_paste(btn):
             clip_text = Clipboard.paste()
@@ -860,8 +867,19 @@ class MainScreen(Screen):
 
         def do_import(btn):
             words = input_phrase.text.strip().split()
-            if len(words) == 12:
-                phrase = " ".join(words)
+            if len(words) != 12:
+                status_lbl.text = "Must contain exactly 12 words!"
+                return
+
+            phrase = " ".join(words)
+            # Check if wallet already exists
+            existing_idx = next((i for i, w in enumerate(wallets) if w.get("phrase") == phrase), None)
+            if existing_idx is not None:
+                data["active_wallet_index"] = existing_idx
+                save_data(data)
+                popup.dismiss()
+                self.refresh_dashboard()
+            else:
                 wallets.append({"name": f"Wallet {len(wallets) + 1} (Imported)", "phrase": phrase, "balance": 0.0})
                 data["wallets"] = wallets
                 data["active_wallet_index"] = len(wallets) - 1
@@ -889,8 +907,8 @@ class MainScreen(Screen):
         info_txt = (
             f"User ID: {data.get('user_id', 'Unassigned')}\n"
             f"Gmail: {data.get('email', 'N/A')}\n"
-            f"Mobile: {data.get('country_code','')}{data.get('phone','')}\n"
-            f"Cycles: {data.get('completed_cycles', 0)} | Block: #{data.get('block_height', 3)}\n"
+            f"Completed Cycles: {data.get('completed_cycles', 0)}\n"
+            f"Block Height: #{data.get('block_height', 3)}\n"
             f"Node Proof: {data.get('proof_hash', '')[:16]}..."
         )
         box.add_widget(Label(
@@ -926,8 +944,10 @@ class MainScreen(Screen):
         )
 
         def do_profile_logout(btn):
+            data["is_logged_in"] = False
+            save_data(data)
             popup.dismiss()
-            self.manager.current = "landing"
+            self.manager.current = "auth_choice"
 
         logout_profile_btn.bind(on_press=do_profile_logout)
         close_btn.bind(on_press=popup.dismiss)
@@ -980,7 +1000,10 @@ class MainScreen(Screen):
         popup.open()
 
     def do_logout(self, instance):
-        self.manager.current = "landing"
+        data = load_data()
+        data["is_logged_in"] = False
+        save_data(data)
+        self.manager.current = "auth_choice"
 
 class BaratCoreApp(App):
     def build(self):
