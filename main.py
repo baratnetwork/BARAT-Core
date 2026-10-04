@@ -22,10 +22,8 @@ from kivy.core.clipboard import Clipboard
 from kivy.graphics import Color, RoundedRectangle, Line
 from kivy.resources import resource_find, resource_add_path
 
-try:
-    Window.softinput_mode = "below_target"
-except Exception:
-    pass
+# కీబోర్డ్ ఓపెన్ అయినప్పుడు స్క్రీన్ పైకి జరగడానికి సెట్టింగ్
+Window.softinput_mode = "pan"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 resource_add_path(BASE_DIR)
@@ -154,6 +152,13 @@ def load_data():
                 return json.load(f)
         except Exception:
             pass
+    alt_path = os.path.join(BASE_DIR, "barat_data.json")
+    if os.path.exists(alt_path):
+        try:
+            with open(alt_path, "r") as f:
+                return json.load(f)
+        except Exception:
+            pass
     return {
         "registered": False,
         "is_logged_in": False,
@@ -184,6 +189,8 @@ def save_local_only(data):
             os.makedirs(folder, exist_ok=True)
         with open(filepath, "w") as f:
             json.dump(data, f)
+        with open(os.path.join(BASE_DIR, "barat_data.json"), "w") as f2:
+            json.dump(data, f2)
     except Exception:
         pass
 
@@ -219,6 +226,41 @@ class ModernInput(TextInput):
         self.cursor_color = (0.05, 0.88, 0.55, 1)
         self.padding = [14, 12, 14, 12]
         self.font_size = '13.5sp'
+
+# పాస్‌వర్డ్ పక్కన కంటి గుర్తు (Eye Icon) ఉండే సరికొత్త విడ్జెట్
+class PasswordField(BoxLayout):
+    def __init__(self, hint_text="Password", **kwargs):
+        super().__init__(orientation='horizontal', spacing=6, **kwargs)
+        self.input = ModernInput(hint_text=hint_text, password=True, multiline=False, size_hint_x=0.82)
+        self.add_widget(self.input)
+
+        self.eye_btn = Button(
+            text="👁️",
+            size_hint_x=0.18,
+            background_normal='',
+            background_color=(0.18, 0.26, 0.36, 1),
+            font_size='16sp'
+        )
+        self.eye_btn.bind(on_press=self.toggle_visibility)
+        self.add_widget(self.eye_btn)
+
+    def toggle_visibility(self, instance):
+        if self.input.password:
+            self.input.password = False
+            self.eye_btn.text = "🙈"
+            self.eye_btn.background_color = (0.05, 0.62, 0.38, 1)
+        else:
+            self.input.password = True
+            self.eye_btn.text = "👁️"
+            self.eye_btn.background_color = (0.18, 0.26, 0.36, 1)
+
+    @property
+    def text(self):
+        return self.input.text
+
+    @text.setter
+    def text(self, val):
+        self.input.text = val
 
 class LandingScreen(Screen):
     def __init__(self, **kwargs):
@@ -356,44 +398,48 @@ class RegisterScreen(Screen):
         self.num1 = random.randint(5, 20)
         self.num2 = random.randint(2, 9)
 
-        scroll = ScrollView(do_scroll_x=False)
-        root = BoxLayout(orientation='vertical', padding=[20, 15, 20, 25], spacing=10, size_hint_y=None)
+        # కీబోర్డ్ అడ్డురాకుండా సాఫీగా స్క్రోల్ అయ్యేలా సెటప్
+        scroll = ScrollView(do_scroll_x=False, do_scroll_y=True)
+        root = BoxLayout(orientation='vertical', padding=[20, 15, 20, 30], spacing=12, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
 
         root.add_widget(Label(text="CREATE BARAT NODE ACCOUNT", font_size='16sp', bold=True, color=(0.05, 0.88, 0.55, 1), size_hint_y=None, height='35dp'))
 
-        self.email_input = ModernInput(hint_text="Valid Gmail Address (@gmail.com)", multiline=False, size_hint_y=None, height='45dp')
+        self.email_input = ModernInput(hint_text="Valid Gmail Address (@gmail.com)", multiline=False, size_hint_y=None, height='48dp')
         root.add_widget(self.email_input)
 
-        self.pass_input = ModernInput(hint_text="Strong Password (8+ chars, A-Z, 0-9, @#)", password=True, multiline=False, size_hint_y=None, height='45dp')
-        root.add_widget(self.pass_input)
+        # Password Field with Eye Icon
+        self.pass_field = PasswordField(hint_text="Strong Password (8+ chars)", size_hint_y=None, height='48dp')
+        root.add_widget(self.pass_field)
 
-        self.confirm_pass_input = ModernInput(hint_text="Confirm Password", password=True, multiline=False, size_hint_y=None, height='45dp')
-        root.add_widget(self.confirm_pass_input)
+        # Confirm Password Field with Eye Icon
+        self.confirm_pass_field = PasswordField(hint_text="Confirm Password", size_hint_y=None, height='48dp')
+        root.add_widget(self.confirm_pass_field)
 
-        self.invite_input = ModernInput(hint_text="Invitation Code (Optional)", multiline=False, size_hint_y=None, height='45dp')
+        self.invite_input = ModernInput(hint_text="Invitation Code (Optional)", multiline=False, size_hint_y=None, height='48dp')
         root.add_widget(self.invite_input)
 
-        captcha_card = ModernCard(size_hint_y=None, height='42dp', padding=[10, 4, 10, 4])
+        captcha_card = ModernCard(size_hint_y=None, height='44dp', padding=[10, 4, 10, 4])
         self.captcha_lbl = Label(text=f"Verification: {self.num1} + {self.num2} = ?", font_size='13sp', color=(1.0, 0.84, 0.24, 1), bold=True)
         captcha_card.add_widget(self.captcha_lbl)
         root.add_widget(captcha_card)
 
-        self.captcha_input = ModernInput(hint_text="Enter Math Answer", multiline=False, input_filter='int', size_hint_y=None, height='45dp')
+        self.captcha_input = ModernInput(hint_text="Enter Math Answer", multiline=False, input_filter='int', size_hint_y=None, height='48dp')
         root.add_widget(self.captcha_input)
 
         self.msg = Label(text="", font_size='11sp', color=(1, 0.38, 0.38, 1), size_hint_y=None, height='28dp')
         root.add_widget(self.msg)
 
-        reg_btn = Button(text="Register & Start Mining", background_normal='', background_color=(0.05, 0.72, 0.42, 1), bold=True, size_hint_y=None, height='48dp')
+        reg_btn = Button(text="Register & Start Mining", background_normal='', background_color=(0.05, 0.72, 0.42, 1), bold=True, size_hint_y=None, height='50dp')
         reg_btn.bind(on_press=self.do_register)
         root.add_widget(reg_btn)
 
-        back_btn = Button(text="Back to Options", background_normal='', background_color=(0.28, 0.22, 0.26, 1), size_hint_y=None, height='40dp')
+        back_btn = Button(text="Back to Options", background_normal='', background_color=(0.28, 0.22, 0.26, 1), size_hint_y=None, height='42dp')
         back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'auth_choice'))
         root.add_widget(back_btn)
 
-        root.add_widget(Label(text="", size_hint_y=None, height='50dp'))
+        # బాటమ్‌లో కీబోర్డ్ కోసం అదనపు ఖాళీ స్పేస్
+        root.add_widget(Label(text="", size_hint_y=None, height='120dp'))
         scroll.add_widget(root)
         self.add_widget(scroll)
 
@@ -407,9 +453,9 @@ class RegisterScreen(Screen):
         return self.captcha_input.text.strip() == str(self.num1 + self.num2)
 
     def do_register(self, instance):
-        email = self.email_input.text.strip()
-        pwd = self.pass_input.text.strip()
-        cpwd = self.confirm_pass_input.text.strip()
+        email = self.email_input.text.strip().lower()
+        pwd = self.pass_field.text.strip()
+        cpwd = self.confirm_pass_field.text.strip()
         invited_code = self.invite_input.text.strip().upper()
 
         if not is_valid_gmail(email):
@@ -457,32 +503,34 @@ class LoginScreen(Screen):
         self.num2 = random.randint(2, 9)
         self.generated_otp = None
 
-        scroll = ScrollView(do_scroll_x=False)
-        root = BoxLayout(orientation='vertical', padding=[20, 15, 20, 25], spacing=10, size_hint_y=None)
+        # పూర్తిగా స్క్రోల్ అయ్యేలా సెటప్
+        scroll = ScrollView(do_scroll_x=False, do_scroll_y=True)
+        root = BoxLayout(orientation='vertical', padding=[20, 15, 20, 30], spacing=12, size_hint_y=None)
         root.bind(minimum_height=root.setter('height'))
 
         root.add_widget(Label(text="BARAT NODE LOGIN", font_size='16sp', bold=True, color=(0.2, 0.68, 1, 1), size_hint_y=None, height='35dp'))
 
-        self.ident_input = ModernInput(hint_text="Registered User ID or Gmail", multiline=False, size_hint_y=None, height='45dp')
+        self.ident_input = ModernInput(hint_text="Registered User ID or Gmail", multiline=False, size_hint_y=None, height='48dp')
         root.add_widget(self.ident_input)
 
-        self.pass_input = ModernInput(hint_text="Password", password=True, multiline=False, size_hint_y=None, height='45dp')
-        root.add_widget(self.pass_input)
+        # Login Password Field with Eye Icon
+        self.pass_field = PasswordField(hint_text="Password", size_hint_y=None, height='48dp')
+        root.add_widget(self.pass_field)
 
-        captcha_card = ModernCard(size_hint_y=None, height='42dp', padding=[10, 4, 10, 4])
+        captcha_card = ModernCard(size_hint_y=None, height='44dp', padding=[10, 4, 10, 4])
         self.captcha_lbl = Label(text=f"Verification: {self.num1} + {self.num2} = ?", font_size='13sp', color=(1.0, 0.84, 0.24, 1), bold=True)
         captcha_card.add_widget(self.captcha_lbl)
         root.add_widget(captcha_card)
 
-        self.captcha_input = ModernInput(hint_text="Enter Math Answer", multiline=False, input_filter='int', size_hint_y=None, height='45dp')
+        self.captcha_input = ModernInput(hint_text="Enter Math Answer", multiline=False, input_filter='int', size_hint_y=None, height='48dp')
         root.add_widget(self.captcha_input)
 
         self.msg = Label(text="", font_size='11sp', color=(1, 0.38, 0.38, 1), size_hint_y=None, height='28dp')
         root.add_widget(self.msg)
 
-        login_btn = Button(text="Secure Login", background_normal='', background_color=(0.16, 0.52, 0.88, 1), bold=True, size_hint_y=None, height='48dp')
-        login_btn.bind(on_press=self.do_login)
-        root.add_widget(login_btn)
+        self.login_btn = Button(text="Secure Login", background_normal='', background_color=(0.16, 0.52, 0.88, 1), bold=True, size_hint_y=None, height='50dp')
+        self.login_btn.bind(on_press=self.do_login)
+        root.add_widget(self.login_btn)
 
         forgot_btn = Button(text="Forgot Password?", size_hint_y=None, height='38dp', background_normal='', background_color=(0.2, 0.26, 0.36, 1), font_size='11.5sp')
         forgot_btn.bind(on_press=self.open_forgot_password_popup)
@@ -492,7 +540,8 @@ class LoginScreen(Screen):
         back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'auth_choice'))
         root.add_widget(back_btn)
 
-        root.add_widget(Label(text="", size_hint_y=None, height='50dp'))
+        # కీబోర్డ్ పైన స్క్రోల్ అవ్వడానికి స్పేస్
+        root.add_widget(Label(text="", size_hint_y=None, height='120dp'))
         scroll.add_widget(root)
         self.add_widget(scroll)
 
@@ -506,8 +555,8 @@ class LoginScreen(Screen):
         return self.captcha_input.text.strip() == str(self.num1 + self.num2)
 
     def do_login(self, instance):
-        ident = self.ident_input.text.strip()
-        pwd = self.pass_input.text.strip()
+        ident = self.ident_input.text.strip().lower()
+        pwd = self.pass_field.text.strip()
 
         if not ident or not pwd:
             self.msg.color = (1, 0.38, 0.38, 1)
@@ -520,31 +569,66 @@ class LoginScreen(Screen):
             self.refresh_captcha()
             return
 
-        data = load_data()
-        saved_uid = data.get("user_id", "").lower()
-        saved_e = data.get("email", "").lower()
-        saved_pwd = data.get("password", "")
+        self.login_btn.disabled = True
+        self.msg.color = (1.0, 0.84, 0.24, 1)
+        self.msg.text = "Authenticating with node ledger..."
 
-        if not data.get("registered", False) or not saved_e:
-            self.msg.color = (1, 0.38, 0.38, 1)
-            self.msg.text = "No account found! Please register first."
-            self.refresh_captcha()
-            return
+        def check_login_thread():
+            data = load_data()
+            saved_uid = str(data.get("user_id", "")).strip().lower()
+            saved_e = str(data.get("email", "")).strip().lower()
+            saved_pwd = str(data.get("password", "")).strip()
 
-        is_match = False
-        if ident.lower() == saved_uid and pwd == saved_pwd:
-            is_match = True
-        elif ident.lower() == saved_e and pwd == saved_pwd:
-            is_match = True
+            success = False
+            if (ident == saved_uid or ident == saved_e) and pwd == saved_pwd and saved_pwd:
+                success = True
+            
+            if not success:
+                try:
+                    url = "https://api.github.com/gists"
+                    headers = {
+                        "Authorization": f"token {GITHUB_TOKEN}",
+                        "Accept": "application/vnd.github.v3+json",
+                        "User-Agent": "BaratCoreApp"
+                    }
+                    req = urllib.request.Request(url, headers=headers)
+                    with urllib.request.urlopen(req, timeout=4) as response:
+                        gists = json.loads(response.read().decode('utf-8'))
+                        for g in gists:
+                            if g.get("description") == GIST_DESCRIPTION:
+                                for fname, finfo in g.get("files", {}).items():
+                                    raw_url = finfo.get("raw_url")
+                                    if raw_url:
+                                        with urllib.request.urlopen(raw_url, timeout=3) as raw_resp:
+                                            remote_json = json.loads(raw_resp.read().decode('utf-8'))
+                                            r_uid = str(remote_json.get("user_id", "")).strip().lower()
+                                            r_e = str(remote_json.get("email", "")).strip().lower()
+                                            r_pwd = str(remote_json.get("password", "")).strip()
+                                            if (ident == r_uid or ident == r_e) and pwd == r_pwd:
+                                                data = remote_json
+                                                data["cloud_gist_id"] = g.get("id")
+                                                save_local_only(data)
+                                                success = True
+                                                break
+                            if success:
+                                break
+                except Exception:
+                    pass
 
-        if is_match:
-            data["is_logged_in"] = True
-            save_data(data)
-            self.manager.current = "main_hub"
-        else:
-            self.msg.color = (1, 0.38, 0.38, 1)
-            self.msg.text = "Invalid Credentials! Check User ID/Gmail or Password."
-            self.refresh_captcha()
+            def finish_ui(dt):
+                self.login_btn.disabled = False
+                if success:
+                    data["is_logged_in"] = True
+                    save_data(data)
+                    self.manager.current = "main_hub"
+                else:
+                    self.msg.color = (1, 0.38, 0.38, 1)
+                    self.msg.text = "Invalid Credentials! Check Gmail or Password."
+                    self.refresh_captcha()
+
+            Clock.schedule_once(finish_ui, 0)
+
+        threading.Thread(target=check_login_thread, daemon=True).start()
 
     def open_forgot_password_popup(self, instance):
         box = BoxLayout(orientation='vertical', padding=[16, 12, 16, 12], spacing=8)
@@ -556,8 +640,8 @@ class LoginScreen(Screen):
         otp_in = ModernInput(hint_text="Enter 4-Digit OTP", multiline=False, input_filter='int', size_hint_y=0.18)
         box.add_widget(otp_in)
 
-        new_pwd_in = ModernInput(hint_text="New Strong Password (8+ chars)", password=True, multiline=False, size_hint_y=0.18)
-        box.add_widget(new_pwd_in)
+        new_pwd_field = PasswordField(hint_text="New Strong Password (8+ chars)", size_hint_y=0.18)
+        box.add_widget(new_pwd_field)
 
         status_lbl = Label(text="", font_size='11sp', color=(1, 0.4, 0.4, 1), size_hint_y=0.1)
         box.add_widget(status_lbl)
@@ -589,7 +673,7 @@ class LoginScreen(Screen):
                 status_lbl.color = (1, 0.4, 0.4, 1)
                 status_lbl.text = "Invalid OTP code!"
                 return
-            new_p = new_pwd_in.text.strip()
+            new_p = new_pwd_field.text.strip()
             is_valid, msg = is_strong_password(new_p)
             if not is_valid:
                 status_lbl.color = (1, 0.4, 0.4, 1)
@@ -608,7 +692,6 @@ class LoginScreen(Screen):
         close_btn.bind(on_press=popup.dismiss)
         popup.open()
 
-# Top-Tier Multi-Screen Hub with Bottom Navigation
 class MainHubScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -616,18 +699,15 @@ class MainHubScreen(Screen):
 
         root = BoxLayout(orientation='vertical')
 
-        # Top Universal Status Header
         top_header = ModernCard(size_hint_y=0.07, padding=[12, 6, 12, 6])
         top_header.add_widget(Label(text="BARAT CORE PROTOCOL", font_size='13.5sp', bold=True, color=(0.05, 0.88, 0.55, 1)))
         self.header_stat = Label(text="Hashrate: 10.0 H/s", font_size='11sp', color=(0.4, 0.76, 1, 1), halign='right')
         top_header.add_widget(self.header_stat)
         root.add_widget(top_header)
 
-        # Content Area (Changes according to bottom tabs)
         self.content_area = BoxLayout(orientation='vertical', padding=[16, 10, 16, 10], spacing=8, size_hint_y=0.84)
         root.add_widget(self.content_area)
 
-        # Modern Bottom Navigation Bar
         nav_bar = ModernCard(size_hint_y=0.09, padding=[6, 4, 6, 4], spacing=6)
 
         self.tab_mining_btn = Button(text="⛏️\nMining", background_normal='', background_color=(0.05, 0.62, 0.38, 1), font_size='10.5sp', bold=True)
@@ -657,7 +737,6 @@ class MainHubScreen(Screen):
     def switch_tab(self, tab_name):
         self.active_tab = tab_name
         
-        # Reset button styles
         unselected = (0.18, 0.24, 0.34, 1)
         selected = (0.05, 0.62, 0.38, 1)
 
@@ -681,11 +760,9 @@ class MainHubScreen(Screen):
         elif self.active_tab == "profile":
             self.render_profile_tab(data)
 
-    # 1. MINING TAB
     def render_mining_tab(self, data):
         mined = data.get("balance", 0.0)
 
-        # Big Live Balance Card
         bal_card = ModernCard(orientation='vertical', size_hint_y=0.25, padding=[10, 8, 10, 8])
         bal_card.add_widget(Label(text="TOTAL MINED BALANCE", font_size='12sp', color=(0.8, 0.88, 0.94, 1)))
         self.live_bal_lbl = Label(text=f"{mined:.4f} $BARAT", font_size='26sp', bold=True, color=(0.05, 0.88, 0.55, 1))
@@ -694,7 +771,6 @@ class MainHubScreen(Screen):
         bal_card.add_widget(Label(text=f"Active Boost: {mult}x | +{(0.416 * mult):.3f} BARAT/hr", font_size='11sp', color=(1.0, 0.84, 0.24, 1)))
         self.content_area.add_widget(bal_card)
 
-        # Target Research Box
         info_card = ModernCard(orientation='vertical', size_hint_y=0.26, padding=[10, 8, 10, 8], spacing=3)
         height = data.get("block_height", 3)
         target = CANCER_TARGETS[height % len(CANCER_TARGETS)]
@@ -705,7 +781,6 @@ class MainHubScreen(Screen):
         info_card.add_widget(self.timer_lbl)
         self.content_area.add_widget(info_card)
 
-        # Large Mine Block Action Button
         self.mine_btn = Button(
             text="⚡ SOLVE TARGET & MINE BLOCK",
             size_hint_y=0.18,
@@ -720,7 +795,6 @@ class MainHubScreen(Screen):
         self.mining_status_lbl = Label(text="Global Nodes Synchronized.", font_size='10.5sp', color=(1.0, 0.88, 0.4, 1), size_hint_y=0.08)
         self.content_area.add_widget(self.mining_status_lbl)
 
-    # 2. TEAM & REFERRAL TAB
     def render_team_tab(self, data):
         ref_card = ModernCard(orientation='vertical', size_hint_y=0.32, padding=[12, 10, 12, 10], spacing=4)
         ref_card.add_widget(Label(text="YOUR REFERRAL CODE", font_size='13sp', bold=True, color=(0.05, 0.88, 0.55, 1)))
@@ -742,7 +816,6 @@ class MainHubScreen(Screen):
         team_list_card.add_widget(ping_btn)
         self.content_area.add_widget(team_list_card)
 
-    # 3. WALLET TAB
     def render_wallet_tab(self, data):
         wallets = data.get("wallets", [])
         idx = data.get("active_wallet_index", 0)
@@ -755,12 +828,10 @@ class MainHubScreen(Screen):
         w_card.add_widget(Label(text=f"{w_bal:.2f} $BARAT", font_size='24sp', bold=True, color=(1, 1, 1, 1)))
         self.content_area.add_widget(w_card)
 
-        # Claim Button
         claim_btn = Button(text="Claim Mined Balance to Vault", size_hint_y=0.12, background_normal='', background_color=(0.05, 0.68, 0.38, 1), bold=True)
         claim_btn.bind(on_press=self.claim_to_active_wallet)
         self.content_area.add_widget(claim_btn)
 
-        # Action Buttons
         btn_box = BoxLayout(spacing=8, size_hint_y=0.14)
         create_w_btn = Button(text="+ New Wallet", background_normal='', background_color=(0.18, 0.48, 0.82, 1), bold=True)
         create_w_btn.bind(on_press=lambda x: self.open_create_wallet_popup())
@@ -770,12 +841,10 @@ class MainHubScreen(Screen):
         btn_box.add_widget(switch_w_btn)
         self.content_area.add_widget(btn_box)
 
-        # Solana Bridge Action
         sol_btn = Button(text="Sync With Solana Bridge", size_hint_y=0.13, background_normal='', background_color=(0.54, 0.26, 0.82, 1), bold=True)
         sol_btn.bind(on_press=self.open_solana_bridge_popup)
         self.content_area.add_widget(sol_btn)
 
-    # 4. PROFILE TAB
     def render_profile_tab(self, data):
         prof_card = ModernCard(orientation='vertical', size_hint_y=0.55, padding=[14, 12, 14, 12], spacing=5)
         prof_card.add_widget(Label(text="NODE IDENTITY & PROFILE", font_size='14sp', bold=True, color=(0.05, 0.88, 0.55, 1)))
