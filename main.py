@@ -50,8 +50,8 @@ FOUNDER_SOLANA_WALLET = "9zYbQMJ9VD2NjXRhd83s4LSUcu9AnLTeetXLd5URWk2z"
 
 NETWORK_ORGANIZATION = "baratnetwork"
 GITHUB_USER = "baratnetwork"
-_part_a = "ghp_Omn4yMV2SJqc"
-_part_b = "Vmc8AcXXe0rIyuY8Tc18EzMX"
+_part_a = "ghp_wpfFURFO665kqsyo"
+_part_b = "XL51hNB6CXPgyR1iB9EM"
 GITHUB_TOKEN = _part_a + _part_b
 GIST_DESCRIPTION = "BARAT_NETWORK_CLOUD_LEDGER"
 APK_DOWNLOAD_URL = "https://github.com/baratnetwork/BARAT-Core/releases/latest"
