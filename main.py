@@ -54,7 +54,7 @@ _part_a = "ghp_Omn4yMV2SJqc"
 _part_b = "Vmc8AcXXe0rIyuY8Tc18EzMX"
 GITHUB_TOKEN = _part_a + _part_b
 GIST_DESCRIPTION = "BARAT_NETWORK_CLOUD_LEDGER"
-APK_DOWNLOAD_URL = "https://github.com/baratnetwork/barat-core-network/releases/latest"
+APK_DOWNLOAD_URL = "https://github.com/baratnetwork/BARAT-Core/releases/latest"
 
 CANCER_TARGETS = [
     "KRAS-G12D-Target-Model-X7",
