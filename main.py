@@ -23,7 +23,15 @@ from kivy.core.clipboard import Clipboard
 from kivy.graphics import Color, RoundedRectangle, Line, Ellipse
 from kivy.resources import resource_find, resource_add_path
 from kivy.utils import platform
-
+def get_halving_rate(total_nodes):
+    if total_nodes <= 10000:
+        return 0.50, "Phase 1: Genesis Era"
+    elif total_nodes <= 50000:
+        return 0.25, "Phase 2: Expansion Era"
+    elif total_nodes <= 200000:
+        return 0.125, "Phase 3: Global Scale Era"
+    else:
+        return 0.0625, "Phase 4: Final Maturity"
 try:
     Window.softinput_mode = "resize"
 except Exception:
