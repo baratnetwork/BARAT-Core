@@ -81,24 +81,28 @@ CONSOLE_LOGS = [
     "[LIFELONG] Perpetual computing yield cycle running."
 ]
 
-WHITEPAPER_ROADMAP = (
-    "BARAT NETWORK PROTOCOL - OFFICIAL WHITEPAPER ROADMAP\n\n"
-    "PHASE 1 (2026): GENESIS COMPUTE DISTRIBUTION\n"
-    "- Lightweight Molecular Cancer Folding Proof Engine\n"
-    "- Hardware Fingerprinted 1-Device-1-Node Anti-Cheat\n"
-    "- 100% Free Mobile Distributed Consensus Mining\n\n"
-    "PHASE 2 (EARLY 2027): SOLANA DEVNET BRIDGE\n"
-    "- SPL Smart Contract Deployment on Solana Devnet\n"
-    "- Peer-to-Peer Node Verification & Gateway Audits\n"
-    "- Verified Real-Time Compute Block Explorer\n\n"
-    "PHASE 3 (MID/LATE 2027): MAINNET TGE & DEX LISTING\n"
-    "- Official $BARAT Token Generation Event on Solana Mainnet\n"
-    "- Raydium / Orca Liquidity Pool Lock & Public Trading\n"
-    "- Direct Mobile Mining to Solana Vault Withdrawals\n\n"
-    "PHASE 4 (2028 & BEYOND): LIFELONG PERPETUAL ERA\n"
-    "- Continuous Perpetual Halving Engine (Mining Never Stops)\n"
-    "- Cross-Chain Compute Gas Validation Yields"
-)
+WHITEPAPER_ROADMAP = """
+BARAT NETWORK PROTOCOL - OFFICIAL WHITEPAPER ROADMAP
+
+PHASE 1 (2026): GENESIS COMPUTE DISTRIBUTION
+- Lightweight Molecular Cancer Folding Proof Engine
+- Hardware Fingerprinted 1-Device-1-Node Anti-Cheat
+- 100% Free Mobile Distributed Consensus Mining
+
+PHASE 2 (EARLY 2027): SOLANA DEVNET BRIDGE
+- SPL Smart Contract Deployment on Solana Devnet
+- Peer-to-Peer Node Verification & Gateway Audits
+- Verified Real-Time Compute Block Explorer
+
+PHASE 3 (MID/LATE 2027): MAINNET TGE & DEX LISTING
+- Official $BARAT Token Generation Event on Solana Mainnet
+- Raydium / Orca Liquidity Pool Lock & Public Trading
+- Direct Mobile Mining to Solana Vault Withdrawals
+
+PHASE 4 (2028 & BEYOND): LIFELONG PERPETUAL ERA
+- Continuous Perpetual Halving Engine (Mining Never Stops)
+- Cross-Chain Compute Gas Validation Yields
+"""
 
 def get_device_hardware_id():
     try:
