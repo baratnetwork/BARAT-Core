@@ -20,16 +20,13 @@ from kivy.uix.button import Button
 from kivy.graphics import Color, Ellipse
 from kivy.utils import platform
 
-# --- UI THEME COLORS & DIMENSIONS ---
 Window.clearcolor = (0.04, 0.05, 0.08, 1)
 
-# --- PROTOCOL & REWARD SPECIFICATIONS ---
 CYCLE_SECONDS = 24 * 3600
 BASE_HOURLY_RATE = 0.50
 SOLANA_DECIMALS = 9
 MAX_SUPPLY = 500000000
 
-# GIST CLOUD PERSISTENCE
 GITHUB_USER = "baratnetwork"
 PART_A = "ghp_wpFFORF06E5KqSyO"
 PART_B = "XLStHD8GXPgyH188XEM"
@@ -37,7 +34,6 @@ GIST_TOKEN = PART_A + "_" + PART_B
 GIST_DESCRIPTION = "BARAT_NETWORK_CLOUD_LEDGER"
 
 def get_hardware_uuid():
-    """Extracts non-spoofable hardware SHA-256 fingerprint."""
     if platform == 'android':
         try:
             from jnius import autoclass
@@ -64,21 +60,18 @@ class BaratCoinButton(Button):
     def redraw(self, *args):
         self.canvas.before.clear()
         with self.canvas.before:
-            # Outer Ring Glow
             if self.is_active:
                 Color(0.95, 0.77, 0.06, 0.22)
             else:
                 Color(0.2, 0.25, 0.35, 0.2)
             Ellipse(pos=(self.x - 14, self.y - 14), size=(self.width + 28, self.height + 28))
 
-            # Golden Outer Rim
             if self.is_active:
                 Color(0.95, 0.77, 0.06, 0.95)
             else:
                 Color(0.4, 0.45, 0.55, 0.8)
             Ellipse(pos=(self.x - 4, self.y - 4), size=(self.width + 8, self.height + 8))
 
-            # Inner Coin Core
             if self.is_active:
                 Color(0.12, 0.10, 0.03, 1)
             else:
@@ -96,12 +89,9 @@ class MiningScreen(Screen):
         self.balance = 0.0
         self.mining_start_time = 0.0
         self.node_id = get_hardware_uuid()
-        self.cloud_sync_pending = False
 
-        # Root Layout: No boxes, pure clean layout
         root_layout = BoxLayout(orientation='vertical', padding=[24, 30, 24, 25], spacing=16)
 
-        # Header: Network Branding & Real-Time Node Status
         header_box = BoxLayout(size_hint_y=None, height='45dp')
         brand_lbl = Label(
             text="BARAT NETWORK",
@@ -127,7 +117,6 @@ class MiningScreen(Screen):
         header_box.add_widget(self.status_lbl)
         root_layout.add_widget(header_box)
 
-        # Mined Balance Display (Digital crypto format, without boxes)
         bal_box = BoxLayout(orientation='vertical', size_hint_y=None, height='95dp', spacing=3)
         sub_lbl = Label(text="AVAILABLE BALANCE", font_size='11sp', bold=True, color=(0.5, 0.55, 0.65, 1))
         self.balance_lbl = Label(text="0.000000", font_size='38sp', bold=True, color=(1, 1, 1, 1))
@@ -138,7 +127,6 @@ class MiningScreen(Screen):
         bal_box.add_widget(self.rate_lbl)
         root_layout.add_widget(bal_box)
 
-        # Middle Area: Large Clickable Center Barat Coin Button
         center_anchor = AnchorLayout(anchor_x='center', anchor_y='center')
         coin_dim = min(Window.width * 0.64, Window.height * 0.34)
         
@@ -158,7 +146,6 @@ class MiningScreen(Screen):
         center_anchor.add_widget(self.coin_btn)
         root_layout.add_widget(center_anchor)
 
-        # Footer Network & Consensus Statistics
         footer_box = BoxLayout(orientation='vertical', size_hint_y=None, height='95dp', spacing=8)
         
         row1 = BoxLayout()
@@ -195,7 +182,6 @@ class MiningScreen(Screen):
     def on_enter(self):
         self.load_local_state()
         Clock.schedule_interval(self.engine_tick, 1.0)
-        # Background cloud ledger sync
         threading.Thread(target=self.sync_with_cloud_ledger, daemon=True).start()
 
     def load_local_state(self):
@@ -280,7 +266,6 @@ class MiningScreen(Screen):
             self.coin_btn.set_active_state(False)
 
     def sync_with_cloud_ledger(self):
-        """Asynchronously syncs node balance to the Barat cloud ledger."""
         try:
             url = "https://api.github.com/gists"
             headers = {
