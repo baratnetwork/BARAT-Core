@@ -1,24 +1,16 @@
-# BARAT Network ($BARAT) Whitepaper
-**The Decentralized Proof-of-Intelligence Mobile Computing Protocol**
+## 5. Humanitarian Core & Planetary Computing (Why Barat Network is Forever)
 
-## 1. Vision & Architecture
-Barat Network is a decentralized lightweight mobile mining protocol designed to allow everyday smartphones to participate in consensus and secure distributed ledgers without battery drain or overheating.
+### The Tragedy of Traditional Proof-of-Work (PoW)
+Traditional crypto mining (such as Bitcoin) burns gigawatts of electrical energy and millions of liters of freshwater daily just to solve meaningless cryptographic puzzles. It pollutes the environment and contributes to global warming without producing a single ounce of real-world value for humanity.
 
-## 2. Tokenomics (Fixed Supply)
-- **Total Maximum Supply:** 500,000,000 $BARAT (Strict Hard Cap)
-- **Community Mobile Mining:** 65% (325,000,000 $BARAT)
-- **Ecosystem & Liquidity Pool:** 20% (100,000,000 $BARAT for Raydium/Orca DEX)
-- **Core Development & Infrastructure:** 15% (75,000,000 $BARAT locked with 2-year vesting)
+### The Barat Network Solution: Proof-of-Intelligence (PoI)
+Barat Network replaces useless, energy-wasting calculations with **Life-Saving & Planetary Micro-Computing**:
 
-## 3. Halving Schedule (Decay Mechanism)
-To preserve purchasing power and prevent inflation, mining emission halves at key network milestones:
-- **Genesis Phase (0 - 10,000 Active Nodes):** 0.50 BARAT / hr
-- **Phase 2 (10,001 - 50,000 Active Nodes):** 0.25 BARAT / hr
-- **Phase 3 (50,001 - 200,000 Active Nodes):** 0.125 BARAT / hr
-- **Phase 4 (200,001+ Nodes until Cap):** 0.0625 BARAT / hr
+1. **Environmental & Climate Modeling:**
+   - Aggregated mobile computing power helps analyze localized climate data, weather patterns, and environmental degradation models without massive data center footprints.
+2. **Medical Research & Disease Eradication:**
+   - Distributed mobile nodes process micro-calculations for biomedical research, including cancer cell simulation, genetic sequence mapping, and disease pathology models.
+3. **Futuristic Inventions & Green Decentralized AI:**
+   - Supplying decentralized computing clusters for next-generation scientific innovations, humanitarian algorithms, and open AI research accessible to all humankind.
 
-## 4. Multi-Year Roadmap (2026 - 2027)
-- **Q4 2026:** Android Lightweight Node Distribution, Cloud Ledger Synchronization, Community Assembly.
-- **Q1 2027:** Solana Devnet Integration, Smart Contract Minting, Testnet Token Faucet.
-- **Q2 2027:** Internal Test Ledger to SPL-Token Migration Simulator & Anti-Bot Hardware Audits.
-- **Q3/Q4 2027:** Solana Mainnet Launch, Token Mint Finalization, 1:1 Mobile Ledger Airdrop Distribution, and Decentralized Exchange (DEX) Listing.
+Every $BARAT token mined represents genuine computational progress toward solving humanity's greatest challenges.
