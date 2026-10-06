@@ -293,11 +293,9 @@ def get_current_live_mined(data):
     now = time.time()
     elapsed = max(0, min(now - last, CYCLE_HOURS * 3600))
     
-    total_mined = data.get("total_mined", base)
-    phase = int(total_mined // HALVING_INTERVAL) + 1
-    cycle_reward = (BLOCK_REWARD_INITIAL / (2 ** (phase - 1))) * data.get("mining_speed_multiplier", 1.0)
-    
-    rate_per_sec = cycle_reward / (CYCLE_HOURS * 3600)
+        total_nodes = len(data.get("team_members", [])) + 1
+    hourly_rate, phase_name = get_halving_rate(total_nodes)
+    rate_per_sec = (hourly_rate * data.get("mining_speed_multiplier", 1.0)) / 3600.0
     current_accrued = base + (elapsed * rate_per_sec)
     return current_accrued
 
