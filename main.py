@@ -16,6 +16,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
@@ -24,10 +25,9 @@ from kivy.graphics import Color, Ellipse
 from kivy.utils import platform
 from kivy.core.clipboard import Clipboard
 
-# Clean Dark Canvas
 Window.clearcolor = (0.04, 0.05, 0.08, 1)
 
-# --- PROTOCOL PARAMETERS ---
+# PROTOCOL PARAMETERS
 CYCLE_HOURS = 24
 CYCLE_SECONDS = CYCLE_HOURS * 3600
 MIN_CYCLES_REQUIRED = 5
@@ -61,8 +61,38 @@ CONSOLE_LOGS = [
     "[LEDGER] Continuous perpetual yield synced."
 ]
 
+# EXACT WHITEPAPER TEXT INTEGRATED SAFELY
+OFFICIAL_WHITEPAPER_TEXT = (
+    "BARAT NETWORK PROTOCOL WHITEPAPER\n"
+    "Decentralized Scientific Proof-of-Intelligence (PoI) on Solana\n"
+    "--------------------------------------------------\n\n"
+    "1. EXECUTIVE SUMMARY\n"
+    "Barat Network transforms smartphone compute into biomedical\n"
+    "discoveries using lightweight Proof-of-Intelligence (PoI).\n\n"
+    "2. TOKENOMICS & 4-PHASE HALVING\n"
+    "Total Supply: 500,000,000 $BARAT Strictly Capped.\n"
+    "- Phase 1 (0-100k Nodes): 0.50 BARAT/hr (Genesis Active)\n"
+    "- Phase 2 (100k-1M Nodes): 0.25 BARAT/hr (Devnet Bridge)\n"
+    "- Phase 3 (1M-10M Nodes): 0.125 BARAT/hr (Mainnet TGE)\n"
+    "- Phase 4 (10M+ Nodes): 0.0625 BARAT/hr (Perpetual Era)\n\n"
+    "3. CONSENSUS TARGETS (PoI)\n"
+    "- KRAS-G12D-Target-Model-X7 (Oncology)\n"
+    "- MYC-Oncogene-Transcription-L3\n"
+    "- TP53-Binding-Conformation-V2\n"
+    "- EGFR-Exon20-Kinase-Domain-Z9\n"
+    "- BRCA1-DNA-Repair-Fold-Alpha\n\n"
+    "4. ANTI-CHEAT & NODE SECURITY\n"
+    "- 1-Device-1-Node Hardware Binding (SHA-256 Android ID)\n"
+    "- 24-Hour Active Human Proof-of-Presence Cycle\n"
+    "- Sybil Resistance blocks multi-instance emulators\n\n"
+    "5. OFFICIAL ROADMAP\n"
+    "- Phase 1 (2026): Genesis Distribution & PoI Mining\n"
+    "- Phase 2 (Early 2027): Solana Devnet Bridge & Audits\n"
+    "- Phase 3 (Mid/Late 2027): Mainnet TGE & Raydium DEX Listing\n"
+    "- Phase 4 (2028+): Lifelong Perpetual Mining & Gas Yields\n"
+)
+
 def get_device_hardware_id():
-    """Extracts non-spoofable hardware SHA-256 node ID."""
     if platform == 'android':
         try:
             from jnius import autoclass
@@ -78,7 +108,6 @@ def get_device_hardware_id():
     return hashlib.sha256(str(mac_node).encode('utf-8')).hexdigest()[:16].upper()
 
 def share_to_social_apps(text_to_share):
-    """Native share intent for Android."""
     if platform == 'android':
         try:
             from jnius import autoclass
@@ -135,7 +164,7 @@ class ActionMenuButton(Button):
         self.background_down = ''
         self.background_color = (0.12, 0.14, 0.20, 1)
         self.color = (0.9, 0.9, 0.95, 1)
-        self.font_size = '11sp'
+        self.font_size = '10sp'
         self.bold = True
 
 class MiningScreen(Screen):
@@ -151,9 +180,9 @@ class MiningScreen(Screen):
         self.log_index = 0
         self.node_id = get_device_hardware_id()
 
-        root = BoxLayout(orientation='vertical', padding=[20, 20, 20, 15], spacing=10)
+        root = BoxLayout(orientation='vertical', padding=[20, 18, 20, 15], spacing=10)
 
-        # 1. TOP HEADER
+        # Header
         hdr = BoxLayout(size_hint_y=None, height='38dp')
         brand = Label(text="BARAT NETWORK", font_size='19sp', bold=True, color=(0.95, 0.77, 0.06, 1), halign='left', valign='middle')
         brand.bind(size=brand.setter('text_size'))
@@ -163,27 +192,26 @@ class MiningScreen(Screen):
         hdr.add_widget(self.status_lbl)
         root.add_widget(hdr)
 
-        # 2. BALANCE DISPLAY (Clean, No Box)
-        bal_box = BoxLayout(orientation='vertical', size_hint_y=None, height='80dp', spacing=2)
+        # Balance Section (Clean digits, no boxes)
+        bal_box = BoxLayout(orientation='vertical', size_hint_y=None, height='75dp', spacing=2)
         sub_lbl = Label(text="AVAILABLE BALANCE", font_size='11sp', bold=True, color=(0.5, 0.55, 0.65, 1))
-        self.balance_lbl = Label(text="0.000000", font_size='35sp', bold=True, color=(1, 1, 1, 1))
+        self.balance_lbl = Label(text="0.000000", font_size='34sp', bold=True, color=(1, 1, 1, 1))
         self.rate_lbl = Label(text="+0.5000 BARAT/hr", font_size='12sp', bold=True, color=(0.95, 0.77, 0.06, 1))
         bal_box.add_widget(sub_lbl)
         bal_box.add_widget(self.balance_lbl)
         bal_box.add_widget(self.rate_lbl)
         root.add_widget(bal_box)
 
-        # 3. CENTER: SCREEN-FIT GOLDEN $BARAT COIN
+        # Center Barat Coin Button
         center_anchor = AnchorLayout(anchor_x='center', anchor_y='center')
-        coin_dim = min(Window.width * 0.58, Window.height * 0.30)
+        coin_dim = min(Window.width * 0.56, Window.height * 0.28)
         self.coin_btn = BaratCoinButton(size_hint=(None, None), size=(coin_dim, coin_dim))
         self.coin_btn.bind(on_press=self.on_coin_tap)
 
-        coin_inner = BoxLayout(orientation='vertical', spacing=2, padding=8)
-        self.symbol_lbl = Label(text="₿", font_size='50sp', bold=True, color=(0.5, 0.55, 0.65, 1))
+        coin_inner = BoxLayout(orientation='vertical', spacing=2, padding=6)
+        self.symbol_lbl = Label(text="₿", font_size='48sp', bold=True, color=(0.5, 0.55, 0.65, 1))
         self.coin_state_lbl = Label(text="START MINING", font_size='13sp', bold=True, color=(1, 1, 1, 1))
         self.countdown_lbl = Label(text="24:00:00", font_size='11sp', color=(0.7, 0.75, 0.85, 1))
-        
         coin_inner.add_widget(self.symbol_lbl)
         coin_inner.add_widget(self.coin_state_lbl)
         coin_inner.add_widget(self.countdown_lbl)
@@ -192,8 +220,8 @@ class MiningScreen(Screen):
         center_anchor.add_widget(self.coin_btn)
         root.add_widget(center_anchor)
 
-        # 4. LIVE SCIENTIFIC PoI TELEMETRY STREAM
-        telemetry_box = BoxLayout(orientation='vertical', size_hint_y=None, height='40dp', spacing=1)
+        # Live Computation Stream
+        telemetry_box = BoxLayout(orientation='vertical', size_hint_y=None, height='38dp', spacing=1)
         self.target_lbl = Label(text="Target: KRAS-G12D-Target-Model-X7", font_size='11sp', color=(0.95, 0.77, 0.06, 0.85), halign='center')
         self.target_lbl.bind(size=self.target_lbl.setter('text_size'))
         self.console_lbl = Label(text="[BARAT PROTOCOL] Standby for computation...", font_size='10sp', color=(0.4, 0.7, 0.9, 1), halign='center')
@@ -202,21 +230,29 @@ class MiningScreen(Screen):
         telemetry_box.add_widget(self.console_lbl)
         root.add_widget(telemetry_box)
 
-        # 5. BOTTOM ACTION BUTTONS
-        btn_bar = GridLayout(cols=3, size_hint_y=None, height='42dp', spacing=10)
-        wallet_btn = ActionMenuButton(text="SOLANA WALLET")
+        # Navigation Action Grid: WALLET, WHITEPAPER, TOKEN, INVITE
+        btn_bar = GridLayout(cols=4, size_hint_y=None, height='40dp', spacing=6)
+        
+        wallet_btn = ActionMenuButton(text="WALLET")
         wallet_btn.bind(on_press=self.open_wallet_dialog)
-        token_btn = ActionMenuButton(text="$BARAT TOKEN")
+
+        wp_btn = ActionMenuButton(text="WHITEPAPER")
+        wp_btn.bind(on_press=self.open_whitepaper_dialog)
+        
+        token_btn = ActionMenuButton(text="TOKEN")
         token_btn.bind(on_press=self.open_token_dialog)
-        share_btn = ActionMenuButton(text="INVITE NODE")
+        
+        share_btn = ActionMenuButton(text="INVITE")
         share_btn.bind(on_press=self.on_share_tap)
+
         btn_bar.add_widget(wallet_btn)
+        btn_bar.add_widget(wp_btn)
         btn_bar.add_widget(token_btn)
         btn_bar.add_widget(share_btn)
         root.add_widget(btn_bar)
 
-        # 6. FOOTER TELEMETRY
-        ftr = BoxLayout(orientation='vertical', size_hint_y=None, height='65dp', spacing=4)
+        # Footer Status
+        ftr = BoxLayout(orientation='vertical', size_hint_y=None, height='60dp', spacing=3)
         r1 = BoxLayout()
         r1_t = Label(text="Consensus Phase", font_size='11sp', color=(0.5, 0.55, 0.65, 1), halign='left')
         r1_t.bind(size=r1_t.setter('text_size'))
@@ -358,6 +394,23 @@ class MiningScreen(Screen):
     def on_share_tap(self, *args):
         msg = f"Join Barat Network mobile mining! Proof-of-Intelligence node binding. My Node ID: {self.node_id}. Download: {APK_DOWNLOAD_URL}"
         share_to_social_apps(msg)
+
+    def open_whitepaper_dialog(self, *args):
+        """Scrollable clean view of Official Whitepaper without syntax crashes."""
+        box = BoxLayout(orientation='vertical', padding=12, spacing=8)
+        scroll = ScrollView(size_hint=(1, 1))
+        wp_lbl = Label(text=OFFICIAL_WHITEPAPER_TEXT, font_size='11sp', color=(0.85, 0.9, 0.95, 1), size_hint_y=None)
+        wp_lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
+        wp_lbl.bind(width=lambda instance, value: setattr(instance, 'text_size', (value, None)))
+        scroll.add_widget(wp_lbl)
+        box.add_widget(scroll)
+
+        close_btn = Button(text="CLOSE WHITEPAPER", size_hint_y=None, height='36dp', font_size='11sp', bold=True)
+        box.add_widget(close_btn)
+
+        popup = Popup(title="Barat Protocol Whitepaper", content=box, size_hint=(0.92, 0.85))
+        close_btn.bind(on_press=popup.dismiss)
+        popup.open()
 
     def open_wallet_dialog(self, *args):
         box = BoxLayout(orientation='vertical', padding=15, spacing=10)
