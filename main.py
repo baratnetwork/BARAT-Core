@@ -12,7 +12,7 @@ from datetime import datetime
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.clock import Clock
-from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.gridlayout import GridLayout
@@ -27,7 +27,6 @@ from kivy.core.clipboard import Clipboard
 
 Window.clearcolor = (0.04, 0.05, 0.08, 1)
 
-# PROTOCOL PARAMETERS
 CYCLE_HOURS = 24
 CYCLE_SECONDS = CYCLE_HOURS * 3600
 MIN_CYCLES_REQUIRED = 5
@@ -61,22 +60,21 @@ CONSOLE_LOGS = [
     "[LEDGER] Continuous perpetual yield synced."
 ]
 
-# EXACT WHITEPAPER TEXT INTEGRATED SAFELY
 OFFICIAL_WHITEPAPER_TEXT = (
     "BARAT NETWORK PROTOCOL WHITEPAPER\n"
     "Decentralized Scientific Proof-of-Intelligence (PoI) on Solana\n"
     "--------------------------------------------------\n\n"
     "1. EXECUTIVE SUMMARY\n"
-    "Barat Network transforms smartphone compute into biomedical\n"
-    "discoveries using lightweight Proof-of-Intelligence (PoI).\n\n"
+    "Barat Network transforms smartphone compute into biomedical discoveries\n"
+    "using lightweight Proof-of-Intelligence (PoI) consensus.\n\n"
     "2. TOKENOMICS & 4-PHASE HALVING\n"
     "Total Supply: 500,000,000 $BARAT Strictly Capped.\n"
     "- Phase 1 (0-100k Nodes): 0.50 BARAT/hr (Genesis Active)\n"
     "- Phase 2 (100k-1M Nodes): 0.25 BARAT/hr (Devnet Bridge)\n"
     "- Phase 3 (1M-10M Nodes): 0.125 BARAT/hr (Mainnet TGE)\n"
-    "- Phase 4 (10M+ Nodes): 0.0625 BARAT/hr (Perpetual Era)\n\n"
+    "- Phase 4 (10M+ Nodes): 0.0625 BARAT/hr (Perpetual Lifelong Era)\n\n"
     "3. CONSENSUS TARGETS (PoI)\n"
-    "- KRAS-G12D-Target-Model-X7 (Oncology)\n"
+    "- KRAS-G12D-Target-Model-X7 (Pancreatic/Lung Oncology)\n"
     "- MYC-Oncogene-Transcription-L3\n"
     "- TP53-Binding-Conformation-V2\n"
     "- EGFR-Exon20-Kinase-Domain-Z9\n"
@@ -167,6 +165,98 @@ class ActionMenuButton(Button):
         self.font_size = '10sp'
         self.bold = True
 
+class AuthScreen(Screen):
+    def __init__(self, **kwargs):
+        super(AuthScreen, self).__init__(**kwargs)
+        self.node_id = get_device_hardware_id()
+        
+        layout = BoxLayout(orientation='vertical', padding=[30, 40, 30, 30], spacing=15)
+        
+        header = Label(text="BARAT NETWORK", font_size='22sp', bold=True, color=(0.95, 0.77, 0.06, 1), size_hint_y=None, height='40dp')
+        sub = Label(text="Secure Node Identification", font_size='12sp', color=(0.6, 0.65, 0.75, 1), size_hint_y=None, height='25dp')
+        layout.add_widget(header)
+        layout.add_widget(sub)
+
+        node_box = BoxLayout(orientation='vertical', size_hint_y=None, height='65dp', spacing=3)
+        n_title = Label(text="DEVICE HARDWARE NODE ID", font_size='11sp', color=(0.5, 0.55, 0.65, 1), bold=True)
+        self.n_val = Label(text=f"Node-{self.node_id}", font_size='13sp', color=(0.3, 0.85, 0.45, 1), bold=True)
+        node_box.add_widget(n_title)
+        node_box.add_widget(self.n_val)
+        layout.add_widget(node_box)
+
+        self.username_input = TextInput(hint_text="Enter Miner Call-Sign (Username)", multiline=False, size_hint_y=None, height='42dp', font_size='12sp')
+        layout.add_widget(self.username_input)
+
+        self.pin_input = TextInput(hint_text="Security Pin (4-6 Digits)", password=True, multiline=False, size_hint_y=None, height='42dp', font_size='12sp')
+        layout.add_widget(self.pin_input)
+
+        self.msg_lbl = Label(text="", font_size='11sp', color=(0.9, 0.4, 0.2, 1), size_hint_y=None, height='25dp')
+        layout.add_widget(self.msg_lbl)
+
+        btn_row = BoxLayout(size_hint_y=None, height='44dp', spacing=12)
+        login_btn = Button(text="CONNECT NODE", font_size='11sp', bold=True, background_normal='', background_color=(0.15, 0.55, 0.35, 1))
+        login_btn.bind(on_press=self.do_auth)
+        
+        reg_btn = Button(text="REGISTER NEW", font_size='11sp', bold=True, background_normal='', background_color=(0.20, 0.25, 0.38, 1))
+        reg_btn.bind(on_press=self.do_register)
+        
+        btn_row.add_widget(login_btn)
+        btn_row.add_widget(reg_btn)
+        layout.add_widget(btn_row)
+
+        sec_info = Label(text="Anti-Cheat: 1 Device = 1 Cryptographic Node Binding", font_size='10sp', color=(0.4, 0.45, 0.55, 1))
+        layout.add_widget(sec_info)
+
+        self.add_widget(layout)
+
+    def on_enter(self):
+        if os.path.exists("miner_auth.json"):
+            try:
+                with open("miner_auth.json", "r") as f:
+                    auth_data = json.load(f)
+                    if auth_data.get("registered", False) and auth_data.get("node_id") == self.node_id:
+                        self.manager.current = 'mining'
+            except Exception:
+                pass
+
+    def do_register(self, *args):
+        u = self.username_input.text.strip()
+        p = self.pin_input.text.strip()
+        if len(u) < 3:
+            self.msg_lbl.text = "Username must be at least 3 characters!"
+            return
+        if len(p) < 4:
+            self.msg_lbl.text = "Pin must be at least 4 digits!"
+            return
+
+        with open("miner_auth.json", "w") as f:
+            json.dump({
+                "username": u,
+                "pin_hash": hashlib.sha256(p.encode()).hexdigest(),
+                "node_id": self.node_id,
+                "registered": True
+            }, f)
+        self.manager.current = 'mining'
+
+    def do_auth(self, *args):
+        u = self.username_input.text.strip()
+        p = self.pin_input.text.strip()
+        if not os.path.exists("miner_auth.json"):
+            self.msg_lbl.text = "Node not registered. Please tap Register New!"
+            return
+        try:
+            with open("miner_auth.json", "r") as f:
+                d = json.load(f)
+                if d.get("username") == u and d.get("pin_hash") == hashlib.sha256(p.encode()).hexdigest():
+                    if d.get("node_id") == self.node_id:
+                        self.manager.current = 'mining'
+                    else:
+                        self.msg_lbl.text = "Hardware ID mismatch! Unauthorized device."
+                else:
+                    self.msg_lbl.text = "Invalid Call-sign or Security Pin!"
+        except Exception:
+            self.msg_lbl.text = "Authentication failed. Try again."
+
 class MiningScreen(Screen):
     def __init__(self, **kwargs):
         super(MiningScreen, self).__init__(**kwargs)
@@ -192,7 +282,7 @@ class MiningScreen(Screen):
         hdr.add_widget(self.status_lbl)
         root.add_widget(hdr)
 
-        # Balance Section (Clean digits, no boxes)
+        # Balance Section (Pure text, no box frame)
         bal_box = BoxLayout(orientation='vertical', size_hint_y=None, height='75dp', spacing=2)
         sub_lbl = Label(text="AVAILABLE BALANCE", font_size='11sp', bold=True, color=(0.5, 0.55, 0.65, 1))
         self.balance_lbl = Label(text="0.000000", font_size='34sp', bold=True, color=(1, 1, 1, 1))
@@ -202,7 +292,7 @@ class MiningScreen(Screen):
         bal_box.add_widget(self.rate_lbl)
         root.add_widget(bal_box)
 
-        # Center Barat Coin Button
+        # Center Screen-Fit Golden Coin
         center_anchor = AnchorLayout(anchor_x='center', anchor_y='center')
         coin_dim = min(Window.width * 0.56, Window.height * 0.28)
         self.coin_btn = BaratCoinButton(size_hint=(None, None), size=(coin_dim, coin_dim))
@@ -220,7 +310,7 @@ class MiningScreen(Screen):
         center_anchor.add_widget(self.coin_btn)
         root.add_widget(center_anchor)
 
-        # Live Computation Stream
+        # Proof-of-Intelligence Telemetry
         telemetry_box = BoxLayout(orientation='vertical', size_hint_y=None, height='38dp', spacing=1)
         self.target_lbl = Label(text="Target: KRAS-G12D-Target-Model-X7", font_size='11sp', color=(0.95, 0.77, 0.06, 0.85), halign='center')
         self.target_lbl.bind(size=self.target_lbl.setter('text_size'))
@@ -230,7 +320,7 @@ class MiningScreen(Screen):
         telemetry_box.add_widget(self.console_lbl)
         root.add_widget(telemetry_box)
 
-        # Navigation Action Grid: WALLET, WHITEPAPER, TOKEN, INVITE
+        # Sleek Navigation Bar (Wallet, Whitepaper, Token, Invite)
         btn_bar = GridLayout(cols=4, size_hint_y=None, height='40dp', spacing=6)
         
         wallet_btn = ActionMenuButton(text="WALLET")
@@ -396,7 +486,6 @@ class MiningScreen(Screen):
         share_to_social_apps(msg)
 
     def open_whitepaper_dialog(self, *args):
-        """Scrollable clean view of Official Whitepaper without syntax crashes."""
         box = BoxLayout(orientation='vertical', padding=12, spacing=8)
         scroll = ScrollView(size_hint=(1, 1))
         wp_lbl = Label(text=OFFICIAL_WHITEPAPER_TEXT, font_size='11sp', color=(0.85, 0.9, 0.95, 1), size_hint_y=None)
@@ -521,7 +610,8 @@ class MiningScreen(Screen):
 
 class MainApp(App):
     def build(self):
-        sm = ScreenManager()
+        sm = ScreenManager(transition=FadeTransition())
+        sm.add_widget(AuthScreen(name='auth'))
         sm.add_widget(MiningScreen(name='mining'))
         return sm
 
