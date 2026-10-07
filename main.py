@@ -20,13 +20,14 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.uix.popup import Popup
-from kivy.graphics import Color, Ellipse, RoundedRectangle
+from kivy.graphics import Color, Ellipse
 from kivy.utils import platform
 from kivy.core.clipboard import Clipboard
 
+# Clean Dark Canvas
 Window.clearcolor = (0.04, 0.05, 0.08, 1)
 
-# --- PROTOCOL & REWARD PARAMETERS ---
+# --- PROTOCOL PARAMETERS ---
 CYCLE_HOURS = 24
 CYCLE_SECONDS = CYCLE_HOURS * 3600
 MIN_CYCLES_REQUIRED = 5
@@ -37,7 +38,6 @@ TOKEN_CONTRACT_DEVNET = "BARATxxSimDevnetSPLTokenAddress1111111111111"
 MAX_SUPPLY = 500000000
 DECIMALS = 9
 
-NETWORK_ORGANIZATION = "baratnetwork"
 GITHUB_USER = "baratnetwork"
 _part_a = "ghp_wpFFORF06E5KqSyO"
 _part_b = "XLStHD8GXPgyH188XEM"
@@ -62,7 +62,7 @@ CONSOLE_LOGS = [
 ]
 
 def get_device_hardware_id():
-    """Generates non-spoofable SHA-256 hardware signature."""
+    """Extracts non-spoofable hardware SHA-256 node ID."""
     if platform == 'android':
         try:
             from jnius import autoclass
@@ -151,10 +151,9 @@ class MiningScreen(Screen):
         self.log_index = 0
         self.node_id = get_device_hardware_id()
 
-        # Root Layout
         root = BoxLayout(orientation='vertical', padding=[20, 20, 20, 15], spacing=10)
 
-        # 1. TOP HEADER: Network Branding & Real-Time Status
+        # 1. TOP HEADER
         hdr = BoxLayout(size_hint_y=None, height='38dp')
         brand = Label(text="BARAT NETWORK", font_size='19sp', bold=True, color=(0.95, 0.77, 0.06, 1), halign='left', valign='middle')
         brand.bind(size=brand.setter('text_size'))
@@ -203,26 +202,21 @@ class MiningScreen(Screen):
         telemetry_box.add_widget(self.console_lbl)
         root.add_widget(telemetry_box)
 
-        # 5. BOTTOM NAVIGATION/ACTION BUTTONS (WALLET, TOKEN, SHARE)
+        # 5. BOTTOM ACTION BUTTONS
         btn_bar = GridLayout(cols=3, size_hint_y=None, height='42dp', spacing=10)
-        
         wallet_btn = ActionMenuButton(text="SOLANA WALLET")
         wallet_btn.bind(on_press=self.open_wallet_dialog)
-        
         token_btn = ActionMenuButton(text="$BARAT TOKEN")
         token_btn.bind(on_press=self.open_token_dialog)
-        
         share_btn = ActionMenuButton(text="INVITE NODE")
         share_btn.bind(on_press=self.on_share_tap)
-
         btn_bar.add_widget(wallet_btn)
         btn_bar.add_widget(token_btn)
         btn_bar.add_widget(share_btn)
         root.add_widget(btn_bar)
 
-        # 6. FOOTER TELEMETRY (Clean Info)
+        # 6. FOOTER TELEMETRY
         ftr = BoxLayout(orientation='vertical', size_hint_y=None, height='65dp', spacing=4)
-        
         r1 = BoxLayout()
         r1_t = Label(text="Consensus Phase", font_size='11sp', color=(0.5, 0.55, 0.65, 1), halign='left')
         r1_t.bind(size=r1_t.setter('text_size'))
@@ -238,7 +232,6 @@ class MiningScreen(Screen):
         r2_v.bind(size=r2_v.setter('text_size'))
         r2.add_widget(r2_t)
         r2.add_widget(r2_v)
-
         ftr.add_widget(r1)
         ftr.add_widget(r2)
         root.add_widget(ftr)
@@ -367,9 +360,7 @@ class MiningScreen(Screen):
         share_to_social_apps(msg)
 
     def open_wallet_dialog(self, *args):
-        """Clean modal popup for Solana Wallet binding & Withdraw."""
         box = BoxLayout(orientation='vertical', padding=15, spacing=10)
-        
         info = Label(text=f"Completed Cycles: {self.completed_cycles}/{MIN_CYCLES_REQUIRED}\nMin Withdraw: {MIN_WITHDRAW_AMOUNT} BARAT (2% Gas Fee)", font_size='11sp', color=(0.8, 0.8, 0.8, 1))
         box.add_widget(info)
 
@@ -410,7 +401,6 @@ class MiningScreen(Screen):
         popup.open()
 
     def open_token_dialog(self, *args):
-        """Clean modal for SPL Token specs and devnet address."""
         box = BoxLayout(orientation='vertical', padding=15, spacing=8)
         specs = (
             f"Asset: BARAT ($BARAT)\n"
@@ -476,11 +466,11 @@ class MiningScreen(Screen):
         except Exception:
             pass
 
-class BaratMiningApp(App):
+class MainApp(App):
     def build(self):
         sm = ScreenManager()
         sm.add_widget(MiningScreen(name='mining'))
         return sm
 
 if __name__ == '__main__':
-    BaratMiningApp().run()
+    MainApp().run()
