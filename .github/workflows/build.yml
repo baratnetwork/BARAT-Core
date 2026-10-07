@@ -31,7 +31,7 @@ jobs:
           pip install --upgrade pip
           pip install Cython==0.29.36 buildozer
 
-      - name: Accept Android Licenses Automatically
+      - name: Auto Accept Android Licenses & Setup
         run: |
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
@@ -48,4 +48,3 @@ jobs:
         with:
           name: barat-mining-apk
           path: bin/*.apk
-          
