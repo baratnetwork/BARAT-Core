@@ -40,3 +40,4 @@ jobs:
         with:
           name: barat-mining-apk
           path: bin/*.apk
+          
